@@ -1,0 +1,16 @@
+/.project
+/.vscode
+/.cproject
+/.settings
+/CMakeLists.txt.user
+/build*/
+*.swp
+*~
+
+# gcov output files:
+*.gcda
+*.gcno
+
+.cache
+external
+.DS_Store
