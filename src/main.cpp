@@ -22,8 +22,6 @@ Cube cube[] = { Cube(), Cube() };
 float last_mouse_x = 0.5f * SCR_WIDTH;
 float last_mouse_y = 0.5f * SCR_HEIGHT;
 
-//https://learnopengl.com/Getting-started/Transformations
-
 int main() {
     //--------------------------------
     // glfw: initialize and configure
@@ -40,7 +38,7 @@ int main() {
     //-----------------------
     // glfw window creation
     //-----------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Mesh Viewer", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();

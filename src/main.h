@@ -6,13 +6,13 @@
 #include "utils/gl.h"
 #include <GLFW/glfw3.h>
 
-#include "commons/shader.h"
-#include "commons/texture.h"
+#include "commons/Shader.h"
+#include "commons/Texture.h"
 
-#include "commons/camera.h"
+#include "commons/Camera.h"
 
-#include "primitives/sphere.h"
-#include "primitives/cube.h"
+#include "primitives/Sphere.h"
+#include "primitives/Cube.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y);

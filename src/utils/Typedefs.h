@@ -1,0 +1,44 @@
+#include "gl.h"
+
+#include <OpenVolumeMesh/Core/Handles.hh>
+#include <OpenVolumeMesh/Core/BaseEntities.hh>
+#include <OpenVolumeMesh/Core/Properties/PropertyPtr.hh>
+#include <OpenVolumeMesh/FileManager/TypeNames.hh>
+#include <OpenVolumeMesh/Geometry/VectorT.hh>
+#include <OpenVolumeMesh/Mesh/TetrahedralGeometryKernel.hh>
+#include <OpenVolumeMesh/Core/GeometryKernel.hh>
+#include <OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh>
+
+
+namespace MV
+{
+
+template <typename T>
+using Vec2 = glm::vec<2, T>;
+template <typename T>
+using Vec3 = glm::vec<3, T>;
+template <typename T>
+using Mat3x3 = glm::mat<3, 3, T>;
+template <typename T>
+using Mat4x4 = glm::mat<4, 4, T>;
+
+using Vec2i = Vec2<int>;
+using Vec2f = Vec2<float>;
+using Vec2d = Vec2<double>;
+using Vec3i = Vec3<int>;
+using Vec3f = Vec3<float>;
+using Vec3d = Vec3<double>;
+using Mat3x3f = Mat3x3<float>;
+using Mat3x3d = Mat3x3<double>;
+using Mat4x4f = Mat4x4<float>;
+using Mat4x4d = Mat4x4<double>;
+
+namespace OVM = OpenVolumeMesh;
+using VertexHandle = OVM::VertexHandle;
+using EdgeHandle = OVM::EdgeHandle;
+using HalfEdgeHandle = OVM::HalfEdgeHandle;
+using FaceHandle = OVM::FaceHandle;
+using HalfFaceHandle = OVM::HalfFaceHandle;
+using CellHandle = OVM::CellHandle;
+
+}
