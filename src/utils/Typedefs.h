@@ -1,3 +1,8 @@
+#pragma once
+
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include "gl.h"
 
 #include <OpenVolumeMesh/Core/Handles.hh>
@@ -9,6 +14,9 @@
 #include <OpenVolumeMesh/Core/GeometryKernel.hh>
 #include <OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace MV
 {

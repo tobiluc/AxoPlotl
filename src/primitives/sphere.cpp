@@ -1,4 +1,5 @@
-#include "sphere.h"
+#include "Sphere.h"
+#include "../utils/Typedefs.h"
 
 Sphere::Sphere(unsigned int resolution)
     : resolution_(resolution)
