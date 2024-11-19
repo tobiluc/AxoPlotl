@@ -9,6 +9,7 @@
 #include <OpenVolumeMesh/Core/BaseEntities.hh>
 #include <OpenVolumeMesh/Core/Properties/PropertyPtr.hh>
 #include <OpenVolumeMesh/FileManager/TypeNames.hh>
+#include <OpenVolumeMesh/FileManager/FileManager.hh>
 #include <OpenVolumeMesh/Geometry/VectorT.hh>
 #include <OpenVolumeMesh/Mesh/TetrahedralGeometryKernel.hh>
 #include <OpenVolumeMesh/Core/GeometryKernel.hh>
@@ -48,5 +49,9 @@ using HalfEdgeHandle = OVM::HalfEdgeHandle;
 using FaceHandle = OVM::FaceHandle;
 using HalfFaceHandle = OVM::HalfFaceHandle;
 using CellHandle = OVM::CellHandle;
+using TetrahedralMesh = OVM::TetrahedralGeometryKernel<OVM::Vec3d, OpenVolumeMesh::TetrahedralMeshTopologyKernel>;
+using PolyhedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::TopologyKernel>;
+using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::HexahedralMeshTopologyKernel>;
+
 
 }
