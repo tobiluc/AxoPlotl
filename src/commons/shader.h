@@ -15,23 +15,45 @@ public:
     // constructor generates the shader on the fly
     Shader(const char* vertexPath, const char* fragmentPath);
 
-    // activate the shader
-    void use();
+    inline void use()
+    {
+        glUseProgram(ID);
+    }
 
-    // upload bool uniform
-    void setBool(const std::string& name, bool value) const;
+    inline void setBool(const std::string& name, bool value) const
+    {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
 
-    // upload int uniform
-    void setInt(const std::string& name, int value) const;
+    inline void setInt(const std::string& name, int value) const
+    {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+    }
 
-    // upload float uniform
-    void setFloat(const std::string& name, float value) const;
+    inline void setFloat(const std::string& name, float value) const
+    {
+        glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+    }
 
-    // upload vec3 uniform
-    void setVec3(const std::string& name, glm::vec3 value) const;
+    template <typename Vec3fT>
+    inline void setVec3f(const std::string& name, Vec3fT value) const
+    {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), value[0], value[1], value[2]);
+    }
 
-    // upload vec3 uniform
-    void setVec3(const std::string& name, float x, float y, float z) const;
+    inline void setVec3f(const std::string& name, float x, float y, float z) const {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+    }
+
+    template <typename Vec4fT>
+    inline void setVec4f(const std::string& name, Vec4fT value) const
+    {
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), value[0], value[1], value[2], value[3]);
+    }
+
+    inline void setVec4f(const std::string& name, float x, float y, float z, float w) const {
+        glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+    }
 
 private:
     // utility function for checking shader compilation/linking errors.

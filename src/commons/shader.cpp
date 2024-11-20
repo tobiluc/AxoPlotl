@@ -35,6 +35,9 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
         std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
     }
 
+    //std::cout << vertexCode << std::endl;
+    //std::cout << fragmentCode << std::endl;
+
     const char* vShaderCode = vertexCode.c_str();
     const char* fShaderCode = fragmentCode.c_str();
 
@@ -66,30 +69,6 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
-}
-
-void Shader::use() {
-    glUseProgram(ID);
-}
-
-void Shader::setBool(const std::string& name, bool value) const {
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
-}
-
-void Shader::setInt(const std::string& name, int value) const {
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
-}
-
-void Shader::setFloat(const std::string& name, float value) const {
-    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
-}
-
-void Shader::setVec3(const std::string& name, glm::vec3 value) const {
-    glUniform3f(glGetUniformLocation(ID, name.c_str()), value.x, value.y, value.z);
-}
-
-void Shader::setVec3(const std::string& name, float x, float y, float z) const {
-    glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
 }
 
 void Shader::checkCompileErrors(unsigned int shader, std::string type) {

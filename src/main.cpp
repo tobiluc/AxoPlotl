@@ -1,4 +1,7 @@
 #include "main.h"
+#include "utils/Typedefs.h"
+#include "utils/FileAccessor.h"
+#include "primitives/Triangle.h"
 
 using namespace glm;
 
@@ -17,7 +20,8 @@ bool wireframe_toggable = true;
 
 Camera camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f));
 Sphere sphere = Sphere(20);
-Cube cube[] = { Cube(), Cube() };
+MV::Triangle triangle = MV::Triangle(); 
+//Cube cube[] = { Cube(), Cube() };
 
 float last_mouse_x = 0.5f * SCR_WIDTH;
 float last_mouse_y = 0.5f * SCR_HEIGHT;
@@ -64,15 +68,19 @@ int main() {
     * TEST START
     ***********************/
 
+    MV::TetrahedralMesh mesh;
+    MV::readTetMesh("./res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
+
     // build and compile our shader program
-    Shader defaultShader("../res/shaders/default.vert", "../res/shaders/phong.frag");
+    //Shader defaultShader("../res/shaders/default.vert", "../res/shaders/phong.frag");
+    Shader defaultShader("./res/shaders/color.vert", "./res/shaders/color_flat.frag");
 
-    Texture texture_diffuse = Texture(), texture_specular = Texture(), texture_gen = Texture();
+    //Texture texture_diffuse = Texture(), texture_specular = Texture(), texture_gen = Texture();
 
-    texture_diffuse.generateFromFile("../res/textures/pebbles_diffuse.jpg");
-    texture_specular.generateFromFile("../res/textures/pebbles_specular.jpg");
+    //texture_diffuse.generateFromFile("../res/textures/pebbles_diffuse.jpg");
+    //texture_specular.generateFromFile("../res/textures/pebbles_specular.jpg");
 
-    texture_gen.generateProcedural(512, 512);
+    //texture_gen.generateProcedural(512, 512);
 
     /***********************
     * TEST END
@@ -93,52 +101,84 @@ int main() {
         ***********************/
 
         defaultShader.use();
-        texture_gen.use(GL_TEXTURE0);
-        texture_specular.use(GL_TEXTURE1);
+        //texture_gen.use(GL_TEXTURE0);
+        //texture_specular.use(GL_TEXTURE1);
 
         glEnable(GL_DEPTH_TEST);
 
         mat4 model_matrix, view_matrix, modelview_matrix, projection_matrix, modelview_projection_matrix;
-        mat3 normal_matrix;
+        //mat3 normal_matrix;
 
         // Light positon
         float time = (float)glfwGetTime();
-        vec3 light_position = vec3(3.f * cos(time*0.2f), 0.5f, 3.f * sin(time*0.2f));
+        //vec3 light_position = vec3(3.f * cos(time*0.2f), 0.5f, 3.f * sin(time*0.2f));
 
         // Projection and View Matrix (Same for all objects)
         projection_matrix = perspective(radians(camera.fov), current_aspect_ratio, 0.1f, 100.0f);
         view_matrix = camera.getViewMatrix();
         glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "view_matrix"), 1, GL_FALSE, value_ptr(view_matrix));
 
-        defaultShader.setVec3("light.position", view_matrix * vec4(light_position, 1.f));
-        defaultShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
-        defaultShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        defaultShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        //defaultShader.setVec3f("light.position", view_matrix * vec4(light_position, 1.f));
+        //defaultShader.setVec3f("light.ambient", 0.1f, 0.1f, 0.1f);
+        //defaultShader.setVec3f("light.diffuse", 0.5f, 0.5f, 0.5f);
+        //defaultShader.setVec3f("light.specular", 1.0f, 1.0f, 1.0f);
 
-        defaultShader.setInt("material.diffuse", 0);
-        defaultShader.setInt("material.specular", 1);
-        defaultShader.setFloat("material.shininess", 32.f);
+        //defaultShader.setInt("material.diffuse", 0);
+        //defaultShader.setInt("material.specular", 1);
+        //defaultShader.setFloat("material.shininess", 32.f);
+
+        // Render Mesh Vertices as Spheres
+        for (auto vh : mesh.vertices())
+        {
+            // Model Matrix
+            auto pos = mesh.vertex(vh);
+            model_matrix = translate(mat4(1.0f), vec3(pos[0], pos[1], pos[2]));
+            model_matrix = scale(model_matrix, vec3(0.01f));
+
+            // Modelview Matrix
+            modelview_matrix = view_matrix * model_matrix;
+
+            // Modelview Projection Matrix
+            modelview_projection_matrix = projection_matrix * modelview_matrix;
+
+            glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
+            defaultShader.setVec4f("color", 0, 1, 0, 1);
+            sphere.draw();
+        }
+
+        // Render Mesh Faces as Triangles
+        for (auto fh : mesh.faces())
+        {
+            // Model Matrix
+            auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
+            triangle.model_matrix(mesh.vertex(vhs[0]), mesh.vertex(vhs[1]), mesh.vertex(vhs[2]), model_matrix);
+
+            // Modelview Matrix // Modelview Projection Matrix
+            modelview_matrix = view_matrix * model_matrix;
+            modelview_projection_matrix = projection_matrix * modelview_matrix;
+
+            glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
+            defaultShader.setVec4f("color", 0, 0, 1, 1);
+            triangle.draw();
+        }
 
         //=====================================================
         // DRAW ROTATING LIGHT CUBE
         //=====================================================
+        /*
 
         // Model Matrix
         model_matrix = translate(mat4(1.0f), light_position);
         model_matrix = scale(model_matrix, vec3(0.1f));
 
-        // Modelview Matrix
-        modelview_matrix = view_matrix * model_matrix;
-
-        // Modelview Projection Matrix
-        modelview_projection_matrix = projection_matrix * modelview_matrix;
+        
 
         // Normal Matrix
-        normal_matrix = transpose(inverse(modelview_matrix));
+        //normal_matrix = transpose(inverse(modelview_matrix));
 
         // Draw Cube
         glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
+        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
         cube[0].draw();
 
         //=====================================================
@@ -154,11 +194,11 @@ int main() {
         modelview_projection_matrix = projection_matrix * modelview_matrix;
 
         // Normal Matrix
-        normal_matrix = transpose(inverse(modelview_matrix));
+        //normal_matrix = transpose(inverse(modelview_matrix));
 
         // Draw Cube
         glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
+        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
         cube[1].draw();
 
         //=====================================================
@@ -175,12 +215,13 @@ int main() {
         modelview_projection_matrix = projection_matrix * modelview_matrix;
 
         // Normal Matrix
-        normal_matrix = transpose(inverse(modelview_matrix));
+        //normal_matrix = transpose(inverse(modelview_matrix));
 
         // Draw Sphere
         glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
+        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
         sphere.draw();
+        */
 
         /***********************
         * RENDER END
@@ -203,7 +244,7 @@ void processInput(GLFWwindow* window) {
     sec_timer += delta_time;
     if (sec_timer >= 1.0f) {
         sec_timer -= 1.0f;
-        std::cout << "FPS: " << 1.0f / delta_time << "s" << std::endl;
+        std::cout << "FPS: " << 1.0f / delta_time << std::endl;
     }
 
     // Close Window by pressing ESCAPE

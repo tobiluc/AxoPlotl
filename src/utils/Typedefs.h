@@ -27,6 +27,8 @@ using Vec2 = glm::vec<2, T>;
 template <typename T>
 using Vec3 = glm::vec<3, T>;
 template <typename T>
+using Vec4 = glm::vec<4, T>;
+template <typename T>
 using Mat3x3 = glm::mat<3, 3, T>;
 template <typename T>
 using Mat4x4 = glm::mat<4, 4, T>;
@@ -37,6 +39,8 @@ using Vec2d = Vec2<double>;
 using Vec3i = Vec3<int>;
 using Vec3f = Vec3<float>;
 using Vec3d = Vec3<double>;
+using Vec4f = Vec4<float>;
+using Vec4d = Vec4<double>;
 using Mat3x3f = Mat3x3<float>;
 using Mat3x3d = Mat3x3<double>;
 using Mat4x4f = Mat4x4<float>;
