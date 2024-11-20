@@ -94,7 +94,6 @@ void Sphere::initialize()
     glGenVertexArrays(1, &vao_);
     glBindVertexArray(vao_);
 
-
     // vertex positions -> attribute 0
     glGenBuffers(1, &vbo_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);

@@ -22,6 +22,9 @@
 namespace MV
 {
 
+using uint = unsigned int;
+using uchar = unsigned char;
+
 template <typename T>
 using Vec2 = glm::vec<2, T>;
 template <typename T>

@@ -1,7 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "../utils/gl.h"
+#include "../utils/Typedefs.h"
 
 #include <string>
 #include <fstream>
@@ -53,6 +53,10 @@ public:
 
     inline void setVec4f(const std::string& name, float x, float y, float z, float w) const {
         glUniform4f(glGetUniformLocation(ID, name.c_str()), x, y, z, w);
+    }
+
+    inline void setMat4x4f(const std::string& name, const glm::mat4x4& value) const {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
     }
 
 private:

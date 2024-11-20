@@ -2,6 +2,7 @@
 #include "utils/Typedefs.h"
 #include "utils/FileAccessor.h"
 #include "primitives/Triangle.h"
+#include "rendering/RenderBatch.h"
 
 using namespace glm;
 
@@ -19,8 +20,8 @@ bool wireframe = false;
 bool wireframe_toggable = true;
 
 Camera camera(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f));
-Sphere sphere = Sphere(20);
-MV::Triangle triangle = MV::Triangle(); 
+//Sphere sphere = Sphere(20);
+//MV::Triangle triangle = MV::Triangle(); 
 //Cube cube[] = { Cube(), Cube() };
 
 float last_mouse_x = 0.5f * SCR_WIDTH;
@@ -69,18 +70,33 @@ int main() {
     ***********************/
 
     MV::TetrahedralMesh mesh;
-    MV::readTetMesh("./res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
+    MV::readTetMesh("./res/meshes/s17c.ovm", mesh, MV::FileFormat::OVMA);
 
-    // build and compile our shader program
-    //Shader defaultShader("../res/shaders/default.vert", "../res/shaders/phong.frag");
-    Shader defaultShader("./res/shaders/color.vert", "./res/shaders/color_flat.frag");
+    Shader shader("./res/shaders/color.vert", "./res/shaders/color_flat.frag");
+    MV::RenderBatch batch = MV::RenderBatch(100000, shader);
 
-    //Texture texture_diffuse = Texture(), texture_specular = Texture(), texture_gen = Texture();
-
-    //texture_diffuse.generateFromFile("../res/textures/pebbles_diffuse.jpg");
-    //texture_specular.generateFromFile("../res/textures/pebbles_specular.jpg");
-
-    //texture_gen.generateProcedural(512, 512);
+    // add faces of mesh to batch as triangles with random color
+    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
+    {
+        std::cout << *f_it << std::endl;
+        auto fh = *f_it;
+        if (fh.idx() > 400) break;
+        auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
+        if (vhs.size()!=3 || !vhs[0].is_valid() || !vhs[1].is_valid() || !vhs[2].is_valid()) {std::cout << "Skip fh " << fh << std::endl; continue;}
+        std::cout << "vertex" << std::endl;
+        std::cout << "1 " << vhs[0] << "/" << mesh.n_vertices() << std::endl;
+        std::cout << "2 " << vhs[1] << "/" << mesh.n_vertices() << std::endl;
+        std::cout << "3 " << vhs[2] << "/" << mesh.n_vertices() << std::endl;
+        auto p0 = mesh.vertex(vhs[0]);
+        auto p1 = mesh.vertex(vhs[1]);
+        auto p2 = mesh.vertex(vhs[2]);
+        std::cout << "data" << std::endl;
+        MV::VertexData v0 = MV::vertexData(p0, MV::RED, vec3(0, 0, 1));
+        MV::VertexData v1 = MV::vertexData(p1, MV::GREEN, vec3(0, 0, 1));
+        MV::VertexData v2 = MV::vertexData(p2, MV::BLUE, vec3(0, 0, 1));
+        std::cout << "triangle" << std::endl;
+        batch.addTriangle(v0, v1, v2);
+    }
 
     /***********************
     * TEST END
@@ -100,128 +116,29 @@ int main() {
         * RENDER START
         ***********************/
 
-        defaultShader.use();
-        //texture_gen.use(GL_TEXTURE0);
-        //texture_specular.use(GL_TEXTURE1);
+        shader.use();
 
         glEnable(GL_DEPTH_TEST);
 
         mat4 model_matrix, view_matrix, modelview_matrix, projection_matrix, modelview_projection_matrix;
-        //mat3 normal_matrix;
-
-        // Light positon
-        float time = (float)glfwGetTime();
-        //vec3 light_position = vec3(3.f * cos(time*0.2f), 0.5f, 3.f * sin(time*0.2f));
+        mat3 normal_matrix;
 
         // Projection and View Matrix (Same for all objects)
         projection_matrix = perspective(radians(camera.fov), current_aspect_ratio, 0.1f, 100.0f);
         view_matrix = camera.getViewMatrix();
-        glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "view_matrix"), 1, GL_FALSE, value_ptr(view_matrix));
-
-        //defaultShader.setVec3f("light.position", view_matrix * vec4(light_position, 1.f));
-        //defaultShader.setVec3f("light.ambient", 0.1f, 0.1f, 0.1f);
-        //defaultShader.setVec3f("light.diffuse", 0.5f, 0.5f, 0.5f);
-        //defaultShader.setVec3f("light.specular", 1.0f, 1.0f, 1.0f);
-
-        //defaultShader.setInt("material.diffuse", 0);
-        //defaultShader.setInt("material.specular", 1);
-        //defaultShader.setFloat("material.shininess", 32.f);
-
-        // Render Mesh Vertices as Spheres
-        for (auto vh : mesh.vertices())
-        {
-            // Model Matrix
-            auto pos = mesh.vertex(vh);
-            model_matrix = translate(mat4(1.0f), vec3(pos[0], pos[1], pos[2]));
-            model_matrix = scale(model_matrix, vec3(0.01f));
-
-            // Modelview Matrix
-            modelview_matrix = view_matrix * model_matrix;
-
-            // Modelview Projection Matrix
-            modelview_projection_matrix = projection_matrix * modelview_matrix;
-
-            glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-            defaultShader.setVec4f("color", 0, 1, 0, 1);
-            sphere.draw();
-        }
-
-        // Render Mesh Faces as Triangles
-        for (auto fh : mesh.faces())
-        {
-            // Model Matrix
-            auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
-            triangle.model_matrix(mesh.vertex(vhs[0]), mesh.vertex(vhs[1]), mesh.vertex(vhs[2]), model_matrix);
-
-            // Modelview Matrix // Modelview Projection Matrix
-            modelview_matrix = view_matrix * model_matrix;
-            modelview_projection_matrix = projection_matrix * modelview_matrix;
-
-            glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-            defaultShader.setVec4f("color", 0, 0, 1, 1);
-            triangle.draw();
-        }
-
-        //=====================================================
-        // DRAW ROTATING LIGHT CUBE
-        //=====================================================
-        /*
-
-        // Model Matrix
-        model_matrix = translate(mat4(1.0f), light_position);
-        model_matrix = scale(model_matrix, vec3(0.1f));
-
         
-
-        // Normal Matrix
-        //normal_matrix = transpose(inverse(modelview_matrix));
-
-        // Draw Cube
-        glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
-        cube[0].draw();
-
-        //=====================================================
-        // DRAW TEST CUBE
-        //=====================================================
-        // Model Matrix
-        model_matrix = translate(mat4(1.0f), vec3(0.f, 5.f, 0.f));
-
-        // Modelview Matrix
+        // Compute Model, View, Normal Matrices
+        model_matrix = mat4x4(1.0f);
         modelview_matrix = view_matrix * model_matrix;
-
-        // Modelview Projection Matrix
         modelview_projection_matrix = projection_matrix * modelview_matrix;
+        normal_matrix = transpose(inverse(modelview_matrix));
 
-        // Normal Matrix
-        //normal_matrix = transpose(inverse(modelview_matrix));
+        // Set Shader Uniforms
+        shader.setMat4x4f("view_matrix", view_matrix);
+        shader.setMat4x4f("modelview_projection_matrix", modelview_projection_matrix);
 
-        // Draw Cube
-        glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
-        cube[1].draw();
-
-        //=====================================================
-        // DRAW PLANET
-        //=====================================================
-
-        // Model Matrix
-        model_matrix = mat4(1.f);
-
-        // Modelview Matrix
-        modelview_matrix = view_matrix * model_matrix;
-
-        // Modelview Projection Matrix
-        modelview_projection_matrix = projection_matrix * modelview_matrix;
-
-        // Normal Matrix
-        //normal_matrix = transpose(inverse(modelview_matrix));
-
-        // Draw Sphere
-        glUniformMatrix4fv(glGetUniformLocation(defaultShader.ID, "modelview_projection_matrix"), 1, GL_FALSE, value_ptr(modelview_projection_matrix));
-        //glUniformMatrix3fv(glGetUniformLocation(defaultShader.ID, "normal_matrix"), 1, GL_FALSE, value_ptr(normal_matrix));
-        sphere.draw();
-        */
+        // Render Batch
+        batch.render();
 
         /***********************
         * RENDER END
