@@ -1,7 +1,6 @@
 #include "main.h"
 #include "utils/Typedefs.h"
 #include "utils/FileAccessor.h"
-#include "primitives/Triangle.h"
 #include "rendering/RenderBatch.h"
 
 using namespace glm;
@@ -69,33 +68,51 @@ int main() {
     * TEST START
     ***********************/
 
-    MV::TetrahedralMesh mesh;
-    MV::readTetMesh("./res/meshes/s17c.ovm", mesh, MV::FileFormat::OVMA);
+    std::cout << "Working in " << MV::getWorkingDirectory() << std::endl;
 
-    Shader shader("./res/shaders/color.vert", "./res/shaders/color_flat.frag");
-    MV::RenderBatch batch = MV::RenderBatch(100000, shader);
+    MV::TetrahedralMesh mesh;
+    MV::readTetMesh("../res/meshes/s17c.ovm", mesh, MV::FileFormat::OVMA);
+
+    Shader shader("../res/shaders/color.vert", "../res/shaders/color_flat.frag");
+    MV::RenderBatch batch = MV::RenderBatch(4*mesh.n_cells(), shader);
+    batch.initialize();
+
+    MV::Random random;
 
     // add faces of mesh to batch as triangles with random color
-    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
+    // for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
+    // {
+    //     auto fh = *f_it;
+    //     auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
+    //     if (vhs.size()!=3 || !vhs[0].is_valid() || !vhs[1].is_valid() || !vhs[2].is_valid()) {std::cout << "Skip fh " << fh << std::endl; continue;}
+    //     auto p0 = mesh.vertex(vhs[0]);
+    //     auto p1 = mesh.vertex(vhs[1]);
+    //     auto p2 = mesh.vertex(vhs[2]);
+    //     MV::Color::Color col = {random.randf(), random.randf(), random.randf(), 1.0f};
+    //     MV::VertexData v0 = MV::vertexData(p0, col, vec3(0, 0, 1));
+    //     MV::VertexData v1 = MV::vertexData(p1, col, vec3(0, 0, 1));
+    //     MV::VertexData v2 = MV::vertexData(p2, col, vec3(0, 0, 1));
+    //     batch.addTriangle(v0, v1, v2);
+    // }
+
+    // add cells of mesh to batch as scaled down tets with random colors
+    for (auto c_it = mesh.c_iter(); c_it.is_valid(); ++c_it)
     {
-        std::cout << *f_it << std::endl;
-        auto fh = *f_it;
-        if (fh.idx() > 400) break;
-        auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
-        if (vhs.size()!=3 || !vhs[0].is_valid() || !vhs[1].is_valid() || !vhs[2].is_valid()) {std::cout << "Skip fh " << fh << std::endl; continue;}
-        std::cout << "vertex" << std::endl;
-        std::cout << "1 " << vhs[0] << "/" << mesh.n_vertices() << std::endl;
-        std::cout << "2 " << vhs[1] << "/" << mesh.n_vertices() << std::endl;
-        std::cout << "3 " << vhs[2] << "/" << mesh.n_vertices() << std::endl;
-        auto p0 = mesh.vertex(vhs[0]);
-        auto p1 = mesh.vertex(vhs[1]);
-        auto p2 = mesh.vertex(vhs[2]);
-        std::cout << "data" << std::endl;
-        MV::VertexData v0 = MV::vertexData(p0, MV::RED, vec3(0, 0, 1));
-        MV::VertexData v1 = MV::vertexData(p1, MV::GREEN, vec3(0, 0, 1));
-        MV::VertexData v2 = MV::vertexData(p2, MV::BLUE, vec3(0, 0, 1));
-        std::cout << "triangle" << std::endl;
-        batch.addTriangle(v0, v1, v2);
+        auto ch = *c_it;
+        auto vhs = mesh.get_cell_vertices(ch);
+        std::unordered_map<MV::VertexHandle, MV::OVM::Vec3d> p;
+        for (auto vh : vhs) p[vh] = mesh.vertex(vh);
+        MV::scaleTetrahedron(p.at(vhs[0]), p.at(vhs[1]), p.at(vhs[2]), p.at(vhs[3]), 0.9);
+        auto hfhs = mesh.cell(ch).halffaces();
+        MV::Color::Color col = {random.randf(), random.randf(), random.randf(), 1.0f};
+        for (auto hfh : hfhs)
+        {
+            auto vhs3 = mesh.get_halfface_vertices(hfh);
+            MV::VertexData v0 = MV::vertexData(p.at(vhs3[0]), col, vec3(0, 0, 1));
+            MV::VertexData v1 = MV::vertexData(p.at(vhs3[1]), col, vec3(0, 0, 1));
+            MV::VertexData v2 = MV::vertexData(p.at(vhs3[2]), col, vec3(0, 0, 1));
+            batch.addTriangle(v0, v1, v2);
+        }
     }
 
     /***********************

@@ -32,11 +32,12 @@ namespace MV
             indices[3*i+1] = 3*i+1;
             indices[3*i+2] = 3*i+2;
         }
+        vertices.resize(3 * maxNumTriangles * (3 + 4 + 3));
 
         // generate vertex buffer object
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, 3 * maxNumTriangles * sizeof(VertexData), vertices, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 3 * maxNumTriangles * sizeof(VertexData), &vertices[0], GL_DYNAMIC_DRAW);
 
         // generate index buffer object
         glGenBuffers(1, &ibo);
@@ -61,6 +62,8 @@ namespace MV
 
     bool RenderBatch::addTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2)
     {
+        if (numTriangles >= maxNumTriangles) return false;
+
         int i = numTriangles;
         setVertexData(3*i+0, v0);
         setVertexData(3*i+1, v1);
@@ -76,7 +79,7 @@ namespace MV
 
         // TODO: only rebuffer part of data that has changed
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * maxNumTriangles * sizeof(VertexData), vertices);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * maxNumTriangles * sizeof(VertexData), &vertices[0]);
 
         glBindVertexArray(vao);
 

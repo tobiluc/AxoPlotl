@@ -16,6 +16,7 @@ file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
 add_executable(MeshViewer
 ${SRC_FILES}
 )
+add_custom_target(HeaderFiles SOURCES ${HEADER_FILES})
 
 #=========================
 # GLFW
@@ -79,5 +80,6 @@ OpenVolumeMesh::OpenVolumeMesh
 # Testing
 #=========================
 include(CTest)
+
 enable_testing()
 
