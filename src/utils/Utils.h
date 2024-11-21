@@ -7,6 +7,44 @@
 
 namespace MV
 {
+enum MeshRenderMode {NONE, CELLS, FACES, BOUNDARY_FACES};
+
+    class Random
+    {
+    public:
+        Random()
+        {
+            std::random_device rd;
+            gen = std::mt19937(rd());
+            dist = std::uniform_real_distribution<float>(0.0, 1.0);
+        }
+        inline float randf() {return dist(gen);}
+    private:
+        std::mt19937 gen;
+        std::uniform_real_distribution<float> dist;
+    };
+
+    namespace Color
+    {
+    struct Color {float r, g, b, a;};
+    constexpr Color RED = {1, 0, 0, 1};
+    constexpr Color GREEN = {0, 1, 0, 1};
+    constexpr Color BLUE = {0, 0, 1, 1};
+    constexpr Color WHITE = {1, 1, 1, 1};
+    constexpr Color BLACK = {0, 0, 0, 1};
+    }
+
+    struct VertexData
+    {
+        float x, y, z; // position
+        float r, g, b, a; // color
+        float nx, ny, nz; // normal
+    };
+    template <typename Vec3T1, typename Vec3T2>
+    inline VertexData vertexData(const Vec3T1& pos, const Color::Color& color, const Vec3T2& normal)
+    {
+        return {(float)(pos[0]), (float)(pos[1]), (float)(pos[2]), color.r, color.g, color.b, color.a, (float)(normal[0]), (float)(normal[1]), (float)(normal[2])};
+    }
 
     template <typename Vec3T>
     void scaleTetrahedron(Vec3T& A, Vec3T& B, Vec3T& C, Vec3T& D, const double& delta)
@@ -49,29 +87,6 @@ namespace MV
         return "ERROR";
     }
 
-    class Random
-    {
-    public:
-        Random()
-        {
-            std::random_device rd;
-            gen = std::mt19937(rd());
-            dist = std::uniform_real_distribution<float>(0.0, 1.0);
-        }
-        inline float randf() {return dist(gen);}
-    private:
-        std::mt19937 gen;
-        std::uniform_real_distribution<float> dist;
-    };
-
-    namespace Color
-    {
-    struct Color {float r, g, b, a;};
-    constexpr Color RED = {1, 0, 0, 1};
-    constexpr Color GREEN = {0, 1, 0, 1};
-    constexpr Color BLUE = {0, 0, 1, 1};
-    constexpr Color WHITE = {1, 1, 1, 1};
-    constexpr Color BLACK = {0, 0, 0, 1};
-    }
+    int mesh_n_boundary_faces(TetrahedralMesh& mesh);
     
 } // namespace MV

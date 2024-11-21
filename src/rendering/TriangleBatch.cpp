@@ -1,22 +1,22 @@
-#include "RenderBatch.h"
+#include "TriangleBatch.h"
 
 namespace MV
 {
-    RenderBatch::RenderBatch(uint maxNumTriangles, Shader& shader) :
+TriangleBatch::TriangleBatch(uint maxNumTriangles, Shader& shader) :
         maxNumTriangles(maxNumTriangles),
         shader(shader)
     {
 
     }
 
-    RenderBatch::~RenderBatch()
+    TriangleBatch::~TriangleBatch()
     {
         if (vbo) glDeleteBuffers(1, &vbo);
         if (ibo) glDeleteBuffers(1, &ibo);
         if (vao) glDeleteVertexArrays(1, &vao);
     }
 
-    void RenderBatch::initialize()
+    void TriangleBatch::initialize()
     {
         // generate vertex array object
         glGenVertexArrays(1, &vao);
@@ -57,9 +57,9 @@ namespace MV
         initialized = true;
     }
 
-    bool RenderBatch::addTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2)
+    bool TriangleBatch::addTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2)
     {
-        if (numTriangles >= maxNumTriangles) return false;
+        if (numTriangles+1 > maxNumTriangles) return false;
 
         int i = numTriangles;
         setVertexData(3*i+0, v0);
@@ -70,7 +70,7 @@ namespace MV
         return true;
     }
 
-    void RenderBatch::render(GLenum mode)
+    void TriangleBatch::render()
     {
         if (!initialized) initialize();
 
@@ -84,7 +84,7 @@ namespace MV
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
 
-        glDrawElements(mode, 3 * numTriangles, GL_UNSIGNED_INT, NULL);
+        glDrawElements(GL_TRIANGLES, 3 * numTriangles, GL_UNSIGNED_INT, NULL);
         
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
