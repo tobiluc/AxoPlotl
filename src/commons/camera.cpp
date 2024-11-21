@@ -7,7 +7,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 forward) {
     this->position = position;
     this->forward = forward;
 
-    movement_speed = 5.0f;
+    movement_speed = 40.0f;
     sensitivity = 0.2f;
     fov = 45.0f;
     world_up = glm::vec3(0.0f, 1.0f, 0.0f);

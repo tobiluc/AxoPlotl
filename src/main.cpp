@@ -71,9 +71,9 @@ int main() {
     std::cout << "Working in " << MV::getWorkingDirectory() << std::endl;
 
     MV::TetrahedralMesh mesh;
-    MV::readTetMesh("../res/meshes/s17c.ovm", mesh, MV::FileFormat::OVMA);
+    MV::readTetMesh("../res/meshes/i01c.ovmb", mesh, MV::FileFormat::OVMB);
 
-    Shader shader("../res/shaders/color.vert", "../res/shaders/color_flat.frag");
+    Shader shader("../res/shaders/color.vert", "../res/shaders/color_phong.frag");
     MV::RenderBatch batch = MV::RenderBatch(4*mesh.n_cells(), shader);
     batch.initialize();
 
@@ -95,7 +95,8 @@ int main() {
     //     batch.addTriangle(v0, v1, v2);
     // }
 
-    // add cells of mesh to batch as scaled down tets with random colors
+    // add cells of mesh to batch as scaled down tets
+    MV::Color::Color col = {0.4,0.8f,0.4,1};
     for (auto c_it = mesh.c_iter(); c_it.is_valid(); ++c_it)
     {
         auto ch = *c_it;
@@ -104,13 +105,13 @@ int main() {
         for (auto vh : vhs) p[vh] = mesh.vertex(vh);
         MV::scaleTetrahedron(p.at(vhs[0]), p.at(vhs[1]), p.at(vhs[2]), p.at(vhs[3]), 0.9);
         auto hfhs = mesh.cell(ch).halffaces();
-        MV::Color::Color col = {random.randf(), random.randf(), random.randf(), 1.0f};
         for (auto hfh : hfhs)
         {
             auto vhs3 = mesh.get_halfface_vertices(hfh);
-            MV::VertexData v0 = MV::vertexData(p.at(vhs3[0]), col, vec3(0, 0, 1));
-            MV::VertexData v1 = MV::vertexData(p.at(vhs3[1]), col, vec3(0, 0, 1));
-            MV::VertexData v2 = MV::vertexData(p.at(vhs3[2]), col, vec3(0, 0, 1));
+            auto n = (p.at(vhs3[2]) - p.at(vhs3[0])).cross(p.at(vhs3[1]) - p.at(vhs3[0])).normalize();
+            MV::VertexData v0 = MV::vertexData(p.at(vhs3[0]), col, n);
+            MV::VertexData v1 = MV::vertexData(p.at(vhs3[1]), col, n);
+            MV::VertexData v2 = MV::vertexData(p.at(vhs3[2]), col, n);
             batch.addTriangle(v0, v1, v2);
         }
     }
@@ -141,7 +142,7 @@ int main() {
         mat3 normal_matrix;
 
         // Projection and View Matrix (Same for all objects)
-        projection_matrix = perspective(radians(camera.fov), current_aspect_ratio, 0.1f, 100.0f);
+        projection_matrix = perspective(radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f);
         view_matrix = camera.getViewMatrix();
         
         // Compute Model, View, Normal Matrices
@@ -151,8 +152,14 @@ int main() {
         normal_matrix = transpose(inverse(modelview_matrix));
 
         // Set Shader Uniforms
+        shader.setFloat("time", glfwGetTime());
         shader.setMat4x4f("view_matrix", view_matrix);
         shader.setMat4x4f("modelview_projection_matrix", modelview_projection_matrix);
+        shader.setMat3x3f("normal_matrix", normal_matrix);
+        shader.setVec3f("light.position", camera.position);
+        shader.setVec3f("light.ambient", MV::Vec3f(1,1,1));
+        shader.setVec3f("light.diffuse", MV::Vec3f(0.1,0.1,0.1));
+        shader.setVec3f("light.specular", MV::Vec3f(0.1,0.1,0.1));
 
         // Render Batch
         batch.render();

@@ -18,8 +18,6 @@ namespace MV
 
     void RenderBatch::initialize()
     {
-        std::cout << "Initializing Render Batch" << std::endl;
-
         // generate vertex array object
         glGenVertexArrays(1, &vao);
         glBindVertexArray(vao);
@@ -57,7 +55,6 @@ namespace MV
         glEnableVertexAttribArray(2);
 
         initialized = true;
-        std::cout << "Initialized Render Batch" << std::endl;
     }
 
     bool RenderBatch::addTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2)
