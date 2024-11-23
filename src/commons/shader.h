@@ -13,6 +13,8 @@ public:
     unsigned int ID;
 
     // constructor generates the shader on the fly
+    Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+
     Shader(const char* vertexPath, const char* fragmentPath);
 
     inline void use()

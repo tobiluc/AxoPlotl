@@ -2,11 +2,12 @@
 
 namespace MV
 {
-TriangleBatch::TriangleBatch(uint maxNumTriangles, Shader& shader) :
+TriangleBatch::TriangleBatch(uint maxNumTriangles) :
         maxNumTriangles(maxNumTriangles),
-        shader(shader)
+        numTriangles(0),
+        val(),
+        vertices(3 * maxNumTriangles * val.totalSize())
     {
-
     }
 
     TriangleBatch::~TriangleBatch()
@@ -30,65 +31,45 @@ TriangleBatch::TriangleBatch(uint maxNumTriangles, Shader& shader) :
             indices[3*i+1] = 3*i+1;
             indices[3*i+2] = 3*i+2;
         }
-        vertices.resize(3 * maxNumTriangles * (3 + 4 + 3));
 
         // generate vertex buffer object
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, 3 * maxNumTriangles * sizeof(VertexData), &vertices[0], GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 3 * maxNumTriangles * val.totalSizeBytes(), &vertices[0], GL_DYNAMIC_DRAW);
 
         // generate index buffer object
         glGenBuffers(1, &ibo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * maxNumTriangles * sizeof(uint), &indices[0], GL_STATIC_DRAW);
 
-        // vertex positions -> attribute 0
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), 0);
-        glEnableVertexAttribArray(0);
-
-        // vertex colors -> attribute 1
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        // vertex normals -> attribute 2
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*)(7 * sizeof(float)));
-        glEnableVertexAttribArray(2);
+        // define attributes
+        for (int i = 0; i < val.numAttrs(); ++i)
+        {
+            glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
+            glEnableVertexAttribArray(i);
+        }
 
         initialized = true;
-    }
-
-    bool TriangleBatch::addTriangle(const VertexData& v0, const VertexData& v1, const VertexData& v2)
-    {
-        if (numTriangles+1 > maxNumTriangles) return false;
-
-        int i = numTriangles;
-        setVertexData(3*i+0, v0);
-        setVertexData(3*i+1, v1);
-        setVertexData(3*i+2, v2);
-        numTriangles += 1;
-
-        return true;
     }
 
     void TriangleBatch::render()
     {
         if (!initialized) initialize();
 
-        // TODO: only rebuffer part of data that has changed
+        // only rebuffer part of data that has changed
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * maxNumTriangles * sizeof(VertexData), &vertices[0]);
+        while (!changed.empty())
+        {
+            int i = changed.extract(changed.begin()).value(); // pop
+            glBufferSubData(GL_ARRAY_BUFFER, i*val.totalSizeBytes(), val.totalSizeBytes(), &vertices[i*val.totalSize()]);
+        }
 
         glBindVertexArray(vao);
-
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
+        for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
 
         glDrawElements(GL_TRIANGLES, 3 * numTriangles, GL_UNSIGNED_INT, NULL);
         
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(2);
+        for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
         glBindVertexArray(0);
     }
 }

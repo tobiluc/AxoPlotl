@@ -4,10 +4,58 @@
 #include <iostream>
 #include <random>
 #include <unistd.h>
+#include <unordered_set>
 
 namespace MV
 {
-enum MeshRenderMode {NONE, CELLS, FACES, BOUNDARY_FACES};
+    enum MeshRenderMode {NONE, CELLS, FACES, BOUNDARY_FACES, EDGES};
+
+    template <typename T, typename = void>
+    struct is_iterable : std::false_type {};
+
+    template <typename T>
+    struct is_iterable<T, std::void_t<decltype(std::begin(std::declval<T>())),
+                                       decltype(std::end(std::declval<T>()))>> : std::true_type {};
+
+    template <typename T, typename = void>
+    struct has_subscript_operator : std::false_type {};
+
+    template <typename T>
+    struct has_subscript_operator<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>> : std::true_type {};
+
+    // Recursive function to fill the array
+    template <typename T, std::size_t N, typename First, typename... Rest>
+    void fillArray(std::array<T, N>& arr, std::size_t& index, const First& first, const Rest&... rest)
+    {
+        if constexpr (is_iterable<First>::value)
+        {
+            for (const auto& elem : first) arr[index++] = static_cast<T>(elem);
+        }
+        else if constexpr (has_subscript_operator<First>::value)
+        {
+            for (size_t i = 0; i < first.length(); ++i) arr[index++] = static_cast<T>(first[i]);
+        }
+        else
+        {
+            arr[index++] = static_cast<T>(first);
+        }
+        if constexpr (sizeof...(rest) > 0) {fillArray(arr, index, rest...);} // recursion
+    }
+
+    template <typename T, size_t N>
+    void fillArray(std::array<T, N>& arr, std::size_t& index) {}
+
+    // Flattens args into an array of type T ans size N
+    template <typename T, size_t N, typename... Args>
+    std::array<T, N> toArray(const Args&... args)
+    {
+        static_assert(sizeof...(args) > 0);
+        std::array<T, N> arr{};
+        std::size_t index = 0;
+        fillArray(arr, index, args...);
+        if (index != N) {throw std::runtime_error("Number of elements does not match array size!");}
+        return arr;
+    }
 
     class Random
     {
@@ -26,24 +74,12 @@ enum MeshRenderMode {NONE, CELLS, FACES, BOUNDARY_FACES};
 
     namespace Color
     {
-    struct Color {float r, g, b, a;};
+    using Color = std::array<float, 4>;
     constexpr Color RED = {1, 0, 0, 1};
     constexpr Color GREEN = {0, 1, 0, 1};
     constexpr Color BLUE = {0, 0, 1, 1};
     constexpr Color WHITE = {1, 1, 1, 1};
     constexpr Color BLACK = {0, 0, 0, 1};
-    }
-
-    struct VertexData
-    {
-        float x, y, z; // position
-        float r, g, b, a; // color
-        float nx, ny, nz; // normal
-    };
-    template <typename Vec3T1, typename Vec3T2>
-    inline VertexData vertexData(const Vec3T1& pos, const Color::Color& color, const Vec3T2& normal)
-    {
-        return {(float)(pos[0]), (float)(pos[1]), (float)(pos[2]), color.r, color.g, color.b, color.a, (float)(normal[0]), (float)(normal[1]), (float)(normal[2])};
     }
 
     template <typename Vec3T>

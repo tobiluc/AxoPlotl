@@ -4,7 +4,7 @@
 #include "utils/FileAccessor.h"
 #include "rendering/TriangleBatch.h"
 
-using namespace glm;
+//using namespace glm;
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -19,7 +19,7 @@ float last_frame = 0.0f;
 bool wireframe = false;
 bool wireframe_toggable = true;
 
-Camera camera(vec3(0.0f, 0.0f, 0.0f), vec3(1.0f, 0.0f, 0.0f));
+Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
 //Sphere sphere = Sphere(20);
 //MV::Triangle triangle = MV::Triangle(); 
 //Cube cube[] = { Cube(), Cube() };
@@ -74,8 +74,8 @@ int main() {
     MV::TetrahedralMesh mesh;
     MV::readTetMesh("../res/meshes/i01c.ovmb", mesh, MV::FileFormat::OVMB);
 
-    Shader shader("../res/shaders/color.vert", "../res/shaders/color_phong.frag");
-    MV::TetMeshRenderer tetRenderer(mesh, shader);
+    //Shader shader("../res/shaders/color.vert", "../res/shaders/color_triangles_default.geom", "../res/shaders/color_phong.frag");
+    MV::TetMeshRenderer tetRenderer(mesh);
 
     /***********************
     * TEST END
@@ -91,39 +91,14 @@ int main() {
         glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+        glEnable(GL_DEPTH_TEST);
+
         /***********************
         * RENDER START
         ***********************/
 
-        shader.use();
-
-        glEnable(GL_DEPTH_TEST);
-
-        mat4 model_matrix, view_matrix, modelview_matrix, projection_matrix, modelview_projection_matrix;
-        mat3 normal_matrix;
-
-        // Projection and View Matrix (Same for all objects)
-        projection_matrix = perspective(radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f);
-        view_matrix = camera.getViewMatrix();
-        
-        // Compute Model, View, Normal Matrices
-        model_matrix = mat4x4(1.0f);
-        modelview_matrix = view_matrix * model_matrix;
-        modelview_projection_matrix = projection_matrix * modelview_matrix;
-        normal_matrix = transpose(inverse(modelview_matrix));
-
-        // Set Shader Uniforms
-        shader.setFloat("time", glfwGetTime());
-        shader.setMat4x4f("view_matrix", view_matrix);
-        shader.setMat4x4f("modelview_projection_matrix", modelview_projection_matrix);
-        shader.setMat3x3f("normal_matrix", normal_matrix);
-        shader.setVec3f("light.position", camera.position);
-        shader.setVec3f("light.ambient", MV::Vec3f(1,1,1));
-        shader.setVec3f("light.diffuse", MV::Vec3f(0.1,0.1,0.1));
-        shader.setVec3f("light.specular", MV::Vec3f(0.1,0.1,0.1));
-
-        // Render
-        tetRenderer.render();
+        tetRenderer.render(camera.getViewMatrix(), glm::perspective(glm::radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f));
 
         /***********************
         * RENDER END
@@ -147,6 +122,8 @@ void processInput(GLFWwindow* window) {
     if (sec_timer >= 1.0f) {
         sec_timer -= 1.0f;
         std::cout << "FPS: " << 1.0f / delta_time << std::endl;
+        std::cout << "Camera: pos (" << camera.position[0] << " " << camera.position[1] << " " << camera.position[2] << "), forward ("
+                  << camera.forward[0] << " " << camera.forward[1] << " " << camera.forward[2] << ")" << std::endl;
     }
 
     // Close Window by pressing ESCAPE
@@ -167,7 +144,7 @@ void processInput(GLFWwindow* window) {
 
 
     // Move
-    vec3 direction = vec3();
+    auto direction = MV::Vec3f();
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboard(camera.FORWARD, delta_time);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboard(camera.BACKWARD, delta_time);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboard(camera.LEFT, delta_time);
