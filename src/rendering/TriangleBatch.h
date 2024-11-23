@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../utils/Utils.h"
-#include "../commons/shader.h"
+#include "../commons/Shader.h"
 #include "VertexAttributesLayout.h"
 #include <unordered_set>
 
@@ -14,7 +14,7 @@ namespace MV
         TriangleBatch(uint maxNumTriangles);
         ~TriangleBatch();
 
-        void setShader(Shader& shader);
+        //void setShader(Shader& shader);
 
         template <typename Data>
         bool addTriangle(const Data& v0, const Data& v1, const Data& v2)

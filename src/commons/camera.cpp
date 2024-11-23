@@ -2,6 +2,9 @@
 
 using namespace glm;
 
+namespace MV
+{
+
 Camera::Camera(glm::vec3 position, glm::vec3 forward) {
 
     this->position = position;
@@ -76,4 +79,5 @@ void Camera::updateCameraVectors() {
 
     right = normalize(cross(forward, world_up));
     up = normalize(cross(right, forward));
+}
 }

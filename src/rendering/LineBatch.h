@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../utils/Utils.h"
-#include "../commons/shader.h"
+#include "../commons/Shader.h"
 #include "VertexAttributesLayout.h"
 #include <unordered_set>
 

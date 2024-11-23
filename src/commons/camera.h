@@ -7,6 +7,9 @@
 
 #include <vector>
 
+namespace MV
+{
+
 class Camera {
 public:
     enum Camera_Movement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
@@ -43,5 +46,6 @@ private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
 };
+}
 
 #endif

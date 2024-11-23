@@ -1,8 +1,8 @@
 #include "main.h"
+#include "commons/Camera.h"
 #include "rendering/TetMeshRenderer.h"
 #include "utils/Typedefs.h"
 #include "utils/FileAccessor.h"
-#include "rendering/TriangleBatch.h"
 
 //using namespace glm;
 
@@ -16,10 +16,12 @@ float delta_time = 0.0f;
 float sec_timer = 0.0f;
 float last_frame = 0.0f;
 
+bool imguiFocus;
+
 bool wireframe = false;
 bool wireframe_toggable = true;
 
-Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
+MV::Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
 //Sphere sphere = Sphere(20);
 //MV::Triangle triangle = MV::Triangle(); 
 //Cube cube[] = { Cube(), Cube() };
@@ -65,6 +67,16 @@ int main() {
         return -1;
     }
 
+    //------------------------------------------
+    // ImGui
+    //------------------------------------------
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     /***********************
     * TEST START
     ***********************/
@@ -90,30 +102,57 @@ int main() {
         // Clear the Screen Colors and Depth Buffer
         glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
         glEnable(GL_DEPTH_TEST);
 
+        // ImGui
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+        imguiFocus = (io.WantCaptureMouse || io.WantCaptureKeyboard);
+
         /***********************
-        * RENDER START
+        * CUSTOM RENDER START
         ***********************/
 
         tetRenderer.render(camera.getViewMatrix(), glm::perspective(glm::radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f));
 
         /***********************
-        * RENDER END
+        * CUSTOM RENDER END
         ***********************/
+
+        // ImGui Window
+        ImGui::Begin("ImGui, Gui Window!");
+        ImGui::Text("Fischers Fritz fischt frische Fische.");
+        ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
+        ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
+        ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
+        ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
+        ImGui::SliderFloat("fov", &camera.fov, 1.0f, 45.0f);
+        ImGui::ColorEdit3("Ambient", &tetRenderer.light.ambient[0]);
+        ImGui::ColorEdit3("Diffuse", &tetRenderer.light.diffuse[0]);
+        ImGui::ColorEdit3("Specular", &tetRenderer.light.specular[0]);
+        ImGui::End();
+
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    // cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;
 }
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow* window)
+{
 
     float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
@@ -153,7 +192,9 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboard(camera.DOWN, delta_time);
 }
 
-void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y) {
+void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y)
+{
+    if (imguiFocus) return;
 
     float dx = (float)(mouse_x - last_mouse_x);
     float dy = (float)(last_mouse_y - mouse_y); // reversed since y-coordinates range from bottom to top
@@ -166,6 +207,7 @@ void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y) {
 }
 
 void scroll_callback(GLFWwindow* window, double dx, double dy) {
+    if (imguiFocus) return;
     camera.processMouseScroll((float)dy);
 }
 

@@ -13,10 +13,7 @@ endif()
 
 file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
-add_executable(MeshViewer
-${SRC_FILES}
-)
-add_custom_target(HeaderFiles SOURCES ${HEADER_FILES})
+add_executable(MeshViewer ${SRC_FILES} ${HEADER_FILES})
 
 #=========================
 # GLFW
@@ -26,6 +23,11 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
 if (NOT TARGET glfw)
+    message(STATUS "Fetching glfw")
+    set(GLFW_BUILD_EXAMPLES OFF)
+    set(GLFW_BUILD_TESTS OFF)
+    set(GLFW_BUILD_DOCS OFF)
+    set(GLFW_INSTALL OFF)
     FetchContent_Declare(glfw
     GIT_REPOSITORY https://github.com/glfw/glfw
     GIT_TAG        3.3.8 # Replace with the desired GLFW version
@@ -38,6 +40,7 @@ endif()
 # GLM
 #=========================
 if (NOT TARGET glm)
+    message(STATUS "Fetching glm")
     FetchContent_Declare(glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
         GIT_TAG        0.9.9.8 # Replace with the desired GLM version
@@ -47,9 +50,46 @@ if (NOT TARGET glm)
 endif()
 
 #=========================
+# Glad and OpenGL
+#=========================
+add_subdirectory(external/glad/)
+find_package(OpenGL REQUIRED) # Link OpenGL (on most systems)
+
+#=========================
+# ImGui
+#=========================
+# if (NOT TARGET imgui)
+#     message(STATUS "Fetching ImGui")
+#     FetchContent_Declare(imgui
+#         GIT_REPOSITORY https://github.com/ocornut/imgui.git
+#         SOURCE_DIR "${EXTERNAL_DIR}/imgui"
+#     )
+#     FetchContent_MakeAvailable(imgui)
+# endif()
+#find_package(imgui REQUIRED)
+#set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
+#target_include_directories(MeshViewer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
+#target_link_directories(MeshViewer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
+# add_library(imgui
+#     ${IMGUI_DIR}/imgui.cpp
+#     ${IMGUI_DIR}/imgui_draw.cpp
+#     ${IMGUI_DIR}/imgui_tables.cpp
+#     ${IMGUI_DIR}/imgui_widgets.cpp
+#     ${IMGUI_DIR}/imgui_impl_glfw.cpp
+#     ${IMGUI_DIR}/imgui_impl_opengl3.cpp
+# )
+# target_include_directories(imgui PUBLIC
+#     ${IMGUI_DIR}
+#     #${EXTERNAL_DIR}
+#     #${GLFW_INCLUDE_DIR}
+# )
+#target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
+
+#=========================
 # OVM
 #=========================
 if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
+    message(STATUS "Fetching OpenVolumeMesh")
     FetchContent_Declare(ovm
         GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenVolumeMesh/OpenVolumeMesh
         GIT_TAG v3.3
@@ -57,13 +97,6 @@ if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
         )
     FetchContent_MakeAvailable(ovm)
 endif()
-
-
-#=========================
-# Glad and OpenGL
-#=========================
-add_subdirectory(external/glad/)
-find_package(OpenGL REQUIRED) # Link OpenGL (on most systems)
 
 #=========================
 # Link
@@ -74,6 +107,7 @@ glfw
 OpenGL::GL
 glm
 OpenVolumeMesh::OpenVolumeMesh
+#imgui
 )
 
 #=========================

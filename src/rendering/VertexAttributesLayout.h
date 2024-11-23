@@ -8,8 +8,23 @@
 namespace MV
 {
 
+struct BaseVertexAttributesLayout
+{
+public:
+    BaseVertexAttributesLayout() = default;
+    inline virtual size_t attrOffset(size_t i) = 0;
+    inline virtual size_t attrOffsetBytes(size_t i) = 0;
+    inline virtual size_t attrSize(size_t i) = 0;
+    inline virtual size_t attrSizeBytes(size_t i) = 0;
+    inline virtual size_t numAttrs() = 0;
+    inline virtual size_t totalSize() = 0;
+    inline virtual size_t totalSizeBytes() = 0;
+    inline virtual size_t typeSizeBytes() = 0;
+    inline virtual GLenum type() = 0;
+};
+
 template <GLenum GLT, typename T, size_t... S>
-struct VertexAttributesLayout
+struct VertexAttributesLayout : BaseVertexAttributesLayout
 {
 public:
     VertexAttributesLayout() : sizes{S...}
@@ -20,14 +35,15 @@ public:
     }
 
     ~VertexAttributesLayout() {}
-    inline size_t attrOffset(size_t i) {return offsets[i];}
-    inline size_t attrOffsetBytes(size_t i) {return sizeof(T)*offsets[i];}
-    inline size_t attrSize(size_t i) {return sizes[i];}
-    inline size_t attrSizeBytes(size_t i) {return sizeof(T)*sizes[i];}
-    inline size_t numAttrs() {return sizes.size();}
-    inline size_t totalSize() {return size;}
-    inline size_t totalSizeBytes() {return sizeof(T) * size;}
-    inline GLenum type() {return GLT;}
+    inline size_t attrOffset(size_t i) override {return offsets[i];}
+    inline size_t attrOffsetBytes(size_t i) override {return sizeof(T)*offsets[i];}
+    inline size_t attrSize(size_t i) override {return sizes[i];}
+    inline size_t attrSizeBytes(size_t i) override {return sizeof(T)*sizes[i];}
+    inline size_t numAttrs() override {return sizes.size();}
+    inline size_t totalSize() override {return size;}
+    inline size_t totalSizeBytes() override {return sizeof(T) * size;}
+    inline size_t typeSizeBytes() override {return sizeof(T);}
+    inline GLenum type() override {return GLT;}
 private:
     std::vector<size_t> sizes;
     std::vector<size_t> offsets;

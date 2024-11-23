@@ -2,7 +2,8 @@
 #define TETMESHRENDERER_H
 
 #include "LineBatch.h"
-#include "TriangleBatch.h"
+#include "RenderBatchTetCells.h"
+#include "RenderBatchTetFaces.h"
 
 namespace MV
 {
@@ -14,19 +15,21 @@ public:
 
     void render(const glm::mat4x4& v, const glm::mat4x4& p);
 
+    bool showCells = true, showFaces = false, showEdges = false;
+    Light light;
+    float cellScale;
+
 private:
     TetrahedralMesh& mesh;
-    TriangleBatch cellsBatch;
-    TriangleBatch facesBatch;
-    TriangleBatch boundaryFacesBatch;
     LineBatch edgesBatch;
 
-    Shader triangleShader;
+    RenderBatchTetCells tetCellsBatch;
+    Shader tetCellsShader;
+
+    RenderBatchTetFaces facesBatch;
+    Shader facesShader;
+
     Shader lineShader;
-
-    void createCellsBatch(float scale);
-
-    void createFacesBatch();
 
     void createEdgesBatch();
 };

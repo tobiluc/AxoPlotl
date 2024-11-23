@@ -1,4 +1,10 @@
-#include "texture.h"
+#include "Texture.h"
+#include <chrono>
+#include <iostream>
+
+/*
+namespace MV
+{
 
 Texture::Texture() : ID(0) {}
 
@@ -93,3 +99,5 @@ void Texture::use(GLenum unit) {
     glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, ID);
 }
+}
+*/

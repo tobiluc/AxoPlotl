@@ -4,15 +4,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include "utils/gl.h"
-#include <GLFW/glfw3.h>
-
-#include "commons/Shader.h"
-#include "commons/Texture.h"
-
-#include "commons/Camera.h"
-
-#include "primitives/Sphere.h"
-#include "primitives/Cube.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y);

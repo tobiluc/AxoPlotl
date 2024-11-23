@@ -8,7 +8,7 @@
 
 namespace MV
 {
-    enum MeshRenderMode {NONE, CELLS, FACES, BOUNDARY_FACES, EDGES};
+    enum MeshRenderMode {NONE, CELLS, BOUNDARY_FACES, EDGES};
 
     template <typename T, typename = void>
     struct is_iterable : std::false_type {};
@@ -72,29 +72,31 @@ namespace MV
         std::uniform_real_distribution<float> dist;
     };
 
-    namespace Color
+    using Color = std::array<float, 3>;
+    constexpr Color RED = {1, 0, 0};
+    constexpr Color GREEN = {0, 1, 0};
+    constexpr Color BLUE = {0, 0, 1};
+    constexpr Color WHITE = {1, 1, 1};
+    constexpr Color BLACK = {0, 0, 0};
+
+    struct Light {Vec3f ambient, diffuse, specular;};
+
+    template <typename Vec3T>
+    Vec3T tetIncenter(const Vec3T& A, const Vec3T& B, const Vec3T& C, const Vec3T& D)
     {
-    using Color = std::array<float, 4>;
-    constexpr Color RED = {1, 0, 0, 1};
-    constexpr Color GREEN = {0, 1, 0, 1};
-    constexpr Color BLUE = {0, 0, 1, 1};
-    constexpr Color WHITE = {1, 1, 1, 1};
-    constexpr Color BLACK = {0, 0, 0, 1};
+        const auto a = .5 * ((D - C).cross(D - B)).norm(); // Areas
+        const auto b = .5 * ((D - C).cross(D - A)).norm();
+        const auto c = .5 * ((D - A).cross(D - B)).norm();
+        const auto d = .5 * ((C - B).cross(C - A)).norm();
+        return (a*A + b*B + c*C + d*D) / (a + b + c + d);
     }
 
     template <typename Vec3T>
     void scaleTetrahedron(Vec3T& A, Vec3T& B, Vec3T& C, Vec3T& D, const double& delta)
     {
         if (delta <= 0) return;
-        const auto a = .5 * ((D - C).cross(D - B)).norm(); // Areas
-        const auto b = .5 * ((D - C).cross(D - A)).norm();
-        const auto c = .5 * ((D - A).cross(D - B)).norm();
-        const auto d = .5 * ((C - B).cross(C - A)).norm();
-        const auto I = (a*A + b*B + c*C + d*D) / (a + b + c + d); // Incenter
+        const auto I = tetIncenter(A,B,C,D);
 
-        const auto VTimes6 = fabs((A - D).dot((B - D) % (C - D)));
-        if (VTimes6 == 0) return; // Volume
-        //const auto r = .5 * VTimes6 / (a + b + c + d); // Inradius
         A += (1. - delta) * (I - A);
         B += (1. - delta) * (I - B);
         C += (1. - delta) * (I - C);

@@ -1,5 +1,8 @@
 #include "shader.h"
 
+namespace MV
+{
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath) : Shader(vertexPath, "", fragmentPath) {}
 
 Shader::Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath) {
@@ -115,4 +118,5 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type) {
             std::cerr << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
     }
+}
 }

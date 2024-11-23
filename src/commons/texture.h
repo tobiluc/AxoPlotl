@@ -6,6 +6,9 @@
 #include "../utils/gl.h"
 #include "../utils/simplex_noise.h"
 
+/*
+namespace MV
+{
 class Texture {
 public:
     unsigned int ID;
@@ -21,5 +24,6 @@ public:
 
     void use(GLenum unit);
 };
-
+}
+*/
 #endif
