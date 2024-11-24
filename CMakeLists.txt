@@ -30,7 +30,7 @@ if (NOT TARGET glfw)
     set(GLFW_INSTALL OFF)
     FetchContent_Declare(glfw
     GIT_REPOSITORY https://github.com/glfw/glfw
-    GIT_TAG        3.3.8 # Replace with the desired GLFW version
+    GIT_TAG        3.3.8
     SOURCE_DIR "${EXTERNAL_DIR}/glfw"
     )
 FetchContent_MakeAvailable(glfw)
@@ -43,7 +43,7 @@ if (NOT TARGET glm)
     message(STATUS "Fetching glm")
     FetchContent_Declare(glm
         GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG        0.9.9.8 # Replace with the desired GLM version
+        GIT_TAG        0.9.9.8
         SOURCE_DIR "${EXTERNAL_DIR}/glm"
     )
     FetchContent_MakeAvailable(glm)
@@ -53,7 +53,7 @@ endif()
 # Glad and OpenGL
 #=========================
 add_subdirectory(external/glad/)
-find_package(OpenGL REQUIRED) # Link OpenGL (on most systems)
+find_package(OpenGL REQUIRED)
 
 #=========================
 # ImGui

@@ -46,16 +46,15 @@ RenderBatchTetFaces::RenderBatchTetFaces(TetrahedralMesh& mesh) :
     {
         auto fh = *f_it;
         if (!mesh.is_boundary(fh)) continue;
+        auto hfh = fh.halfface_handle(0); if (!mesh.incident_cell(hfh).is_valid()) hfh = hfh.opposite_handle();
+        auto normal = mesh.normal(hfh);
         auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
-        auto p0 = mesh.vertex(vhs[0]);
-        auto p1 = mesh.vertex(vhs[1]);
-        auto p2 = mesh.vertex(vhs[2]);
-        std::array<float,3> col = {random.randf(), random.randf(), random.randf()};
-        auto v0 = toArray<float,9>(p0, col, Vec3f(0, 0, 1));
-        auto v1 = toArray<float,9>(p1, col, Vec3f(0, 0, 1));
-        auto v2 = toArray<float,9>(p2, col, Vec3f(0, 0, 1));
+        Color col = {random.randf(), random.randf(), random.randf()};
+        auto d0 = toArray<float,9>(mesh.vertex(vhs[0]), col, normal);
+        auto d1 = toArray<float,9>(mesh.vertex(vhs[1]), col, normal);
+        auto d2 = toArray<float,9>(mesh.vertex(vhs[2]), col, normal);
 
-        setFace(i++, std::vector({v0, v1, v2}));
+        setFace(i++, std::vector({d0, d1, d2}));
     }
 }
 

@@ -2,6 +2,7 @@
 #define TETMESHRENDERER_H
 
 #include "LineBatch.h"
+#include "RenderBatchEdges.h"
 #include "RenderBatchTetCells.h"
 #include "RenderBatchTetFaces.h"
 
@@ -21,7 +22,6 @@ public:
 
 private:
     TetrahedralMesh& mesh;
-    LineBatch edgesBatch;
 
     RenderBatchTetCells tetCellsBatch;
     Shader tetCellsShader;
@@ -29,9 +29,8 @@ private:
     RenderBatchTetFaces facesBatch;
     Shader facesShader;
 
-    Shader lineShader;
-
-    void createEdgesBatch();
+    RenderBatchEdges edgesBatch;
+    Shader edgesShader;
 };
 
 }

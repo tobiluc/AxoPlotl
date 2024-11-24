@@ -13,6 +13,7 @@ float current_aspect_ratio = (float)SCR_WIDTH / (float)SCR_HEIGHT;
 
 // global variables
 float delta_time = 0.0f;
+float fps = 0.0f;
 float sec_timer = 0.0f;
 float last_frame = 0.0f;
 
@@ -22,9 +23,6 @@ bool wireframe = false;
 bool wireframe_toggable = true;
 
 MV::Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
-//Sphere sphere = Sphere(20);
-//MV::Triangle triangle = MV::Triangle(); 
-//Cube cube[] = { Cube(), Cube() };
 
 float last_mouse_x = 0.5f * SCR_WIDTH;
 float last_mouse_y = 0.5f * SCR_HEIGHT;
@@ -85,8 +83,6 @@ int main() {
 
     MV::TetrahedralMesh mesh;
     MV::readTetMesh("../res/meshes/i01c.ovmb", mesh, MV::FileFormat::OVMB);
-
-    //Shader shader("../res/shaders/color.vert", "../res/shaders/color_triangles_default.geom", "../res/shaders/color_phong.frag");
     MV::TetMeshRenderer tetRenderer(mesh);
 
     /***********************
@@ -122,7 +118,7 @@ int main() {
 
         // ImGui Window
         ImGui::Begin("ImGui, Gui Window!");
-        ImGui::Text("Fischers Fritz fischt frische Fische.");
+        ImGui::Text("%s", ("FPS " + std::to_string(fps)).c_str());
         ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
         ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
         ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
@@ -160,9 +156,7 @@ void processInput(GLFWwindow* window)
     sec_timer += delta_time;
     if (sec_timer >= 1.0f) {
         sec_timer -= 1.0f;
-        std::cout << "FPS: " << 1.0f / delta_time << std::endl;
-        std::cout << "Camera: pos (" << camera.position[0] << " " << camera.position[1] << " " << camera.position[2] << "), forward ("
-                  << camera.forward[0] << " " << camera.forward[1] << " " << camera.forward[2] << ")" << std::endl;
+        fps = 1.0f / delta_time;
     }
 
     // Close Window by pressing ESCAPE
