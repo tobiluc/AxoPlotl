@@ -19,8 +19,8 @@ float last_frame = 0.0f;
 
 bool imguiFocus;
 
-bool wireframe = false;
-bool wireframe_toggable = true;
+//bool wireframe = false;
+//bool wireframe_toggable = true;
 
 MV::Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
 
@@ -123,6 +123,8 @@ int main() {
         ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
         ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
         ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
+        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 10.0f);
+        ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
         ImGui::SliderFloat("fov", &camera.fov, 1.0f, 45.0f);
         ImGui::ColorEdit3("Ambient", &tetRenderer.light.ambient[0]);
         ImGui::ColorEdit3("Diffuse", &tetRenderer.light.diffuse[0]);
@@ -164,16 +166,16 @@ void processInput(GLFWwindow* window)
         glfwSetWindowShouldClose(window, true);
 
     // Toggle Wireframe Mode with Z Key (Note that glfw uses us keyboards)
-    if (wireframe_toggable) {
-        if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-            wireframe = !wireframe;
-            glPolygonMode(GL_FRONT_AND_BACK, (wireframe) ? GL_LINE : GL_FILL);
-            wireframe_toggable = false;
-            std::cout << "Wireframe: " << ((wireframe)? "ON" : "OFF") << std::endl;
-        }
-    } else if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_RELEASE) {
-        wireframe_toggable = true;
-    }
+    // if (wireframe_toggable) {
+    //     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
+    //         wireframe = !wireframe;
+    //         glPolygonMode(GL_FRONT_AND_BACK, (wireframe) ? GL_LINE : GL_FILL);
+    //         wireframe_toggable = false;
+    //         std::cout << "Wireframe: " << ((wireframe)? "ON" : "OFF") << std::endl;
+    //     }
+    // } else if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_RELEASE) {
+    //     wireframe_toggable = true;
+    // }
 
 
     // Move

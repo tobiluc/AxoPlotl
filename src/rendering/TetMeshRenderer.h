@@ -1,7 +1,6 @@
 #ifndef TETMESHRENDERER_H
 #define TETMESHRENDERER_H
 
-#include "LineBatch.h"
 #include "RenderBatchEdges.h"
 #include "RenderBatchTetCells.h"
 #include "RenderBatchTetFaces.h"
@@ -19,12 +18,15 @@ public:
     bool showCells = true, showFaces = false, showEdges = false;
     Light light;
     float cellScale;
+    float outlineWidth;
+    Color outlineColor;
 
 private:
     TetrahedralMesh& mesh;
 
     RenderBatchTetCells tetCellsBatch;
     Shader tetCellsShader;
+    //Shader tetCellsOutlineShader;
 
     RenderBatchTetFaces facesBatch;
     Shader facesShader;

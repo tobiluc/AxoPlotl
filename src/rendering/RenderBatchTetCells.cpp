@@ -5,23 +5,19 @@ namespace MV
 
 RenderBatchTetCells::RenderBatchTetCells(TetrahedralMesh& mesh) :
     val(),
-    nVerticesPerTet(12),
-    vertices(nVerticesPerTet*mesh.n_cells()*val.totalSize())
+    vertices(12*mesh.n_cells()*val.totalSize())
 {
     // generate vertex array object
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     // Each tet has 4 triangular faces, 12 vertices to have correct normals
-    uint nVertices = nVerticesPerTet*mesh.n_cells();
+    uint nVertices = 12*mesh.n_cells();
     nIndices = 12*mesh.n_cells();
 
-    // compute the constant triangle indices (012,345,678,91011,...)
+    // compute the constant triangle tetIndices (012,345,678,91011,...)
     std::vector<uint> indices(nIndices);
-    for (int i = 0; i < nIndices; ++i)
-    {
-        indices[i] = i;
-    }
+    for (int i = 0; i < nIndices; ++i) {indices[i] = i;}
 
     // generate vertex buffer object
     glGenBuffers(1, &vbo);
@@ -31,7 +27,7 @@ RenderBatchTetCells::RenderBatchTetCells(TetrahedralMesh& mesh) :
     // generate index buffer object
     glGenBuffers(1, &ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint), &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(uint), &indices[0], GL_STATIC_DRAW);
 
     // define attributes
     for (int i = 0; i < val.numAttrs(); ++i)
@@ -79,16 +75,47 @@ void RenderBatchTetCells::render(Shader& shader)
     while (!updatedTets.empty())
     {
         int i = updatedTets.extract(updatedTets.begin()).value(); // pop
-        glBufferSubData(GL_ARRAY_BUFFER, nVerticesPerTet*i*val.totalSizeBytes(), nVerticesPerTet*val.totalSizeBytes(), &vertices[nVerticesPerTet*i*val.totalSize()]);
+        glBufferSubData(GL_ARRAY_BUFFER, 12*i*val.totalSizeBytes(), 12*val.totalSizeBytes(), &vertices[12*i*val.totalSize()]);
     }
 
     glBindVertexArray(vao);
     for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
 
+    // Draw tets
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL);
 
     for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
     glBindVertexArray(0);
 }
+
+// void RenderBatchTetCells::renderOutlines(Shader& shader)
+// {
+//     // only rebuffer part of data that has changed
+//     glBindBuffer(GL_ARRAY_BUFFER, vbo);
+//     while (!updatedTets.empty())
+//     {
+//         int i = updatedTets.extract(updatedTets.begin()).value(); // pop
+//         glBufferSubData(GL_ARRAY_BUFFER, 12*i*val.totalSizeBytes(), 12*val.totalSizeBytes(), &vertices[12*i*val.totalSize()]);
+//     }
+
+//     glBindVertexArray(vao);
+//     for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
+
+//     glEnable(GL_POLYGON_OFFSET_FILL);
+//     glPolygonOffset(-1.0f, -1.0f);
+//     glDepthMask(GL_FALSE);
+
+//     shader.setVec3f("color", Vec3f(0,0,0));
+//     shader.setFloat("width", 2.0f);
+//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+//     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL);
+
+//     glDisable(GL_POLYGON_OFFSET_FILL);
+//     glDepthMask(GL_TRUE);
+
+//     for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
+//     glBindVertexArray(0);
+// }
 
 }

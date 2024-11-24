@@ -23,8 +23,8 @@ public:
         updatedTets.insert(i);
         int n = val.totalSize();
 
-        i *= (nVerticesPerTet*n);
-        for (int j = 0; j < nVerticesPerTet; ++j)
+        i *= (12*n);
+        for (int j = 0; j < 12; ++j)
         {
             for (int k = 0; k < n; ++k)
             {
@@ -46,7 +46,6 @@ public:
     }
 
 private:
-    const uint nVerticesPerTet;
     VertexAttributesLayout<GL_FLOAT, float, 3, 3, 3, 3> val; // position, color, normal, tetcenter
     std::vector<float> vertices;
     GLuint vao, ibo, vbo;
