@@ -19,7 +19,7 @@ public:
     template <typename Data>
     inline void setTet(int i, const std::vector<Data>& data)
     {
-        assert(data.size()==nVerticesPerTet);
+        assert(data.size()==12);
         updatedTets.insert(i);
         int n = val.totalSize();
 
