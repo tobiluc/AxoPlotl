@@ -9,7 +9,7 @@
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-float current_aspect_ratio = (float)SCR_WIDTH / (float)SCR_HEIGHT;
+//float current_aspect_ratio = (float)SCR_WIDTH / (float)SCR_HEIGHT;
 
 // global variables
 float delta_time = 0.0f;
@@ -47,7 +47,7 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, MV::framebuffer_size_callback);
     glfwSwapInterval(1); // <- Without this as many frames as possible are rendered and the GPU suffers
 
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -79,7 +79,7 @@ int main() {
     std::cout << "Working in " << MV::getWorkingDirectory() << std::endl;
 
     MV::TetrahedralMesh mesh;
-    MV::readTetMesh("../res/meshes/i01c.ovmb", mesh, MV::FileFormat::OVMB);
+    MV::readTetMesh("../res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
     MV::TetMeshRenderer tetRenderer(mesh);
 
     /***********************
@@ -90,11 +90,12 @@ int main() {
     // render loop
     //--------------
     float model_scale[3] = {1.f,1.f,1.f};
+    float clear_color[3] = {1.0f, 1.0f, 1.0f};
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
         // Clear the Screen Colors and Depth Buffer
-        glClearColor(0.4f, 0.4f, 0.4f, 1.0f);
+        glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
@@ -108,18 +109,16 @@ int main() {
         * CUSTOM RENDER START
         ***********************/
 
-        glm::mat4x4 model_matrix(1.0);
-        model_matrix[0][0] = model_scale[0];
-        model_matrix[1][1] = model_scale[1];
-        model_matrix[2][2] = model_scale[2];
-        tetRenderer.render(model_matrix, camera.getViewMatrix(), glm::perspective(glm::radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f));
+        glm::mat4x4 model_matrix(1.0f);
+        for (char i = 0; i < 3; ++i) model_matrix[i][i] = model_scale[i];
+        tetRenderer.render(model_matrix, camera.getViewMatrix(), camera.getProjectionMatrix());
 
         /***********************
         * CUSTOM RENDER END
         ***********************/
 
         // ImGui Window
-        ImGui::Begin("ImGui, Gui Window!");
+        ImGui::Begin("Mesh Viewer Control Panel");
 
         ImGui::Text("Info");
         ImGui::Text("%s", ("FPS " + std::to_string(fps)).c_str());
@@ -128,15 +127,16 @@ int main() {
         ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
         ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
         ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
+        ImGui::ColorEdit3("Background Color", clear_color);
         ImGui::NewLine();
         ImGui::Text("Mesh Render Settings");
         ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
-        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 10.0f);
+        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 0.1f);
         ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
         ImGui::SliderFloat3("Model Scale", model_scale, 0, 2);
         ImGui::NewLine();
         ImGui::Text("Camera and Lighting");
-        ImGui::SliderFloat("fov", &camera.fov, 1.0f, 45.0f);
+        ImGui::SliderFloat("fov", &camera.fov, 1.0f, 90.0f);
         ImGui::ColorEdit3("Ambient", &tetRenderer.light.ambient[0]);
         ImGui::ColorEdit3("Diffuse", &tetRenderer.light.diffuse[0]);
         ImGui::ColorEdit3("Specular", &tetRenderer.light.specular[0]);
@@ -205,10 +205,4 @@ void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 void scroll_callback(GLFWwindow* window, double dx, double dy) {
     if (imguiFocus) return;
     camera.processMouseScroll((float)dy);
-}
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    current_aspect_ratio = (float)width / (float)height;
-    glViewport(0, 0, width, height);
 }

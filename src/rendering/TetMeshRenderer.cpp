@@ -13,7 +13,7 @@ TetMeshRenderer::TetMeshRenderer(TetrahedralMesh& mesh) :
     facesBatch(mesh),
     edgesBatch(mesh),
     edgesShader("../res/shaders/edges.vert", "../res/shaders/edges.frag"),
-    facesShader("../res/shaders/faces.vert", "../res/shaders/faces_phong.frag"),
+    facesShader("../res/shaders/faces.vert", "../res/shaders/faces.geom", "../res/shaders/faces.frag"),
     tetCellsShader("../res/shaders/cells.vert", "../res/shaders/cells.geom", "../res/shaders/cells.frag"),
     light({Vec3f(0.5,0.5,0.5), Vec3f(0.3,0.3,0.3), Vec3f(0.2,0.2,0.2)})
 {
@@ -63,6 +63,9 @@ void TetMeshRenderer::render(const glm::mat4x4& model_matrix, const glm::mat4x4&
         shader.setVec3f("light.ambient", light.ambient);
         shader.setVec3f("light.diffuse", light.diffuse);
         shader.setVec3f("light.specular", light.specular);
+
+        shader.setFloat("outline_width", outlineWidth);
+        shader.setVec3f("outline_color", outlineColor);
 
         facesBatch.render(shader);
     }

@@ -22,7 +22,7 @@ void main()
         // We are in the outline part of the triangle if d < threshold
        float dist = min(g2f_barycentric.x, min(g2f_barycentric.y, g2f_barycentric.z));
        vec3 grad = fwidth(g2f_barycentric);
-       float threshold = outline_width * 0.5 * length(grad);
+       float threshold = outline_width * 0.5 * min(grad.x, min(grad.y, grad.z));
        if (dist < threshold)
 	{
           f_color = vec4(outline_color, 1.0);
