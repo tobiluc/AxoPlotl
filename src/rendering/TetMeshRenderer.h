@@ -13,7 +13,7 @@ class TetMeshRenderer
 public:
     TetMeshRenderer(TetrahedralMesh& mesh);
 
-    void render(const glm::mat4x4& v, const glm::mat4x4& p);
+    void render(const glm::mat4x4& model_matrix, const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
 
     bool showCells = true, showFaces = false, showEdges = false;
     Light light;

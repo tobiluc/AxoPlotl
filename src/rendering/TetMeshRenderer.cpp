@@ -19,29 +19,34 @@ TetMeshRenderer::TetMeshRenderer(TetrahedralMesh& mesh) :
 {
 }
 
-void TetMeshRenderer::render(const glm::mat4x4& v, const glm::mat4x4& p)
+void TetMeshRenderer::render(const glm::mat4x4& model_matrix, const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
 {
+    glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
+    glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
+    glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
+
     if (showCells)
     {
-        tetCellsShader.use();
+        auto& shader = tetCellsShader;
+        shader.use();
 
-        tetCellsShader.setFloat("time", glfwGetTime());
+        shader.setFloat("time", glfwGetTime());
 
-        tetCellsShader.setFloat("cell_scale", cellScale);
+        shader.setFloat("cell_scale", cellScale);
 
-        tetCellsShader.setMat4x4f("model_matrix", Mat4x4f(1.0));
-        tetCellsShader.setMat4x4f("view_matrix", v);
-        tetCellsShader.setMat4x4f("projection_matrix", p);
+        shader.setMat4x4f("view_matrix", view_matrix);
+        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        shader.setMat3x3f("normal_matrix", normal_matrix);
 
-        tetCellsShader.setVec3f("light.position", Vec3f(0,0,0));
-        tetCellsShader.setVec3f("light.ambient", light.ambient);
-        tetCellsShader.setVec3f("light.diffuse", light.diffuse);
-        tetCellsShader.setVec3f("light.specular", light.specular);
+        shader.setVec3f("light.position", Vec3f(0,0,0));
+        shader.setVec3f("light.ambient", light.ambient);
+        shader.setVec3f("light.diffuse", light.diffuse);
+        shader.setVec3f("light.specular", light.specular);
 
-        tetCellsShader.setFloat("outline_width", outlineWidth);
-        tetCellsShader.setVec3f("outline_color", outlineColor);
+        shader.setFloat("outline_width", outlineWidth);
+        shader.setVec3f("outline_color", outlineColor);
 
-        tetCellsBatch.render(tetCellsShader);
+        tetCellsBatch.render(shader);
     }
     if (showFaces)
     {
@@ -50,9 +55,9 @@ void TetMeshRenderer::render(const glm::mat4x4& v, const glm::mat4x4& p)
 
         shader.setFloat("time", glfwGetTime());
 
-        shader.setMat4x4f("model_matrix", Mat4x4f(1.0));
-        shader.setMat4x4f("view_matrix", v);
-        shader.setMat4x4f("projection_matrix", p);
+        shader.setMat4x4f("view_matrix", view_matrix);
+        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        shader.setMat3x3f("normal_matrix", normal_matrix);
 
         shader.setVec3f("light.position", Vec3f(0,0,0));
         shader.setVec3f("light.ambient", light.ambient);
@@ -68,7 +73,7 @@ void TetMeshRenderer::render(const glm::mat4x4& v, const glm::mat4x4& p)
 
         shader.setFloat("time", glfwGetTime());
 
-        shader.setMat4x4f("model_view_projection_matrix", p * (v * Mat4x4f(1.0)));
+        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
 
         edgesBatch.render(shader);
     }

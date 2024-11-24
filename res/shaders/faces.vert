@@ -6,22 +6,19 @@ layout (location = 1) in vec3 v_color;
 layout (location = 2) in vec3 v_normal;
  
 // The following are in view space
-uniform mat4 model_matrix;
 uniform mat4 view_matrix;
-uniform mat4 projection_matrix;
+uniform mat4 model_view_projection_matrix;
+uniform mat3 normal_matrix;
 uniform float time;
 
 out vec3 v2f_color;
 out vec4 v2f_view_position;
 out vec3 v2f_view_normal;
 
-void main() {
-	mat4 modelview_matrix = view_matrix * model_matrix;
-        mat4 modelview_projection_matrix = projection_matrix * modelview_matrix;
-	mat3 normal_matrix = mat3(transpose(inverse(modelview_matrix)));
-
+void main()
+{
 	vec3 pos = v_position;
-	gl_Position = modelview_projection_matrix * vec4(pos, 1.0);
+	gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
 
 	v2f_view_position = view_matrix * vec4(pos, 1.0);
 	v2f_color = v_color;

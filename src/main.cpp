@@ -19,9 +19,6 @@ float last_frame = 0.0f;
 
 bool imguiFocus;
 
-//bool wireframe = false;
-//bool wireframe_toggable = true;
-
 MV::Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
 
 float last_mouse_x = 0.5f * SCR_WIDTH;
@@ -92,6 +89,7 @@ int main() {
     //--------------
     // render loop
     //--------------
+    float model_scale[3] = {1.f,1.f,1.f};
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
 
@@ -110,7 +108,11 @@ int main() {
         * CUSTOM RENDER START
         ***********************/
 
-        tetRenderer.render(camera.getViewMatrix(), glm::perspective(glm::radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f));
+        glm::mat4x4 model_matrix(1.0);
+        model_matrix[0][0] = model_scale[0];
+        model_matrix[1][1] = model_scale[1];
+        model_matrix[2][2] = model_scale[2];
+        tetRenderer.render(model_matrix, camera.getViewMatrix(), glm::perspective(glm::radians(camera.fov), current_aspect_ratio, 0.1f, 4096.0f));
 
         /***********************
         * CUSTOM RENDER END
@@ -118,13 +120,22 @@ int main() {
 
         // ImGui Window
         ImGui::Begin("ImGui, Gui Window!");
+
+        ImGui::Text("Info");
         ImGui::Text("%s", ("FPS " + std::to_string(fps)).c_str());
+        ImGui::NewLine();
+        ImGui::Text("Mesh Visibility");
         ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
         ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
         ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
+        ImGui::NewLine();
+        ImGui::Text("Mesh Render Settings");
         ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
         ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 10.0f);
         ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
+        ImGui::SliderFloat3("Model Scale", model_scale, 0, 2);
+        ImGui::NewLine();
+        ImGui::Text("Camera and Lighting");
         ImGui::SliderFloat("fov", &camera.fov, 1.0f, 45.0f);
         ImGui::ColorEdit3("Ambient", &tetRenderer.light.ambient[0]);
         ImGui::ColorEdit3("Diffuse", &tetRenderer.light.diffuse[0]);
@@ -152,6 +163,7 @@ int main() {
 void processInput(GLFWwindow* window)
 {
 
+    // Compute frames per second
     float current_frame = (float)glfwGetTime();
     delta_time = current_frame - last_frame;
     last_frame = current_frame;
@@ -164,18 +176,6 @@ void processInput(GLFWwindow* window)
     // Close Window by pressing ESCAPE
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    // Toggle Wireframe Mode with Z Key (Note that glfw uses us keyboards)
-    // if (wireframe_toggable) {
-    //     if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS) {
-    //         wireframe = !wireframe;
-    //         glPolygonMode(GL_FRONT_AND_BACK, (wireframe) ? GL_LINE : GL_FILL);
-    //         wireframe_toggable = false;
-    //         std::cout << "Wireframe: " << ((wireframe)? "ON" : "OFF") << std::endl;
-    //     }
-    // } else if (glfwGetKey(window, GLFW_KEY_Y) == GLFW_RELEASE) {
-    //     wireframe_toggable = true;
-    // }
 
 
     // Move
