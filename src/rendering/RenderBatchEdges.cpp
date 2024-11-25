@@ -3,10 +3,11 @@
 namespace MV
 {
 
-RenderBatchEdges::RenderBatchEdges(TetrahedralMesh& mesh) :
-    val(),
-    vertices(2*mesh.n_edges()*val.totalSize())
+void RenderBatchEdges::initFromMesh(TetrahedralMesh& mesh)
 {
+    deleteBuffers();
+    vertices.resize(2*mesh.n_edges()*val.totalSize());
+
     // create the vertex data and indices arrays
     nIndices = 2*mesh.n_edges();
     std::vector<uint> indices(nIndices);
@@ -15,7 +16,7 @@ RenderBatchEdges::RenderBatchEdges(TetrahedralMesh& mesh) :
     {
         auto eh = *e_it;
         int i = eh.idx();
-        bool boundary = mesh.is_boundary(eh);
+        //bool boundary = mesh.is_boundary(eh);
         int valence = mesh.valence(eh);
         auto heh = eh.halfedge_handle(0);
         auto vh0 = mesh.from_vertex_handle(heh);
@@ -56,13 +57,6 @@ RenderBatchEdges::RenderBatchEdges(TetrahedralMesh& mesh) :
         glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
         glEnableVertexAttribArray(i);
     }
-}
-
-RenderBatchEdges::~RenderBatchEdges()
-{
-    if (vbo) glDeleteBuffers(1, &vbo);
-    if (ibo) glDeleteBuffers(1, &ibo);
-    if (vao) glDeleteVertexArrays(1, &vao);
 }
 
 void RenderBatchEdges::render(Shader& shader)

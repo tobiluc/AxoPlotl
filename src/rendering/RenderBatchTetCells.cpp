@@ -3,10 +3,11 @@
 namespace MV
 {
 
-RenderBatchTetCells::RenderBatchTetCells(TetrahedralMesh& mesh) :
-    val(),
-    vertices(12*mesh.n_cells()*val.totalSize())
+void RenderBatchTetCells::initFromMesh(TetrahedralMesh& mesh)
 {
+    deleteBuffers();
+    vertices.resize(12*mesh.n_cells()*val.totalSize());
+
     // generate vertex array object
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -60,13 +61,6 @@ RenderBatchTetCells::RenderBatchTetCells(TetrahedralMesh& mesh) :
     }
 }
 
-RenderBatchTetCells::~RenderBatchTetCells()
-{
-    if (vbo) glDeleteBuffers(1, &vbo);
-    if (ibo) glDeleteBuffers(1, &ibo);
-    if (vao) glDeleteVertexArrays(1, &vao);
-}
-
 void RenderBatchTetCells::render(Shader& shader)
 {
 
@@ -88,34 +82,5 @@ void RenderBatchTetCells::render(Shader& shader)
     for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
     glBindVertexArray(0);
 }
-
-// void RenderBatchTetCells::renderOutlines(Shader& shader)
-// {
-//     // only rebuffer part of data that has changed
-//     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-//     while (!updatedTets.empty())
-//     {
-//         int i = updatedTets.extract(updatedTets.begin()).value(); // pop
-//         glBufferSubData(GL_ARRAY_BUFFER, 12*i*val.totalSizeBytes(), 12*val.totalSizeBytes(), &vertices[12*i*val.totalSize()]);
-//     }
-
-//     glBindVertexArray(vao);
-//     for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
-
-//     glEnable(GL_POLYGON_OFFSET_FILL);
-//     glPolygonOffset(-1.0f, -1.0f);
-//     glDepthMask(GL_FALSE);
-
-//     shader.setVec3f("color", Vec3f(0,0,0));
-//     shader.setFloat("width", 2.0f);
-//     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-//     glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL);
-
-//     glDisable(GL_POLYGON_OFFSET_FILL);
-//     glDepthMask(GL_TRUE);
-
-//     for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
-//     glBindVertexArray(0);
-// }
 
 }

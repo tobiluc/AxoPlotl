@@ -11,8 +11,17 @@ namespace MV
 class RenderBatchTetCells
 {
 public:
-    RenderBatchTetCells(TetrahedralMesh& mesh);
-    ~RenderBatchTetCells();
+    RenderBatchTetCells(TetrahedralMesh& mesh) : val()
+    {
+        initFromMesh(mesh);
+    }
+
+    ~RenderBatchTetCells()
+    {
+        deleteBuffers();
+    }
+
+    void initFromMesh(TetrahedralMesh& mesh);
 
     void render(Shader& shader);
 
@@ -48,9 +57,16 @@ public:
 private:
     VertexAttributesLayout<GL_FLOAT, float, 3, 3, 3, 3> val; // position, color, normal, tetcenter
     std::vector<float> vertices;
-    GLuint vao, ibo, vbo;
+    GLuint vao = 0, ibo = 0, vbo = 0;
     uint nIndices;
     std::unordered_set<int> updatedTets;
+
+    inline void deleteBuffers()
+    {
+        if (vbo) glDeleteBuffers(1, &vbo);
+        if (ibo) glDeleteBuffers(1, &ibo);
+        if (vao) glDeleteVertexArrays(1, &vao);
+    }
 
 };
 }

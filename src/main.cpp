@@ -4,6 +4,11 @@
 #include "utils/Typedefs.h"
 #include "utils/FileAccessor.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+#include <ImGuiFileDialog.h>
+
 //using namespace glm;
 
 // settings
@@ -40,7 +45,7 @@ int main() {
     //-----------------------
     // glfw window creation
     //-----------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Mesh Viewer", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "MVOMVO - My Very Own Mesh Viewer Option", NULL, NULL);
     if (window == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -68,7 +73,7 @@ int main() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsDark();
+    ImGui::StyleColorsLight();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -119,9 +124,26 @@ int main() {
 
         // ImGui Window
         ImGui::Begin("Mesh Viewer Control Panel");
-
         ImGui::Text("Info");
         ImGui::Text("%s", ("FPS " + std::to_string(fps)).c_str());
+        ImGui::NewLine();
+
+        if (ImGui::Button("Load Tet Mesh")) {
+            IGFD::FileDialogConfig config;
+            config.path = "..";
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ovm,.ovmb", config);
+        }
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+                std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
+
+                MV::TetrahedralMesh mesh2;
+                MV::readTetMesh(filepath, mesh2);
+                tetRenderer.setMesh(mesh2);
+            }
+            ImGuiFileDialog::Instance()->Close();
+        }
+
         ImGui::NewLine();
         ImGui::Text("Mesh Visibility");
         ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
@@ -131,9 +153,11 @@ int main() {
         ImGui::NewLine();
         ImGui::Text("Mesh Render Settings");
         ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
-        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 0.1f);
+        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 12.0f);
         ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
         ImGui::SliderFloat3("Model Scale", model_scale, 0, 2);
+        ImGui::Checkbox("Use Override Color", &tetRenderer.useColorOverride);
+        ImGui::ColorEdit3("Override Color", &tetRenderer.colorOverride[0]);
         ImGui::NewLine();
         ImGui::Text("Camera and Lighting");
         ImGui::SliderFloat("fov", &camera.fov, 1.0f, 90.0f);

@@ -58,32 +58,35 @@ find_package(OpenGL REQUIRED)
 #=========================
 # ImGui
 #=========================
-# if (NOT TARGET imgui)
-#     message(STATUS "Fetching ImGui")
-#     FetchContent_Declare(imgui
-#         GIT_REPOSITORY https://github.com/ocornut/imgui.git
-#         SOURCE_DIR "${EXTERNAL_DIR}/imgui"
-#     )
-#     FetchContent_MakeAvailable(imgui)
-# endif()
-#find_package(imgui REQUIRED)
-#set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
-#target_include_directories(MeshViewer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
-#target_link_directories(MeshViewer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/imgui")
-# add_library(imgui
-#     ${IMGUI_DIR}/imgui.cpp
-#     ${IMGUI_DIR}/imgui_draw.cpp
-#     ${IMGUI_DIR}/imgui_tables.cpp
-#     ${IMGUI_DIR}/imgui_widgets.cpp
-#     ${IMGUI_DIR}/imgui_impl_glfw.cpp
-#     ${IMGUI_DIR}/imgui_impl_opengl3.cpp
-# )
-# target_include_directories(imgui PUBLIC
-#     ${IMGUI_DIR}
-#     #${EXTERNAL_DIR}
-#     #${GLFW_INCLUDE_DIR}
-# )
-#target_link_libraries(imgui PRIVATE glfw OpenGL::GL)
+if (NOT TARGET ImGui)
+    message(STATUS "Fetching ImGui")
+    FetchContent_Declare(ImGui
+        GIT_REPOSITORY https://github.com/ocornut/imgui.git
+        SOURCE_DIR "${EXTERNAL_DIR}/ImGui"
+    )
+    FetchContent_MakeAvailable(ImGui)
+    add_library(ImGui STATIC
+        ${IMGUI_SRC_FILES}
+        ${EXTERNAL_DIR}/ImGui/imgui.cpp
+        ${EXTERNAL_DIR}/ImGui/imgui_demo.cpp
+        ${EXTERNAL_DIR}/ImGui/imgui_draw.cpp
+        ${EXTERNAL_DIR}/ImGui/imgui_tables.cpp
+        ${EXTERNAL_DIR}/ImGui/imgui_widgets.cpp
+        ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_glfw.cpp
+        ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_opengl3.cpp
+    )
+    target_include_directories(ImGui PUBLIC ${EXTERNAL_DIR}/ImGui)
+    target_link_libraries(ImGui PUBLIC glfw OpenGL::GL)
+endif()
+if (NOT TARGET ImGuiFileDialog)
+    message(STATUS "Fetching ImGuiFileDialog")
+    FetchContent_Declare(ImGuiFileDialog
+        GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+        SOURCE_DIR "${EXTERNAL_DIR}/ImGuiFileDialog"
+    )
+    FetchContent_MakeAvailable(ImGuiFileDialog)
+endif()
+
 
 #=========================
 # OVM
@@ -107,8 +110,10 @@ glfw
 OpenGL::GL
 glm
 OpenVolumeMesh::OpenVolumeMesh
-#imgui
+ImGui
+ImGuiFileDialog
 )
+target_link_libraries(ImGuiFileDialog ImGui)
 
 #=========================
 # Testing

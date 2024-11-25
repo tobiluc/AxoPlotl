@@ -4,21 +4,6 @@
 namespace MV
 {
 
-TetMeshRenderer::TetMeshRenderer(TetrahedralMesh& mesh) :
-    mesh(mesh),
-    cellScale(0.9f),
-    outlineWidth(2),
-    outlineColor({0,0,0}),
-    tetCellsBatch(mesh),
-    facesBatch(mesh),
-    edgesBatch(mesh),
-    edgesShader("../res/shaders/edges.vert", "../res/shaders/edges.frag"),
-    facesShader("../res/shaders/faces.vert", "../res/shaders/faces.geom", "../res/shaders/faces.frag"),
-    tetCellsShader("../res/shaders/cells.vert", "../res/shaders/cells.geom", "../res/shaders/cells.frag"),
-    light({Vec3f(0.5,0.5,0.5), Vec3f(0.3,0.3,0.3), Vec3f(0.2,0.2,0.2)})
-{
-}
-
 void TetMeshRenderer::render(const glm::mat4x4& model_matrix, const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
 {
     glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
@@ -45,6 +30,8 @@ void TetMeshRenderer::render(const glm::mat4x4& model_matrix, const glm::mat4x4&
 
         shader.setFloat("outline_width", outlineWidth);
         shader.setVec3f("outline_color", outlineColor);
+        shader.setBool("use_color_override", useColorOverride);
+        shader.setVec3f("color_override", colorOverride);
 
         tetCellsBatch.render(shader);
     }

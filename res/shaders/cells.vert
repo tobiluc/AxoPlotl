@@ -11,6 +11,8 @@ uniform mat4 model_view_projection_matrix;
 uniform mat3 normal_matrix;
 uniform float time;
 uniform float cell_scale;
+uniform bool use_color_override;
+uniform vec3 color_override;
 
 out vec3 v2g_color;
 out vec4 v2g_view_position;
@@ -22,6 +24,7 @@ void main()
 	gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
 
 	v2g_view_position = view_matrix * vec4(pos, 1.0);
-	v2g_color = v_color;
+	if (use_color_override) {v2g_color = color_override;}
+	else {v2g_color = v_color;}
 	v2g_view_normal = normalize(normal_matrix * v_normal);
 } 

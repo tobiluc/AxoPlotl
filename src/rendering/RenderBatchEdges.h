@@ -11,8 +11,17 @@ namespace MV
 class RenderBatchEdges
 {
 public:
-    RenderBatchEdges(TetrahedralMesh& mesh);
-    ~RenderBatchEdges();
+    RenderBatchEdges(TetrahedralMesh& mesh) : vao()
+    {
+        initFromMesh(mesh);
+    }
+
+    ~RenderBatchEdges()
+    {
+        deleteBuffers();
+    }
+
+    void initFromMesh(TetrahedralMesh& mesh);
 
     void render(Shader& shader);
 
@@ -34,10 +43,16 @@ public:
 private:
     VertexAttributesLayout<GL_FLOAT, float, 3, 3> val; // position, color
     std::vector<float> vertices;
-    GLuint vao, ibo, vbo;
+    GLuint vao = 0, ibo = 0, vbo = 0;
     uint nIndices;
     std::unordered_set<int> updatedEdges;
 
+    inline void deleteBuffers()
+    {
+        if (vbo) glDeleteBuffers(1, &vbo);
+        if (ibo) glDeleteBuffers(1, &ibo);
+        if (vao) glDeleteVertexArrays(1, &vao);
+    }
 };
 }
 

@@ -3,17 +3,19 @@
 namespace MV
 {
 
-RenderBatchTetFaces::RenderBatchTetFaces(TetrahedralMesh& mesh) :
-    val(),
-    vertices(3*mesh.n_faces()*val.totalSize())
+void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 {
+    deleteBuffers();
+    uint nTriangles = mesh_n_boundary_faces(mesh);
+    vertices.resize(3*nTriangles*val.totalSize());
+
     // generate vertex array object
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
     // Each face has 3 separate vertices to have correct normals
-    uint nVertices = 3*mesh.n_faces();
-    nIndices = 3*mesh.n_faces();
+    uint nVertices = 3*nTriangles;
+    nIndices = 3*nTriangles;
 
     // compute the constant triangle indices (012,345,678,91011,...)
     std::vector<uint> indices(nIndices);
@@ -56,13 +58,6 @@ RenderBatchTetFaces::RenderBatchTetFaces(TetrahedralMesh& mesh) :
 
         setFace(i++, std::vector({d0, d1, d2}));
     }
-}
-
-RenderBatchTetFaces::~RenderBatchTetFaces()
-{
-    if (vbo) glDeleteBuffers(1, &vbo);
-    if (ibo) glDeleteBuffers(1, &ibo);
-    if (vao) glDeleteVertexArrays(1, &vao);
 }
 
 void RenderBatchTetFaces::render(Shader& shader)
