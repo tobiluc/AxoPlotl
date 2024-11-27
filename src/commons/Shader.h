@@ -48,6 +48,10 @@ public:
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
     }
 
+    inline void setVec2f(const std::string& name, float x, float y) const {
+        glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+    }
+
     template <typename Vec3fT>
     inline void setVec3f(const std::string& name, Vec3fT value) const
     {

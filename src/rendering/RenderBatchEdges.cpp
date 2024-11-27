@@ -4,7 +4,8 @@
 namespace MV
 {
 
-void RenderBatchEdges::initFromMesh(TetrahedralMesh& mesh)
+template <typename MeshT>
+void RenderBatchEdges<MeshT>::initFromMesh(MeshT& mesh)
 {
     deleteBuffers();
     vertices.resize(2*mesh.n_edges()*val.totalSize());
@@ -12,7 +13,7 @@ void RenderBatchEdges::initFromMesh(TetrahedralMesh& mesh)
     // create the vertex data and indices arrays
     nIndices = 2*mesh.n_edges();
     std::vector<uint> indices(nIndices);
-    auto prop = mesh.request_edge_property<int>("AlgoHex::FeatureEdges");
+    auto prop = mesh.template request_edge_property<int>("AlgoHex::FeatureEdges");
     for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it)
     {
         auto eh = *e_it;
@@ -58,7 +59,8 @@ void RenderBatchEdges::initFromMesh(TetrahedralMesh& mesh)
     }
 }
 
-void RenderBatchEdges::render(Shader& shader)
+template <typename MeshT>
+void RenderBatchEdges<MeshT>::render(Shader& shader)
 {
 
     // only rebuffer part of data that has changed
@@ -78,5 +80,8 @@ void RenderBatchEdges::render(Shader& shader)
     for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
     glBindVertexArray(0);
 }
+
+template class RenderBatchEdges<TetrahedralMesh>;
+template class RenderBatchEdges<HexahedralMesh>;
 
 }

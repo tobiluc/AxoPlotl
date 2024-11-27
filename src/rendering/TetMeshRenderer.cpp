@@ -70,8 +70,25 @@ void TetMeshRenderer::render()
         shader.setFloat("time", glfwGetTime());
 
         shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        shader.setVec2f("inverse_viewport_size", 1.f/VIEWPORT_SIZE[0], 1.f/VIEWPORT_SIZE[1]);
+
+        shader.setFloat("line_width", lineWidth);
 
         edgesBatch.render(shader);
+    }
+    if (showVertices)
+    {
+        auto& shader = verticesShader;
+        shader.use();
+
+        shader.setFloat("time", glfwGetTime());
+
+        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+
+        shader.setFloat("point_size", pointSize);
+
+
+        verticesBatch.render(shader);
     }
 }
 }

@@ -37,6 +37,7 @@ class Camera;
 extern Camera CAMERA;
 extern bool IMGUI_FOCUS;
 extern GLFWwindow* WINDOW;
+extern float VIEWPORT_SIZE[2];
 
 namespace Callbacks
 {

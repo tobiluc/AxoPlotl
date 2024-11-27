@@ -55,12 +55,15 @@ void ImGuiRenderer::render(TetMeshRenderer& tetRenderer)
     ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
     ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
     ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
+    ImGui::Checkbox("Show Vertices", &tetRenderer.showVertices);
     ImGui::ColorEdit3("Background Color", &CLEAR_COLOR[0]);
     ImGui::NewLine();
     ImGui::Text("Mesh Render Settings");
+    ImGui::SliderFloat("Vertex Size", &tetRenderer.pointSize, 1.f, 16.0f);
+    ImGui::SliderFloat("Edge Width", &tetRenderer.lineWidth, 1.f, 16.0f);
     ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
-    ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 12.0f);
-    ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
+    ImGui::SliderFloat("Polygon Outline Width", &tetRenderer.outlineWidth, 0.0f, 12.0f);
+    ImGui::ColorEdit3("Polygon Outline Color", &tetRenderer.outlineColor[0]);
     ImGui::Checkbox("Use Override Color", &tetRenderer.useColorOverride);
     ImGui::ColorEdit3("Override Color", &tetRenderer.colorOverride[0]);
     ImGui::NewLine();

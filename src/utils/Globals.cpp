@@ -23,6 +23,7 @@ void Time::update()
 }
 
 bool IMGUI_FOCUS = false;
+float VIEWPORT_SIZE[2] = {800, 600};
 Color CLEAR_COLOR = {1, 1, 1};
 Camera CAMERA = Camera(glm::vec3(0.0f, 0.0f, 30.0f), glm::vec3(0.0f, 0.0f, -1.0f));
 GLFWwindow* WINDOW = nullptr;
@@ -32,7 +33,8 @@ float Callbacks::LAST_MOUSE_POSITION[2] = {0, 0};
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void Callbacks::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    float aspect_ratio = (float)width / (float)height;
+    VIEWPORT_SIZE[0] = (float)width;
+    VIEWPORT_SIZE[1] = (float)height;
     glViewport(0, 0, width, height);
 }
 

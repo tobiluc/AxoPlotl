@@ -4,6 +4,7 @@
 #include "RenderBatchEdges.h"
 #include "RenderBatchTetCells.h"
 #include "RenderBatchTetFaces.h"
+#include "RenderBatchVertices.h"
 
 namespace MV
 {
@@ -15,11 +16,15 @@ public:
         mesh(mesh),
         cellScale(0.9f),
         outlineWidth(2),
+        lineWidth(2),
+        pointSize(5),
         outlineColor({0,0,0}),
         tetCellsBatch(mesh),
         facesBatch(mesh),
         edgesBatch(mesh),
-        edgesShader("../res/shaders/edges.vert", "../res/shaders/edges.frag"),
+        verticesBatch(mesh),
+        verticesShader("../res/shaders/vertices.vert", "../res/shaders/vertices.frag"),
+        edgesShader("../res/shaders/edges.vert", "../res/shaders/edges.geom", "../res/shaders/edges.frag"),
         facesShader("../res/shaders/faces.vert", "../res/shaders/faces.geom", "../res/shaders/faces.frag"),
         tetCellsShader("../res/shaders/cells.vert", "../res/shaders/cells.geom", "../res/shaders/cells.frag"),
         light({Vec3f(0.5,0.5,0.5), Vec3f(0.3,0.3,0.3), Vec3f(0.2,0.2,0.2)})
@@ -32,14 +37,17 @@ public:
         tetCellsBatch.initFromMesh(mesh);
         facesBatch.initFromMesh(mesh);
         edgesBatch.initFromMesh(mesh);
+        verticesBatch.initFromMesh(mesh);
     }
 
     void render();
 
-    bool showCells = true, showFaces = false, showEdges = false;
+    bool showCells = true, showFaces = false, showEdges = false, showVertices = false;
     Light light;
     float cellScale;
     float outlineWidth;
+    float pointSize;
+    float lineWidth;
     Color outlineColor;
     bool useColorOverride = false;
     Color colorOverride;
@@ -54,8 +62,11 @@ private:
     RenderBatchTetFaces facesBatch;
     Shader facesShader;
 
-    RenderBatchEdges edgesBatch;
+    RenderBatchEdges<TetrahedralMesh> edgesBatch;
     Shader edgesShader;
+
+    RenderBatchVertices<TetrahedralMesh> verticesBatch;
+    Shader verticesShader;
 };
 
 }

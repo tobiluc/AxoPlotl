@@ -8,10 +8,13 @@
 
 namespace MV
 {
+template<typename MeshT>
 class RenderBatchEdges
 {
 public:
-    RenderBatchEdges(TetrahedralMesh& mesh) : vao()
+
+    //template<typename MeshT>
+    RenderBatchEdges(MeshT& mesh) : vao()
     {
         initFromMesh(mesh);
     }
@@ -21,7 +24,7 @@ public:
         deleteBuffers();
     }
 
-    void initFromMesh(TetrahedralMesh& mesh);
+    void initFromMesh(MeshT& mesh);
 
     void render(Shader& shader);
 

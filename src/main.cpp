@@ -75,6 +75,7 @@ int main() {
         glClearColor(MV::CLEAR_COLOR[0], MV::CLEAR_COLOR[1], MV::CLEAR_COLOR[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
         // ImGui - declare new frame
         MV::ImGuiRenderer::newFrame();
