@@ -14,19 +14,24 @@ class TetMeshRenderer
 public:
     TetMeshRenderer(TetrahedralMesh& mesh)  :
         mesh(mesh),
+
         cellScale(0.9f),
         outlineWidth(2),
         lineWidth(2),
         pointSize(5),
         outlineColor({0,0,0}),
+
+        //outlinesShader("../res/shaders/outlines.glsl"),
+        //tetCellsShader("../res/shaders/cells.glsl"),
+        //verticesShader("../res/shaders/vertices.glsl"),
+        //edgesShader("../res/shaders/edges.glsl"),
+        //facesShader("../res/shaders/faces.glsl"),
+
         tetCellsBatch(mesh),
         facesBatch(mesh),
         edgesBatch(mesh),
         verticesBatch(mesh),
-        verticesShader("../res/shaders/vertices.vert", "../res/shaders/vertices.frag"),
-        edgesShader("../res/shaders/edges.vert", "../res/shaders/edges.geom", "../res/shaders/edges.frag"),
-        facesShader("../res/shaders/faces.vert", "../res/shaders/faces.geom", "../res/shaders/faces.frag"),
-        tetCellsShader("../res/shaders/cells.vert", "../res/shaders/cells.geom", "../res/shaders/cells.frag"),
+
         light({Vec3f(0.5,0.5,0.5), Vec3f(0.3,0.3,0.3), Vec3f(0.2,0.2,0.2)})
     {}
 
@@ -56,17 +61,19 @@ private:
     TetrahedralMesh& mesh;
 
     RenderBatchTetCells tetCellsBatch;
-    Shader tetCellsShader;
+    //Shader tetCellsShader;
     //Shader tetCellsOutlineShader;
 
     RenderBatchTetFaces facesBatch;
-    Shader facesShader;
+    //Shader facesShader;
 
     RenderBatchEdges<TetrahedralMesh> edgesBatch;
-    Shader edgesShader;
+    //Shader edgesShader;
 
     RenderBatchVertices<TetrahedralMesh> verticesBatch;
-    Shader verticesShader;
+    //Shader verticesShader;
+
+    //Shader outlinesShader;
 };
 
 }

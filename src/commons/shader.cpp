@@ -1,100 +1,59 @@
 #include "Shader.h"
 #include <iostream>
 #include <fstream>
+#include <regex>
 #include <sstream>
 
 namespace MV
 {
+Shader Shader::FACES_OUTLINES_SHADER;
+Shader Shader::TET_CELLS_SHADER;
+Shader Shader::FACES_SHADER;
+Shader Shader::EDGES_SHADER;
+Shader Shader::VERTICES_SHADER;
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath) : Shader(vertexPath, "", fragmentPath) {}
+Shader::Shader(const char* filepath)
+{
+    std::string vs = "", gs = "", fs = "";
+    Shader::readFile(filepath, vs, gs, fs);
 
-Shader::Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath) {
+    GLuint vertex = 0, geometry = 0, fragment = 0;
 
-    //-----------------------------------------------------------
-    // 1. retrieve the vertex/fragment source code from filePath
-    //-----------------------------------------------------------
-    std::string vertexCode;
-    std::string geometryCode;
-    std::string fragmentCode;
-    std::ifstream vShaderFile;
-    std::ifstream gShaderFile;
-    std::ifstream fShaderFile;
-    bool hasGeometryShader = geometryPath[0]!='\0';
-
-    // ensure ifstream objects can throw exceptions:
-    vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    try {
-        // open files
-        vShaderFile.open(vertexPath);
-        fShaderFile.open(fragmentPath);
-        std::stringstream vShaderStream, fShaderStream;
-
-        // read file's buffer contents into streams
-        vShaderStream << vShaderFile.rdbuf();
-        fShaderStream << fShaderFile.rdbuf();
-
-        // close file handlers
-        vShaderFile.close();
-        fShaderFile.close();
-
-        // convert stream into string
-        vertexCode = vShaderStream.str();
-        fragmentCode = fShaderStream.str();
-
-        if (hasGeometryShader)
-        {
-            gShaderFile.open(geometryPath);
-            std::stringstream gShaderStream;
-            gShaderStream << gShaderFile.rdbuf();
-            geometryCode = gShaderStream.str();
-            gShaderFile.close();
-        }
-    }
-    catch (std::ifstream::failure& e) {
-        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
-    }
-
-    //std::cout << vertexCode << std::endl;
-    //std::cout << fragmentCode << std::endl;
-
-    const char* vShaderCode = vertexCode.c_str();
-    const char* gShaderCode = geometryCode.c_str();
-    const char* fShaderCode = fragmentCode.c_str();
-
-    //---------------------
-    // 2. compile shaders
-    //---------------------
-
-    GLuint vertex, geometry, fragment;
+    ID = glCreateProgram();
 
     // vertex shader
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, NULL);
-    glCompileShader(vertex);
-    checkCompileErrors(vertex, "VERTEX");
+    if (!vs.empty())
+    {
+        const char* vc = vs.c_str();
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vc, NULL);
+        glCompileShader(vertex);
+        checkCompileErrors(vertex, "VERTEX");
+        glAttachShader(ID, vertex);
+    }
 
     // geometry shader
-    if (hasGeometryShader)
+    if (!gs.empty())
     {
+        const char* gc = gs.c_str();
         geometry = glCreateShader(GL_GEOMETRY_SHADER);
-        glShaderSource(geometry, 1, &gShaderCode, NULL);
+        glShaderSource(geometry, 1, &gc, NULL);
         glCompileShader(geometry);
         checkCompileErrors(geometry, "GEOMETRY");
+        glAttachShader(ID, geometry);
     }
 
     // fragment Shader
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, NULL);
-    glCompileShader(fragment);
-    checkCompileErrors(fragment, "FRAGMENT");
+    if (!fs.empty())
+    {
+        const char* fc = fs.c_str();
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fc, NULL);
+        glCompileShader(fragment);
+        checkCompileErrors(fragment, "FRAGMENT");
+        glAttachShader(ID, fragment);
+    }
 
-    // shader Program
-    ID = glCreateProgram();
-    glAttachShader(ID, vertex);
-    glAttachShader(ID, geometry);
-    glAttachShader(ID, fragment);
     glLinkProgram(ID);
     checkCompileErrors(ID, "PROGRAM");
 
@@ -102,6 +61,37 @@ Shader::Shader(const char* vertexPath, const char* geometryPath, const char* fra
     glDeleteShader(vertex);
     glDeleteShader(geometry);
     glDeleteShader(fragment);
+}
+
+void Shader::readFile(const char* filepath, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode)
+{
+    std::ifstream file;
+
+    try
+    {
+        file.open(filepath);
+        std::stringstream stream;
+        stream << file.rdbuf();
+        file.close();
+
+        std::string src = stream.str();
+
+        // Regular expression to match sections: #shader <type>\n<shader code>
+        std::regex rgx(R"(#shader\s+(vertex|fragment|geometry)\n((.|\n)*?)(?=#shader|$))");
+        std::smatch matches;
+        std::string::const_iterator from(src.cbegin());
+        while (std::regex_search(from, src.cend(), matches, rgx)) {
+            const std::string& type = matches[1].str();
+            if (type == "vertex") {vertexCode = matches[2].str();}
+            else if (type == "geometry") {geometryCode = matches[2].str();}
+            else if (type == "fragment") {fragmentCode = matches[2].str();}
+
+            from = matches.suffix().first; // Move the search position forward
+        }
+    }
+    catch (std::ifstream::failure& e) {
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+    }
 }
 
 void Shader::checkCompileErrors(unsigned int shader, std::string type) {

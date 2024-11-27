@@ -4,6 +4,8 @@
 #include "glm/gtc/type_ptr.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
+#include <ostream>
 #include <string>
 
 namespace MV
@@ -11,16 +13,45 @@ namespace MV
 
 class Shader {
 public:
+
+    static Shader FACES_OUTLINES_SHADER;
+    static Shader TET_CELLS_SHADER;
+    static Shader FACES_SHADER;
+    static Shader EDGES_SHADER;
+    static Shader VERTICES_SHADER;
+
     unsigned int ID;
 
-    // constructor generates the shader on the fly
-    Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+    Shader() : ID(0) {}
 
-    Shader(const char* vertexPath, const char* fragmentPath);
+    // constructor generates the shader on the fly
+    //Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
+
+    //Shader(const char* vertexPath, const char* fragmentPath);
+
+    // Compiles a shader program written in the file stored at filepath. Different types of shaders are
+    // marked with #shader <type> where type = vertex | geometry | fragment
+    Shader(const char* filepath);
+
+    static void readFile(const char* filepath, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode);
 
     ~Shader()
     {
         glDeleteProgram(ID);
+    }
+
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+
+    // Transfer Ownership
+    Shader& operator=(Shader&& s) noexcept
+    {
+        if (this != &s) {
+            glDeleteProgram(ID);
+            ID = s.ID;
+            s.ID = 0;
+        }
+        return *this;
     }
 
     inline void use()

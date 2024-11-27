@@ -7,12 +7,16 @@ namespace MV
 template <typename MeshT>
 void RenderBatchEdges<MeshT>::initFromMesh(MeshT& mesh)
 {
-    deleteBuffers();
-    vertices.resize(2*mesh.n_edges()*val.totalSize());
+    uint nVertices = 2*mesh.n_edges();
+    uint nIndices = nVertices;
+
+    vao.generateNew();
+    vbo.generateNew(nVertices);
+    ibo.generateNew(nIndices);
+
+    std::vector<GLuint> indices_features;
 
     // create the vertex data and indices arrays
-    nIndices = 2*mesh.n_edges();
-    std::vector<uint> indices(nIndices);
     auto prop = mesh.template request_edge_property<int>("AlgoHex::FeatureEdges");
     for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it)
     {
@@ -30,55 +34,35 @@ void RenderBatchEdges<MeshT>::initFromMesh(MeshT& mesh)
 
         setEdge(i, std::vector({d0, d1}));
 
-        indices[2*i+0] = 2*i+0;
-        indices[2*i+1] = 2*i+1;
+        if (prop[eh])
+        {
+            indices_features.push_back(2*i+0);
+            indices_features.push_back(2*i+1);
+        }
     }
-
-    // generate vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Each edge has 2 separate vertices to have correct colors
-    uint nVertices = 2*mesh.n_edges();
-
-    // generate vertex buffer object
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, nVertices * val.totalSizeBytes(), &vertices[0], GL_DYNAMIC_DRAW);
-
-    // generate index buffer object
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint), &indices[0], GL_STATIC_DRAW);
-
-    // define attributes
-    for (int i = 0; i < val.numAttrs(); ++i)
-    {
-        glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-        glEnableVertexAttribArray(i);
-    }
+    ibo_features.generateNew(indices_features);
 }
 
 template <typename MeshT>
-void RenderBatchEdges<MeshT>::render(Shader& shader)
+void RenderBatchEdges<MeshT>::render()
 {
+    Shader::EDGES_SHADER.use();
 
     // only rebuffer part of data that has changed
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    vbo.bind();
     while (!updatedEdges.empty())
     {
         int i = updatedEdges.extract(updatedEdges.begin()).value(); // pop
-        glBufferSubData(GL_ARRAY_BUFFER, 2*i*val.totalSizeBytes(), 2*val.totalSizeBytes(), &vertices[2*i*val.totalSize()]);
+        vbo.bufferSubData(2*i, 2);
     }
 
-    glBindVertexArray(vao);
-    for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
+    vao.bind();
+    vbo.enableAttributes();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glDrawElements(GL_LINES, nIndices, GL_UNSIGNED_INT, NULL);
+    ibo.draw();
 
-    for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
-    glBindVertexArray(0);
+    vbo.disableAttributes();
+    vao.unbind();
 }
 
 template class RenderBatchEdges<TetrahedralMesh>;

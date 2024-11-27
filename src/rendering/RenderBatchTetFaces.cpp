@@ -6,41 +6,13 @@ namespace MV
 
 void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 {
-    deleteBuffers();
     uint nTriangles = mesh_n_boundary_faces(mesh);
-    vertices.resize(3*nTriangles*val.totalSize());
-
-    // generate vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Each face has 3 separate vertices to have correct normals
     uint nVertices = 3*nTriangles;
-    nIndices = 3*nTriangles;
+    uint nIndices = nVertices;
 
-    // compute the constant triangle indices (012,345,678,91011,...)
-    std::vector<uint> indices(nIndices);
-    for (int i = 0; i < nIndices; ++i)
-    {
-        indices[i] = i;
-    }
-
-    // generate vertex buffer object
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, nVertices * val.totalSizeBytes(), &vertices[0], GL_DYNAMIC_DRAW);
-
-    // generate index buffer object
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint), &indices[0], GL_STATIC_DRAW);
-
-    // define attributes
-    for (int i = 0; i < val.numAttrs(); ++i)
-    {
-        glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-        glEnableVertexAttribArray(i);
-    }
+    vao.generateNew();
+    vbo.generateNew(nVertices);
+    ibo.generateNew(nIndices);
 
     // create the vertex data
     auto prop = mesh.request_face_property<int>("AlgoHex::FeatureFaces");
@@ -61,25 +33,75 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 
         setFace(i++, std::vector({d0, d1, d2}));
     }
+
+    // GENERATE OUTLINES BUFFERS
+
+    vao_outlines.generateNew();
+    vbo_outlines.generateNew(nVertices);
+    nIndices = 6*nTriangles;
+    std::vector<GLuint> indices_outlines(nIndices);
+    for (int i = 0; i < nTriangles; ++i)
+    {
+        indices_outlines[6*i+0] = 3*i+0;
+        indices_outlines[6*i+1] = 3*i+1;
+        indices_outlines[6*i+2] = 3*i+1;
+        indices_outlines[6*i+3] = 3*i+2;
+        indices_outlines[6*i+4] = 3*i+2;
+        indices_outlines[6*i+5] = 3*i+0;
+    };
+    ibo_outlines.generateNew(indices_outlines);
+
+    i = 0;
+    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
+    {
+        auto fh = *f_it;
+        if (!mesh.is_boundary(fh)) continue;
+        auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
+
+        vbo_outlines.set(i++, mesh.vertex(vhs[0]));
+        vbo_outlines.set(i++, mesh.vertex(vhs[1]));
+        vbo_outlines.set(i++, mesh.vertex(vhs[2]));
+    }
+    vbo_outlines.bufferSubData(0, nVertices);
+
 }
 
-void RenderBatchTetFaces::render(Shader& shader)
+void RenderBatchTetFaces::render()
 {
+    Shader::FACES_SHADER.use();
+
     // only rebuffer part of data that has changed
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    vbo.bind();
     while (!updatedFaces.empty())
     {
         int i = updatedFaces.extract(updatedFaces.begin()).value(); // pop
-        glBufferSubData(GL_ARRAY_BUFFER, 3*i*val.totalSizeBytes(), 3*val.totalSizeBytes(), &vertices[3*i*val.totalSize()]);
+        vbo.bufferSubData(3*i, 3);
     }
+    vao.bind();
+    vbo.enableAttributes();
 
-    glBindVertexArray(vao);
-    for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
+    ibo.draw();
 
-    glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL);
+    vbo.disableAttributes();
+    vao.unbind();
 
-    for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
-    glBindVertexArray(0);
+
+    Shader::FACES_OUTLINES_SHADER.use();
+
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-0.75f, -0.75f); // ensure the outline is drawn slightly in front
+
+    vbo_outlines.bind();
+    vao_outlines.bind();
+    vbo_outlines.enableAttributes();
+
+    ibo_outlines.draw();
+
+    vbo_outlines.disableAttributes();
+    vao_outlines.unbind();
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
 }
 
 }

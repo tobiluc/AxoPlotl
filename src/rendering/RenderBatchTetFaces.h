@@ -11,62 +11,42 @@ namespace MV
 class RenderBatchTetFaces
 {
 public:
-    RenderBatchTetFaces(TetrahedralMesh& mesh) : vao()
+    RenderBatchTetFaces(TetrahedralMesh& mesh) :
+        vbo_outlines(),
+        ibo_outlines(),
+        vao_outlines(),
+        vbo(),
+        ibo(),
+        vao()
     {
         initFromMesh(mesh);
     }
 
     ~RenderBatchTetFaces()
     {
-        deleteBuffers();
     }
 
     void initFromMesh(TetrahedralMesh& mesh);
 
-    void render(Shader& shader);
+    void render();
 
     template <typename Data>
     inline void setFace(int i, const std::vector<Data>& data)
     {
         assert(data.size()==3);
         updatedFaces.insert(i);
-        int n = val.totalSize();
-
-        i *= (3*n);
-        for (int j = 0; j < 3; ++j)
-        {
-            for (int k = 0; k < n; ++k)
-            {
-                vertices[i+(j*n)+k] = data[j][k];
-            }
-        }
+        for (int j = 0; j < 3; ++j) vbo.set(3*i+j, data[j]);
     }
-
-    template <typename Col>
-    inline void setFaceColor(int i, const Col& col)
-    {
-        updatedFaces.insert(i);
-        i *= (3*val.totalSize());
-        i += 3; // color offset
-        vertices[i+0] = col[0];
-        vertices[i+1] = col[1];
-        vertices[i+2] = col[2];
-        int n = val.totalSize();
-    }
-
 private:
-    VAL<GL_FLOAT, float, 3, 3, 3> val; // position, color, normal
-    std::vector<float> vertices;
-    GLuint vao = 0, ibo = 0, vbo = 0;
-    uint nIndices;
+    VBO<GL_FLOAT, float, 3, 3, 3> vbo; // position, color, normal
+    IBO<GL_TRIANGLES> ibo;
+    VAO vao;
+
     std::unordered_set<int> updatedFaces;
 
-    inline void deleteBuffers()
-    {
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (ibo) glDeleteBuffers(1, &ibo);
-        if (vao) glDeleteVertexArrays(1, &vao);
-    }
+    VBO<GL_FLOAT, float, 3> vbo_outlines; // position
+    IBO<GL_LINES> ibo_outlines;
+    VAO vao_outlines;
 
 };
 }

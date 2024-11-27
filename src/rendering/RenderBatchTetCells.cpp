@@ -37,8 +37,10 @@ void RenderBatchTetCells::initFromMesh(TetrahedralMesh& mesh)
     vao.unbind();
 }
 
-void RenderBatchTetCells::render(Shader& shader)
+void RenderBatchTetCells::render()
 {
+    Shader::TET_CELLS_SHADER.use();
+
     vbo.bind();
     while (!updatedTets.empty())
     {

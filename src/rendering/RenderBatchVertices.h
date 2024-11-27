@@ -23,7 +23,7 @@ public:
 
     void initFromMesh(MeshT& mesh);
 
-    void render(Shader& shader);
+    void render();
 
     template <typename Data>
     inline void setVertex(int i, const Data& data)

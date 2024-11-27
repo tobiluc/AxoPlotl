@@ -20,7 +20,7 @@ public:
 
     void initFromMesh(TetrahedralMesh& mesh);
 
-    void render(Shader& shader);
+    void render();
 
     template <typename Data>
     inline void setTet(int i, const std::vector<Data>& data)

@@ -25,8 +25,10 @@ void RenderBatchVertices<MeshT>::initFromMesh(MeshT& mesh)
 }
 
 template<typename MeshT>
-void RenderBatchVertices<MeshT>::render(Shader& shader)
+void RenderBatchVertices<MeshT>::render()
 {
+    Shader::VERTICES_SHADER.use();
+
     vbo.bind();
     while (!updatedVertices.empty())
     {
@@ -37,7 +39,12 @@ void RenderBatchVertices<MeshT>::render(Shader& shader)
     vao.bind();
     vbo.enableAttributes();
 
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
+
     ibo.draw();
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
 
     vbo.disableAttributes();
 

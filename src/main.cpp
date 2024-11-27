@@ -55,6 +55,12 @@ int main() {
     MV::readTetMesh("../res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
     MV::TetMeshRenderer tetRenderer(mesh);
 
+    MV::Shader::FACES_OUTLINES_SHADER = MV::Shader("../res/shaders/outlines.glsl");
+    MV::Shader::TET_CELLS_SHADER = MV::Shader("../res/shaders/cells.glsl");
+    MV::Shader::FACES_SHADER = MV::Shader("../res/shaders/faces.glsl");
+    MV::Shader::EDGES_SHADER = MV::Shader("../res/shaders/edges.glsl");
+    MV::Shader::VERTICES_SHADER = MV::Shader("../res/shaders/vertices.glsl");
+
     //------------------------------------------
     // ImGui
     //------------------------------------------

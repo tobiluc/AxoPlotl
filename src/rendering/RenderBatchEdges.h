@@ -14,48 +14,38 @@ class RenderBatchEdges
 public:
 
     //template<typename MeshT>
-    RenderBatchEdges(MeshT& mesh) : vao()
+    RenderBatchEdges(MeshT& mesh) :
+        vao(),
+        vbo(),
+        ibo(),
+        ibo_features()
     {
         initFromMesh(mesh);
     }
 
     ~RenderBatchEdges()
     {
-        deleteBuffers();
     }
 
     void initFromMesh(MeshT& mesh);
 
-    void render(Shader& shader);
+    void render();
 
     template <typename Data>
     inline void setEdge(int i, const std::vector<Data>& data)
     {
         assert(data.size()==2);
         updatedEdges.insert(i);
-        int n = val.totalSize();
-
-        i *= (2*n);
-        for (int k = 0; k < n; ++k)
-        {
-            vertices[i+(0*n)+k] = data[0][k];
-            vertices[i+(1*n)+k] = data[1][k];
-        }
+        vbo.set(2*i+0, data[0]);
+        vbo.set(2*i+1, data[1]);
     }
 
 private:
-    VAL<GL_FLOAT, float, 3, 3> val; // position, color
-    std::vector<float> vertices;
-    GLuint vao = 0, ibo = 0, vbo = 0;
-    uint nIndices;
+    VBO<GL_FLOAT, float, 3, 3> vbo; // position, color
+    IBO<GL_LINES> ibo;
+    IBO<GL_LINES> ibo_features;
+    VAO vao;
     std::unordered_set<int> updatedEdges;
-
-    inline void deleteBuffers()
-    {
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (ibo) glDeleteBuffers(1, &ibo);
-        if (vao) glDeleteVertexArrays(1, &vao);
-    }
 };
 }
 

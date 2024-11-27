@@ -18,77 +18,68 @@ void TetMeshRenderer::render()
 
     if (showCells)
     {
-        auto& shader = tetCellsShader;
-        shader.use();
+        Shader::TET_CELLS_SHADER.use();
 
-        shader.setFloat("time", glfwGetTime());
+        Shader::TET_CELLS_SHADER.setFloat("cell_scale", cellScale);
 
-        shader.setFloat("cell_scale", cellScale);
+        Shader::TET_CELLS_SHADER.setMat4x4f("view_matrix", view_matrix);
+        Shader::TET_CELLS_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        Shader::TET_CELLS_SHADER.setMat3x3f("normal_matrix", normal_matrix);
 
-        shader.setMat4x4f("view_matrix", view_matrix);
-        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-        shader.setMat3x3f("normal_matrix", normal_matrix);
+        Shader::TET_CELLS_SHADER.setVec3f("light.position", Vec3f(0,0,0));
+        Shader::TET_CELLS_SHADER.setVec3f("light.ambient", light.ambient);
+        Shader::TET_CELLS_SHADER.setVec3f("light.diffuse", light.diffuse);
+        Shader::TET_CELLS_SHADER.setVec3f("light.specular", light.specular);
 
-        shader.setVec3f("light.position", Vec3f(0,0,0));
-        shader.setVec3f("light.ambient", light.ambient);
-        shader.setVec3f("light.diffuse", light.diffuse);
-        shader.setVec3f("light.specular", light.specular);
+        //shader.setFloat("outline_width", outlineWidth);
+        //shader.setVec3f("outline_color", outlineColor);
+        Shader::TET_CELLS_SHADER.setBool("use_color_override", useColorOverride);
+        Shader::TET_CELLS_SHADER.setVec3f("color_override", colorOverride);
 
-        shader.setFloat("outline_width", outlineWidth);
-        shader.setVec3f("outline_color", outlineColor);
-        shader.setBool("use_color_override", useColorOverride);
-        shader.setVec3f("color_override", colorOverride);
-
-        tetCellsBatch.render(shader);
+        tetCellsBatch.render();
     }
     if (showFaces)
     {
-        auto& shader = facesShader;
-        shader.use();
+        Shader::FACES_SHADER.use();
 
-        shader.setFloat("time", glfwGetTime());
+        Shader::FACES_SHADER.setMat4x4f("view_matrix", view_matrix);
+        Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        Shader::FACES_SHADER.setMat3x3f("normal_matrix", normal_matrix);
 
-        shader.setMat4x4f("view_matrix", view_matrix);
-        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-        shader.setMat3x3f("normal_matrix", normal_matrix);
+        Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
+        Shader::FACES_SHADER.setVec3f("light.ambient", light.ambient);
+        Shader::FACES_SHADER.setVec3f("light.diffuse", light.diffuse);
+        Shader::FACES_SHADER.setVec3f("light.specular", light.specular);
 
-        shader.setVec3f("light.position", Vec3f(0,0,0));
-        shader.setVec3f("light.ambient", light.ambient);
-        shader.setVec3f("light.diffuse", light.diffuse);
-        shader.setVec3f("light.specular", light.specular);
+        Shader::FACES_OUTLINES_SHADER.use();
 
-        shader.setFloat("outline_width", outlineWidth);
-        shader.setVec3f("outline_color", outlineColor);
+        Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/VIEWPORT_SIZE[0], 1.f/VIEWPORT_SIZE[1]);
+        Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", outlineWidth);
+        Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", outlineColor);
 
-        facesBatch.render(shader);
+        facesBatch.render();
     }
     if (showEdges)
     {
-        auto& shader = edgesShader;
-        shader.use();
+        Shader::EDGES_SHADER.use();
 
-        shader.setFloat("time", glfwGetTime());
+        Shader::EDGES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        Shader::EDGES_SHADER.setVec2f("inverse_viewport_size", 1.f/VIEWPORT_SIZE[0], 1.f/VIEWPORT_SIZE[1]);
 
-        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-        shader.setVec2f("inverse_viewport_size", 1.f/VIEWPORT_SIZE[0], 1.f/VIEWPORT_SIZE[1]);
+        Shader::EDGES_SHADER.setFloat("line_width", lineWidth);
 
-        shader.setFloat("line_width", lineWidth);
-
-        edgesBatch.render(shader);
+        edgesBatch.render();
     }
     if (showVertices)
     {
-        auto& shader = verticesShader;
-        shader.use();
+        Shader::VERTICES_SHADER.use();
 
-        shader.setFloat("time", glfwGetTime());
+        Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
 
-        shader.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
+        Shader::VERTICES_SHADER.setFloat("point_size", pointSize);
 
-        shader.setFloat("point_size", pointSize);
-
-
-        verticesBatch.render(shader);
+        verticesBatch.render();
     }
 }
 }
