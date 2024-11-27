@@ -3,7 +3,7 @@
 
 #include "../utils/Utils.h"
 #include "../commons/Shader.h"
-#include "VertexAttributesLayout.h"
+#include "GLBuffers.h"
 #include <unordered_set>
 
 namespace MV
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    VertexAttributesLayout<GL_FLOAT, float, 3, 3, 3> val; // position, color, normal
+    VAL<GL_FLOAT, float, 3, 3, 3> val; // position, color, normal
     std::vector<float> vertices;
     GLuint vao = 0, ibo = 0, vbo = 0;
     uint nIndices;

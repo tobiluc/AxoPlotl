@@ -50,9 +50,21 @@ if (NOT TARGET glm)
 endif()
 
 #=========================
-# Glad and OpenGL
+# Glad
 #=========================
-add_subdirectory(external/glad/)
+if (NOT TARGET glad)
+    message(STATUS "Fetching glad")
+    FetchContent_Declare(glad
+        GIT_REPOSITORY https://github.com/Oceanic13/glad.git
+        GIT_TAG "main"
+        SOURCE_DIR "${EXTERNAL_DIR}/glad"
+    )
+    FetchContent_MakeAvailable(glad)
+endif()
+
+#=========================
+# OpenGL
+#=========================
 find_package(OpenGL REQUIRED)
 
 #=========================

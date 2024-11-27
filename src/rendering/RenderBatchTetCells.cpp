@@ -1,41 +1,14 @@
 #include "RenderBatchTetCells.h"
+#include "../utils/Utils.h"
 
 namespace MV
 {
 
 void RenderBatchTetCells::initFromMesh(TetrahedralMesh& mesh)
 {
-    deleteBuffers();
-    vertices.resize(12*mesh.n_cells()*val.totalSize());
-
-    // generate vertex array object
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Each tet has 4 triangular faces, 12 vertices to have correct normals
-    uint nVertices = 12*mesh.n_cells();
-    nIndices = 12*mesh.n_cells();
-
-    // compute the constant triangle tetIndices (012,345,678,91011,...)
-    std::vector<uint> indices(nIndices);
-    for (int i = 0; i < nIndices; ++i) {indices[i] = i;}
-
-    // generate vertex buffer object
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, nVertices * val.totalSizeBytes(), &vertices[0], GL_DYNAMIC_DRAW);
-
-    // generate index buffer object
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(uint), &indices[0], GL_STATIC_DRAW);
-
-    // define attributes
-    for (int i = 0; i < val.numAttrs(); ++i)
-    {
-        glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-        glEnableVertexAttribArray(i);
-    }
+    vao.generateNew();
+    vbo.generateNew(12*mesh.n_cells());
+    ibo.generateNew(12*mesh.n_cells());
 
     // create the vertex data
     MV::Color col = {0.4,0.8f,0.4};
@@ -47,40 +20,40 @@ void RenderBatchTetCells::initFromMesh(TetrahedralMesh& mesh)
         auto tetVhs = mesh.get_cell_vertices(ch);
         auto incenter = tetIncenter(mesh.vertex(tetVhs[0]),mesh.vertex(tetVhs[1]),mesh.vertex(tetVhs[2]),mesh.vertex(tetVhs[3]));
 
-        std::vector<std::array<float,3+3+3+3>> data;
+        const int n = 3+3+3+3;
+        std::vector<std::array<float,n>> data;
         for (int i = 0; i < 4; ++i)
         {
             auto normal = mesh.normal(hfhs[i]);
             auto vhs = mesh.get_halfface_vertices(hfhs[i]);
             for (int j = 0; j < 3; ++j)
             {
-                data.push_back(toArray<float,3+3+3+3>(mesh.vertex(vhs[j]), col, normal, incenter));
+                data.push_back(toArray<float,n>(mesh.vertex(vhs[j]), col, normal, incenter));
             }
         }
         setTet(ch.idx(), data);
     }
+
+    vao.unbind();
 }
 
 void RenderBatchTetCells::render(Shader& shader)
 {
-
-    // only rebuffer part of data that has changed
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    vbo.bind();
     while (!updatedTets.empty())
     {
         int i = updatedTets.extract(updatedTets.begin()).value(); // pop
-        glBufferSubData(GL_ARRAY_BUFFER, 12*i*val.totalSizeBytes(), 12*val.totalSizeBytes(), &vertices[12*i*val.totalSize()]);
+        vbo.bufferSubData(12*i, 12);
     }
 
-    glBindVertexArray(vao);
-    for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
+    vao.bind();
+    vbo.enableAttributes();
 
-    // Draw tets
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glDrawElements(GL_TRIANGLES, nIndices, GL_UNSIGNED_INT, NULL);
+    ibo.draw();
 
-    for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
-    glBindVertexArray(0);
+    vbo.disableAttributes();
+
+    vao.unbind();
 }
 
 }

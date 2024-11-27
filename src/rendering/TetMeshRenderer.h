@@ -34,7 +34,7 @@ public:
         edgesBatch.initFromMesh(mesh);
     }
 
-    void render(const glm::mat4x4& model_matrix, const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
+    void render();
 
     bool showCells = true, showFaces = false, showEdges = false;
     Light light;

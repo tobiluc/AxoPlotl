@@ -1,25 +1,22 @@
 #ifndef RENDERBATCHTETCELLS_H
 #define RENDERBATCHTETCELLS_H
 
-#include "../utils/Utils.h"
 #include "../commons/Shader.h"
-#include "VertexAttributesLayout.h"
+#include "GLBuffers.h"
 #include <unordered_set>
+#include "../utils/Typedefs.h"
 
 namespace MV
 {
 class RenderBatchTetCells
 {
 public:
-    RenderBatchTetCells(TetrahedralMesh& mesh) : val()
+    RenderBatchTetCells(TetrahedralMesh& mesh) : vbo(), ibo(), vao()
     {
         initFromMesh(mesh);
     }
 
-    ~RenderBatchTetCells()
-    {
-        deleteBuffers();
-    }
+    ~RenderBatchTetCells() {}
 
     void initFromMesh(TetrahedralMesh& mesh);
 
@@ -30,43 +27,15 @@ public:
     {
         assert(data.size()==12);
         updatedTets.insert(i);
-        int n = val.totalSize();
-
-        i *= (12*n);
-        for (int j = 0; j < 12; ++j)
-        {
-            for (int k = 0; k < n; ++k)
-            {
-                vertices[i+(j*n)+k] = data[j][k];
-            }
-        }
-    }
-
-    template <typename Col>
-    inline void setTetColor(int i, const Col& col)
-    {
-        updatedTets.insert(i);
-        i *= (12*val.totalSize());
-        i += 3; // color offset
-        vertices[i+0] = col[0];
-        vertices[i+1] = col[1];
-        vertices[i+2] = col[2];
-        int n = val.totalSize();
+        for (int j = 0; j < 12; ++j) vbo.set(12*i+j, data[j]);
     }
 
 private:
-    VertexAttributesLayout<GL_FLOAT, float, 3, 3, 3, 3> val; // position, color, normal, tetcenter
-    std::vector<float> vertices;
-    GLuint vao = 0, ibo = 0, vbo = 0;
-    uint nIndices;
-    std::unordered_set<int> updatedTets;
+    VBO<GL_FLOAT, float, 3, 3, 3, 3> vbo; // position, color, normal, tetcenter
+    IBO<GL_TRIANGLES> ibo;
+    VAO vao;
 
-    inline void deleteBuffers()
-    {
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (ibo) glDeleteBuffers(1, &ibo);
-        if (vao) glDeleteVertexArrays(1, &vao);
-    }
+    std::unordered_set<int> updatedTets;
 
 };
 }

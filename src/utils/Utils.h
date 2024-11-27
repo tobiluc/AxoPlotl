@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Typedefs.h"
-#include <iostream>
 #include <random>
 #include <unistd.h>
 #include <unordered_set>
@@ -71,15 +70,6 @@ namespace MV
         std::mt19937 gen;
         std::uniform_real_distribution<float> dist;
     };
-
-    using Color = std::array<float, 3>;
-    constexpr Color RED = {1, 0, 0};
-    constexpr Color GREEN = {0, 1, 0};
-    constexpr Color BLUE = {0, 0, 1};
-    constexpr Color WHITE = {1, 1, 1};
-    constexpr Color BLACK = {0, 0, 0};
-
-    struct Light {Vec3f ambient, diffuse, specular;};
 
     template <typename Vec3T>
     Vec3T tetIncenter(const Vec3T& A, const Vec3T& B, const Vec3T& C, const Vec3T& D)

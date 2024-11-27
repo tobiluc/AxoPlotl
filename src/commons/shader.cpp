@@ -1,4 +1,7 @@
-#include "shader.h"
+#include "Shader.h"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 namespace MV
 {

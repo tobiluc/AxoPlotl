@@ -22,7 +22,6 @@ namespace MV
         return FileFormat::INVALID;
     }
 
-
     bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext = FileFormat::INVALID);
 
     void writeTetMesh(const std::string& filename, const TetrahedralMesh& mesh, FileFormat ext = FileFormat::INVALID);

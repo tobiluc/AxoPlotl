@@ -1,4 +1,5 @@
 #include "RenderBatchEdges.h"
+#include "../utils/Globals.h"
 
 namespace MV
 {
@@ -11,19 +12,17 @@ void RenderBatchEdges::initFromMesh(TetrahedralMesh& mesh)
     // create the vertex data and indices arrays
     nIndices = 2*mesh.n_edges();
     std::vector<uint> indices(nIndices);
-
+    auto prop = mesh.request_edge_property<int>("AlgoHex::FeatureEdges");
     for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it)
     {
         auto eh = *e_it;
         int i = eh.idx();
         //bool boundary = mesh.is_boundary(eh);
-        int valence = mesh.valence(eh);
+        //int valence = mesh.valence(eh);
         auto heh = eh.halfedge_handle(0);
         auto vh0 = mesh.from_vertex_handle(heh);
         auto vh1 = mesh.to_vertex_handle(heh);
-
-        float t = valence/10.f; if (t > 1) t = 1;
-        Color col = Color({1-t,t,0});
+        Color col = COLORS[prop[eh]%COLORS.size()];
 
         auto d0 = toArray<float,6>(mesh.vertex(vh0), col);
         auto d1 = toArray<float,6>(mesh.vertex(vh1), col);

@@ -1,12 +1,10 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include "../utils/Typedefs.h"
-
+#include "glm/gtc/type_ptr.hpp"
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
 
 namespace MV
 {
@@ -20,9 +18,19 @@ public:
 
     Shader(const char* vertexPath, const char* fragmentPath);
 
+    ~Shader()
+    {
+        glDeleteProgram(ID);
+    }
+
     inline void use()
     {
         glUseProgram(ID);
+    }
+
+    inline void detach()
+    {
+        glUseProgram(0);
     }
 
     inline void setBool(const std::string& name, bool value) const

@@ -12,8 +12,6 @@
 namespace MV
 {
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-
 class Camera {
 public:
     enum Camera_Movement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
@@ -40,7 +38,9 @@ public:
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix();
 
-    void processKeyboard(Camera_Movement dir, float delta_time);
+    void processKeyboard();
+
+    void processKeyboard(Camera_Movement dir);
 
     void processMouseScroll(float dy);
 

@@ -3,7 +3,10 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-#include "gl.h"
+//#include "gl.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <OpenVolumeMesh/Core/Handles.hh>
 #include <OpenVolumeMesh/Core/BaseEntities.hh>
@@ -60,5 +63,6 @@ using TetrahedralMesh = OVM::TetrahedralGeometryKernel<OVM::Vec3d, OpenVolumeMes
 using PolyhedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::TopologyKernel>;
 using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::HexahedralMeshTopologyKernel>;
 
-
+using Color = Vec3f;
+struct Light {Color ambient, diffuse, specular;};
 }

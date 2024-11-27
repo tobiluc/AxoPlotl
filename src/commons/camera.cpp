@@ -1,14 +1,8 @@
 #include "Camera.h"
+#include "../utils/Globals.h"
 
 namespace MV
 {
-
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    float aspect_ratio = (float)width / (float)height;
-    glViewport(0, 0, width, height);
-}
 
 Camera::Camera(glm::vec3 position, glm::vec3 forward) {
 
@@ -27,7 +21,18 @@ Camera::Camera(glm::vec3 position, glm::vec3 forward) {
     updateCameraVectors();
 }
 
-void Camera::processKeyboard(Camera_Movement dir, float delta_time) {
+void Camera::processKeyboard()
+{
+    auto direction = glm::vec3();
+    if (glfwGetKey(WINDOW, GLFW_KEY_W) == GLFW_PRESS) processKeyboard(FORWARD);
+    if (glfwGetKey(WINDOW, GLFW_KEY_S) == GLFW_PRESS) processKeyboard(BACKWARD);
+    if (glfwGetKey(WINDOW, GLFW_KEY_A) == GLFW_PRESS) processKeyboard(LEFT);
+    if (glfwGetKey(WINDOW, GLFW_KEY_D) == GLFW_PRESS) processKeyboard(RIGHT);
+    if (glfwGetKey(WINDOW, GLFW_KEY_SPACE) == GLFW_PRESS) processKeyboard(UP);
+    if (glfwGetKey(WINDOW, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) processKeyboard(DOWN);
+}
+
+void Camera::processKeyboard(Camera_Movement dir) {
     glm::vec3 direction = glm::vec3();
     switch (dir) {
     case FORWARD:
@@ -52,7 +57,7 @@ void Camera::processKeyboard(Camera_Movement dir, float delta_time) {
         break;
     }
 
-    position += normalize(direction) * movement_speed * delta_time;
+    position += normalize(direction) * movement_speed * Time::DELTA_TIME;
 }
 
 void Camera::processMouseScroll(float dy) {
@@ -60,7 +65,10 @@ void Camera::processMouseScroll(float dy) {
     fov = (fov < 1.0f) ? 1.0f : (fov > 90.0f) ? 90.0f : fov;
 }
 
-void Camera::processMouseMovement(float dx, float dy) {
+void Camera::processMouseMovement(float dx, float dy)
+{
+    //if (MV::ImGuiRenderer::isFocus()) return;
+
     dx *= sensitivity;
     dy *= sensitivity;
 

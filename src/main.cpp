@@ -1,40 +1,20 @@
-#include "main.h"
+#define STB_IMAGE_IMPLEMENTATION
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "commons/Camera.h"
+#include "rendering/ImGuiRenderer.h"
 #include "rendering/TetMeshRenderer.h"
+#include "utils/Globals.h"
 #include "utils/Typedefs.h"
 #include "utils/FileAccessor.h"
-
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <ImGuiFileDialog.h>
-
-//using namespace glm;
-
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-//float current_aspect_ratio = (float)SCR_WIDTH / (float)SCR_HEIGHT;
-
-// global variables
-float delta_time = 0.0f;
-float fps = 0.0f;
-float sec_timer = 0.0f;
-float last_frame = 0.0f;
-
-bool imguiFocus;
-
-MV::Camera camera(MV::Vec3f(0.0f, 0.0f, 30.0f), MV::Vec3f(0.0f, 0.0f, -1.0f));
-
-float last_mouse_x = 0.5f * SCR_WIDTH;
-float last_mouse_y = 0.5f * SCR_HEIGHT;
 
 int main() {
     //--------------------------------
     // glfw: initialize and configure
     //--------------------------------
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // set opengl version 3.3
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
@@ -45,19 +25,19 @@ int main() {
     //-----------------------
     // glfw window creation
     //-----------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "MVOMVO - My Very Own Mesh Viewer Option", NULL, NULL);
-    if (window == NULL) {
+    MV::WINDOW = glfwCreateWindow(800, 600, "MVOMVO - My Very Own Mesh Viewer Option", NULL, NULL);
+    if (MV::WINDOW == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, MV::framebuffer_size_callback);
+    glfwMakeContextCurrent(MV::WINDOW);
+    glfwSetFramebufferSizeCallback(MV::WINDOW, MV::Callbacks::framebuffer_size_callback);
     glfwSwapInterval(1); // <- Without this as many frames as possible are rendered and the GPU suffers
 
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetScrollCallback(window, scroll_callback);
+    glfwSetCursorPosCallback(MV::WINDOW, MV::Callbacks::mouse_callback);
+    glfwSetScrollCallback(MV::WINDOW, MV::Callbacks::scroll_callback);
 
     //------------------------------------------
     // glad: load all OpenGL function pointers
@@ -68,165 +48,56 @@ int main() {
     }
 
     //------------------------------------------
-    // ImGui
+    // Initialize Mesh Renderer
     //------------------------------------------
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    ImGui::StyleColorsLight();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-
-    /***********************
-    * TEST START
-    ***********************/
-
     std::cout << "Working in " << MV::getWorkingDirectory() << std::endl;
-
     MV::TetrahedralMesh mesh;
     MV::readTetMesh("../res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
     MV::TetMeshRenderer tetRenderer(mesh);
 
-    /***********************
-    * TEST END
-    ***********************/
+    //------------------------------------------
+    // ImGui
+    //------------------------------------------
+    MV::ImGuiRenderer::init();
 
     //--------------
     // render loop
     //--------------
-    float model_scale[3] = {1.f,1.f,1.f};
-    float clear_color[3] = {1.0f, 1.0f, 1.0f};
-    while (!glfwWindowShouldClose(window)) {
-        processInput(window);
+    while (!glfwWindowShouldClose(MV::WINDOW)) {
+
+        // Close Window by pressing ESCAPE
+        if (glfwGetKey(MV::WINDOW, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(MV::WINDOW, true);
+
+        // Move camera
+        MV::CAMERA.processKeyboard();
 
         // Clear the Screen Colors and Depth Buffer
-        glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
+        glClearColor(MV::CLEAR_COLOR[0], MV::CLEAR_COLOR[1], MV::CLEAR_COLOR[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
-        // ImGui
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-        imguiFocus = (io.WantCaptureMouse || io.WantCaptureKeyboard);
+        // ImGui - declare new frame
+        MV::ImGuiRenderer::newFrame();
 
-        /***********************
-        * CUSTOM RENDER START
-        ***********************/
+        // Mesh Renderer
+        tetRenderer.render();
 
-        glm::mat4x4 model_matrix(1.0f);
-        for (char i = 0; i < 3; ++i) model_matrix[i][i] = model_scale[i];
-        tetRenderer.render(model_matrix, camera.getViewMatrix(), camera.getProjectionMatrix());
+        // ImGui - define and render
+        MV::ImGuiRenderer::render(tetRenderer);
 
-        /***********************
-        * CUSTOM RENDER END
-        ***********************/
-
-        // ImGui Window
-        ImGui::Begin("Mesh Viewer Control Panel");
-        ImGui::Text("Info");
-        ImGui::Text("%s", ("FPS " + std::to_string(fps)).c_str());
-        ImGui::NewLine();
-
-        if (ImGui::Button("Load Tet Mesh")) {
-            IGFD::FileDialogConfig config;
-            config.path = "..";
-            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ovm,.ovmb", config);
-        }
-        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-            if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
-                std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
-
-                MV::TetrahedralMesh mesh2;
-                MV::readTetMesh(filepath, mesh2);
-                tetRenderer.setMesh(mesh2);
-            }
-            ImGuiFileDialog::Instance()->Close();
+        // Check for errors
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR) {
+            std::cerr << "OpenGL Error: " << error << std::endl;
         }
 
-        ImGui::NewLine();
-        ImGui::Text("Mesh Visibility");
-        ImGui::Checkbox("Show Cells", &tetRenderer.showCells);
-        ImGui::Checkbox("Show Faces", &tetRenderer.showFaces);
-        ImGui::Checkbox("Show Edges", &tetRenderer.showEdges);
-        ImGui::ColorEdit3("Background Color", clear_color);
-        ImGui::NewLine();
-        ImGui::Text("Mesh Render Settings");
-        ImGui::SliderFloat("Cell Scale", &tetRenderer.cellScale, 0.0f, 1.0f);
-        ImGui::SliderFloat("Outline Width", &tetRenderer.outlineWidth, 0.0f, 12.0f);
-        ImGui::ColorEdit3("Outline Color", &tetRenderer.outlineColor[0]);
-        ImGui::SliderFloat3("Model Scale", model_scale, 0, 2);
-        ImGui::Checkbox("Use Override Color", &tetRenderer.useColorOverride);
-        ImGui::ColorEdit3("Override Color", &tetRenderer.colorOverride[0]);
-        ImGui::NewLine();
-        ImGui::Text("Camera and Lighting");
-        ImGui::SliderFloat("fov", &camera.fov, 1.0f, 90.0f);
-        ImGui::ColorEdit3("Ambient", &tetRenderer.light.ambient[0]);
-        ImGui::ColorEdit3("Diffuse", &tetRenderer.light.diffuse[0]);
-        ImGui::ColorEdit3("Specular", &tetRenderer.light.specular[0]);
-        ImGui::End();
-
-        // Render ImGui
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(window);
+        // End of frame
+        glfwSwapBuffers(MV::WINDOW);
         glfwPollEvents();
+        MV::Time::update();
     }
 
-    // cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
+    MV::ImGuiRenderer::cleanup();
     glfwTerminate();
     return 0;
-}
-
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void processInput(GLFWwindow* window)
-{
-
-    // Compute frames per second
-    float current_frame = (float)glfwGetTime();
-    delta_time = current_frame - last_frame;
-    last_frame = current_frame;
-    sec_timer += delta_time;
-    if (sec_timer >= 1.0f) {
-        sec_timer -= 1.0f;
-        fps = 1.0f / delta_time;
-    }
-
-    // Close Window by pressing ESCAPE
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-
-
-    // Move
-    auto direction = MV::Vec3f();
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) camera.processKeyboard(camera.FORWARD, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) camera.processKeyboard(camera.BACKWARD, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) camera.processKeyboard(camera.LEFT, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) camera.processKeyboard(camera.RIGHT, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) camera.processKeyboard(camera.UP, delta_time);
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) camera.processKeyboard(camera.DOWN, delta_time);
-}
-
-void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y)
-{
-    if (imguiFocus) return;
-
-    float dx = (float)(mouse_x - last_mouse_x);
-    float dy = (float)(last_mouse_y - mouse_y); // reversed since y-coordinates range from bottom to top
-    last_mouse_x = (float)mouse_x;
-    last_mouse_y = (float)mouse_y;
-
-    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) return; // Rotate by dragging
-
-    camera.processMouseMovement(dx, dy);
-}
-
-void scroll_callback(GLFWwindow* window, double dx, double dy) {
-    if (imguiFocus) return;
-    camera.processMouseScroll((float)dy);
 }

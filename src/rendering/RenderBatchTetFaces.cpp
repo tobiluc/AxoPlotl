@@ -1,4 +1,5 @@
 #include "RenderBatchTetFaces.h"
+#include "../utils/Globals.h"
 
 namespace MV
 {
@@ -42,7 +43,7 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
     }
 
     // create the vertex data
-    Random random;
+    auto prop = mesh.request_face_property<int>("AlgoHex::FeatureFaces");
     int i = 0;
     for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
     {
@@ -51,7 +52,9 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
         auto hfh = fh.halfface_handle(0); if (!mesh.incident_cell(hfh).is_valid()) hfh = hfh.opposite_handle();
         auto normal = mesh.normal(hfh);
         auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
-        Color col = {random.randf(), random.randf(), random.randf()};
+
+        Color col = COLORS[prop[fh]%COLORS.size()];
+
         auto d0 = toArray<float,9>(mesh.vertex(vhs[0]), col, normal);
         auto d1 = toArray<float,9>(mesh.vertex(vhs[1]), col, normal);
         auto d2 = toArray<float,9>(mesh.vertex(vhs[2]), col, normal);
@@ -62,7 +65,6 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 
 void RenderBatchTetFaces::render(Shader& shader)
 {
-
     // only rebuffer part of data that has changed
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     while (!updatedFaces.empty())

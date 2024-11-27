@@ -1,11 +1,17 @@
 #include "TetMeshRenderer.h"
 #include "GLFW/glfw3.h"
+#include "../commons/Camera.h"
+#include "../utils/Globals.h"
 
 namespace MV
 {
 
-void TetMeshRenderer::render(const glm::mat4x4& model_matrix, const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
+void TetMeshRenderer::render()
 {
+    glm::mat4x4 model_matrix(1.0f);
+    const auto& view_matrix = MV::CAMERA.getViewMatrix();
+    const auto& projection_matrix = MV::CAMERA.getProjectionMatrix();
+
     glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
     glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
     glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
