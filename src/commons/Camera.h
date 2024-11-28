@@ -16,17 +16,6 @@ class Camera {
 public:
     enum Camera_Movement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
 
-    // Camera Attributes
-    glm::vec3 position;
-    glm::vec3 forward;
-    glm::vec3 up;
-    glm::vec3 right;
-    glm::vec3 world_up;
-
-    // Euler Angles
-    float yaw;
-    float pitch;
-
     // Camera Options
     float movement_speed;
     float sensitivity;
@@ -46,18 +35,20 @@ public:
 
     void processMouseMovement(float dx, float dy);
 
-    // static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-    // {
-    //     float aspect_ratio = (float)width / (float)height;
-    //     float near = 0.1f;
-    //     float far = 4096.f;
-    //     glViewport(0, 0, width, height);
-    // }
-
-
 private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
+
+    // Camera Attributes
+    glm::vec3 position;
+    glm::vec3 forward;
+    glm::vec3 up;
+    glm::vec3 right;
+    glm::vec3 world_up;
+
+    // Euler Angles
+    float yaw;
+    float pitch;
 };
 }
 

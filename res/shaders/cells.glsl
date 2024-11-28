@@ -21,7 +21,9 @@ out vec3 v2f_view_normal;
 
 void main()
 {
-	vec3 pos = v_cell_center + cell_scale * (v_position - v_cell_center);
+	vec3 pos;
+	if (cell_scale == 1.0) {pos = v_position;}
+	else {pos = v_cell_center + cell_scale * (v_position - v_cell_center);}
 	gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
 
 	v2f_view_position = view_matrix * vec4(pos, 1.0);

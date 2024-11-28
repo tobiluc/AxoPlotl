@@ -25,7 +25,7 @@ int main() {
     //-----------------------
     // glfw window creation
     //-----------------------
-    MV::WINDOW = glfwCreateWindow(800, 600, "MVOMVO - My Very Own Mesh Viewer Option", NULL, NULL);
+    MV::WINDOW = glfwCreateWindow(MV::VIEWPORT_SIZE[0], MV::VIEWPORT_SIZE[1], "MVOMVO - My Very Own Mesh Viewer Option", NULL, NULL);
     if (MV::WINDOW == NULL) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -52,7 +52,7 @@ int main() {
     //------------------------------------------
     std::cout << "Working in " << MV::getWorkingDirectory() << std::endl;
     MV::TetrahedralMesh mesh;
-    MV::readTetMesh("../res/meshes/s17c.ovmb", mesh, MV::FileFormat::OVMB);
+    MV::readTetMesh("../res/meshes/i25u.ovmb", mesh, MV::FileFormat::OVMB);
     MV::TetMeshRenderer tetRenderer(mesh);
 
     MV::Shader::FACES_OUTLINES_SHADER = MV::Shader("../res/shaders/outlines.glsl");

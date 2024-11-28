@@ -13,7 +13,9 @@ Camera::Camera(glm::vec3 position, glm::vec3 forward) {
     sensitivity = 0.2f;
     fov = 45.0f;
     world_up = glm::vec3(0.0f, 1.0f, 0.0f);
-    yaw = -90.0f;
+
+    yaw = atan2(forward.x, forward.z);
+
     pitch = 0.0f;
     up = glm::vec3();
     right = glm::vec3();
