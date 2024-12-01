@@ -89,8 +89,10 @@ void Shader::readFile(const char* filepath, std::string& vertexCode, std::string
             from = matches.suffix().first; // Move the search position forward
         }
     }
-    catch (std::ifstream::failure& e) {
+    catch (std::ifstream::failure& e)
+    {
         std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+        exit(1);
     }
 }
 
@@ -99,16 +101,20 @@ void Shader::checkCompileErrors(unsigned int shader, std::string type) {
     char infoLog[1024];
     if (type != "PROGRAM") {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success) {
+        if (!success)
+        {
             glGetShaderInfoLog(shader, 1024, NULL, infoLog);
             std::cerr << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            exit(1);
         }
     }
     else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
-        if (!success) {
+        if (!success)
+        {
             glGetProgramInfoLog(shader, 1024, NULL, infoLog);
             std::cerr << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            exit(1);
         }
     }
 }

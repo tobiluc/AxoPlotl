@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include "../utils/Globals.h"
+#include "../utils/MouseHandler.h"
 
 namespace MV
 {
@@ -23,15 +24,27 @@ Camera::Camera(glm::vec3 position, glm::vec3 forward) {
     updateCameraVectors();
 }
 
-void Camera::processKeyboard()
+void Camera::update(GLFWwindow* window)
+{
+    if (IMGUI_FOCUS) return;
+
+    processKeyboard(window);
+    processMouseScroll(MouseHandler::SCROLL_DELTA[1]);
+    if (MouseHandler::LEFT_PRESSED)
+    {
+        processMouseMovement(MouseHandler::POSITION_DELTA[0], MouseHandler::POSITION_DELTA[1]);
+    }
+}
+
+void Camera::processKeyboard(GLFWwindow *window)
 {
     auto direction = glm::vec3();
-    if (glfwGetKey(WINDOW, GLFW_KEY_W) == GLFW_PRESS) processKeyboard(FORWARD);
-    if (glfwGetKey(WINDOW, GLFW_KEY_S) == GLFW_PRESS) processKeyboard(BACKWARD);
-    if (glfwGetKey(WINDOW, GLFW_KEY_A) == GLFW_PRESS) processKeyboard(LEFT);
-    if (glfwGetKey(WINDOW, GLFW_KEY_D) == GLFW_PRESS) processKeyboard(RIGHT);
-    if (glfwGetKey(WINDOW, GLFW_KEY_SPACE) == GLFW_PRESS) processKeyboard(UP);
-    if (glfwGetKey(WINDOW, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) processKeyboard(DOWN);
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) processKeyboard(FORWARD);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) processKeyboard(BACKWARD);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) processKeyboard(LEFT);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) processKeyboard(RIGHT);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) processKeyboard(UP);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) processKeyboard(DOWN);
 }
 
 void Camera::processKeyboard(Camera_Movement dir) {

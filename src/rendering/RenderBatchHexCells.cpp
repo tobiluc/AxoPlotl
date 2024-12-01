@@ -11,14 +11,14 @@ void RenderBatchHexCells::initFromMesh(HexahedralMesh& mesh)
 
     // Indices define quads 012 023 456 467 ...
     std::vector<GLuint> indices(36*mesh.n_cells());
-    for (int i = 0; i < 6+mesh.n_cells(); ++i)
+    for (int i = 0; i < 6*mesh.n_cells(); ++i)
     {
         indices[6*i+0] = 4*i+0;
         indices[6*i+1] = 4*i+1;
         indices[6*i+2] = 4*i+2;
-        indices[6*i+3] = 4*i+0;
-        indices[6*i+4] = 4*i+2;
-        indices[6*i+5] = 4*i+3;
+        indices[6*i+3] = 4*i+2;
+        indices[6*i+4] = 4*i+3;
+        indices[6*i+5] = 4*i+0;
     }
     ibo.generateNew(indices);
 
@@ -51,8 +51,10 @@ void RenderBatchHexCells::initFromMesh(HexahedralMesh& mesh)
     vao.unbind();
 }
 
-void RenderBatchHexCells::render(Shader& shader)
+void RenderBatchHexCells::render()
 {
+    MV::Shader::TET_CELLS_SHADER.use();
+
     vbo.bind();
     while (!updatedHexes.empty())
     {

@@ -24,6 +24,8 @@ namespace MV
 
     bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext = FileFormat::INVALID);
 
+    bool readHexMesh(const std::string& filename, HexahedralMesh& mesh, FileFormat ext = FileFormat::INVALID);
+
     void writeTetMesh(const std::string& filename, const TetrahedralMesh& mesh, FileFormat ext = FileFormat::INVALID);
 
 }

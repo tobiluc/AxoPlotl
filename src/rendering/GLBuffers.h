@@ -1,9 +1,11 @@
 #ifndef GLBUFFERS_H
 #define GLBUFFERS_H
 
+#include <glad/glad.h>
+#include <cassert>
+#include <iostream>
 #include <cstddef>
 #include <vector>
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace MV
@@ -53,6 +55,9 @@ public:
     {
         deleteBuffer();
     }
+
+    //VBO(const VBO&) = delete;
+    //VBO& operator=(const VBO&) = delete;
 
     // Generates a new vertex buffer for a given number of vertices and defines
     // which attribute slots should be used
@@ -163,6 +168,11 @@ public:
         deleteBuffer();
     }
 
+    //IBO(const IBO&) = delete;
+    //IBO& operator=(const IBO&) = delete;
+
+    //IBO(IBO&& other) : id(other.id), nIndices(other.nIndices) {other.id = 0;}
+
     // Buffers the given indices array
     GLuint generateNew(const std::vector<GLuint>& indices)
     {
@@ -211,6 +221,11 @@ struct VAO
 public:
     VAO() {}
 
+    //VAO(const VAO&) = delete;
+    //VAO& operator=(const VAO&) = delete;
+
+    //VAO(VAO&& other) : id(other.id) {other.id = 0;}
+
     ~VAO()
     {
         deleteBuffer();
@@ -223,7 +238,9 @@ public:
 
     inline void bind()
     {
+        assert(id);
         glBindVertexArray(id);
+        assert(glIsVertexArray(id));
     }
 
     inline void unbind()
@@ -234,6 +251,7 @@ public:
     inline GLuint generateNew()
     {
         glGenVertexArrays(1, &id);
+        assert(id);
         bind();
         return id;
     }

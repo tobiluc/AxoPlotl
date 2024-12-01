@@ -1,20 +1,20 @@
-#include "TetMeshRenderer.h"
-#include "GLFW/glfw3.h"
+#include "HexMeshRenderer.h"
 #include "../commons/Camera.h"
 #include "../utils/Globals.h"
 
 namespace MV
 {
 
-void TetMeshRenderer::render()
+void HexMeshRenderer::render()
 {
+
     glm::mat4x4 model_matrix(1.0f);
     const auto& view_matrix = camera.getViewMatrix();
     const auto& projection_matrix = camera.getProjectionMatrix();
 
-    glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
-    glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
-    glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
+    const glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
+    const glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
+    const glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
 
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -23,7 +23,6 @@ void TetMeshRenderer::render()
 
     if (settings.showCells)
     {
-
         Shader::TET_CELLS_SHADER.use();
 
         Shader::TET_CELLS_SHADER.setFloat("cell_scale", settings.cellScale);
@@ -40,29 +39,7 @@ void TetMeshRenderer::render()
         Shader::TET_CELLS_SHADER.setBool("use_color_override", settings.useColorOverride);
         Shader::TET_CELLS_SHADER.setVec3f("color_override", settings.colorOverride);
 
-        tetCellsBatch.render();
-    }
-    if (settings.showFaces)
-    {
-        Shader::FACES_SHADER.use();
-
-        Shader::FACES_SHADER.setMat4x4f("view_matrix", view_matrix);
-        Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-        Shader::FACES_SHADER.setMat3x3f("normal_matrix", normal_matrix);
-
-        Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
-        Shader::FACES_SHADER.setVec3f("light.ambient", settings.light.ambient);
-        Shader::FACES_SHADER.setVec3f("light.diffuse", settings.light.diffuse);
-        Shader::FACES_SHADER.setVec3f("light.specular", settings.light.specular);
-
-        Shader::FACES_OUTLINES_SHADER.use();
-
-        Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-        Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-        Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings.outlineWidth);
-        Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings.outlineColor);
-
-        facesBatch.render();
+        hexCellsBatch.render();
     }
     if (settings.showEdges)
     {

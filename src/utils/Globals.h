@@ -2,7 +2,7 @@
 #define GLOBALS_H
 
 //#include "Utils.h"
-#include "GLFW/glfw3.h"
+//#include "GLFW/glfw3.h"
 #include "Typedefs.h"
 #include <array>
 
@@ -31,21 +31,18 @@ constexpr Color WHITE = {1, 1, 1};
 constexpr Color BLACK = {0, 0, 0};
 constexpr std::array<Color, 6> COLORS = {GREEN, BLUE, RED, YELLOW, PURPLE, LIGHT_BLUE};
 
-extern Color CLEAR_COLOR;
+//extern Color CLEAR_COLOR;
 
-class Camera;
-extern Camera CAMERA;
+//class Camera;
+//extern Camera CAMERA;
 extern bool IMGUI_FOCUS;
-extern GLFWwindow* WINDOW;
-extern float VIEWPORT_SIZE[2];
+//extern GLFWwindow* WINDOW;
+//extern float VIEWPORT_SIZE[2];
 
-namespace Callbacks
-{
-extern float LAST_MOUSE_POSITION[2];
-extern void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-extern void scroll_callback(GLFWwindow* window, double dx, double dy);
-extern void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y);
-}
+// namespace Callbacks
+// {
+// extern void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+// }
 
 }
 

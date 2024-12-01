@@ -27,7 +27,9 @@ public:
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix();
 
-    void processKeyboard();
+    void update(GLFWwindow* window);
+
+    void processKeyboard(GLFWwindow* window);
 
     void processKeyboard(Camera_Movement dir);
 

@@ -20,7 +20,7 @@ public:
 
     void initFromMesh(HexahedralMesh& mesh);
 
-    void render(Shader& shader);
+    void render();
 
     template <typename Data>
     inline void setHex(int i, const std::vector<Data>& data)

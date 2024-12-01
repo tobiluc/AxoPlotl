@@ -1,43 +1,37 @@
 #ifndef TETMESHRENDERER_H
 #define TETMESHRENDERER_H
 
+#include <glad/glad.h>
+#include "MeshRenderer.h"
 #include "RenderBatchEdges.h"
 #include "RenderBatchTetCells.h"
 #include "RenderBatchTetFaces.h"
 #include "RenderBatchVertices.h"
+#include "../commons/Camera.h"
 
 namespace MV
 {
 
-class TetMeshRenderer
+class TetMeshRenderer : public MeshRendererT<TetrahedralMesh>
 {
 public:
-    TetMeshRenderer(TetrahedralMesh& mesh)  :
-        mesh(mesh),
+    TetMeshRenderer(TetrahedralMesh& mesh, Camera& camera)  :
+        MeshRendererT(mesh),
 
-        cellScale(0.9f),
-        outlineWidth(2),
-        lineWidth(2),
-        pointSize(5),
-        outlineColor({0,0,0}),
-
-        //outlinesShader("../res/shaders/outlines.glsl"),
-        //tetCellsShader("../res/shaders/cells.glsl"),
-        //verticesShader("../res/shaders/vertices.glsl"),
-        //edgesShader("../res/shaders/edges.glsl"),
-        //facesShader("../res/shaders/faces.glsl"),
+        camera(camera),
 
         tetCellsBatch(mesh),
         facesBatch(mesh),
         edgesBatch(mesh),
-        verticesBatch(mesh),
-
-        light({Vec3f(0.5,0.5,0.5), Vec3f(0.3,0.3,0.3), Vec3f(0.2,0.2,0.2)})
+        verticesBatch(mesh)
     {}
+
+    // Disable copy constructor and assignment operator
+    //TetMeshRenderer(const TetMeshRenderer&) = delete;
+    //TetMeshRenderer& operator=(const TetMeshRenderer&) = delete;
 
     inline void setMesh(TetrahedralMesh& mesh)
     {
-        //if (&this->mesh == &mesh) return;
         this->mesh = mesh;
         tetCellsBatch.initFromMesh(mesh);
         facesBatch.initFromMesh(mesh);
@@ -45,35 +39,17 @@ public:
         verticesBatch.initFromMesh(mesh);
     }
 
-    void render();
+    void render() override;
 
-    bool showCells = true, showFaces = false, showEdges = false, showVertices = false;
-    Light light;
-    float cellScale;
-    float outlineWidth;
-    float pointSize;
-    float lineWidth;
-    Color outlineColor;
-    bool useColorOverride = false;
-    Color colorOverride;
+    //MeshRenderSettings settings;
 
 private:
-    TetrahedralMesh& mesh;
+    Camera& camera;
 
     RenderBatchTetCells tetCellsBatch;
-    //Shader tetCellsShader;
-    //Shader tetCellsOutlineShader;
-
     RenderBatchTetFaces facesBatch;
-    //Shader facesShader;
-
     RenderBatchEdges<TetrahedralMesh> edgesBatch;
-    //Shader edgesShader;
-
     RenderBatchVertices<TetrahedralMesh> verticesBatch;
-    //Shader verticesShader;
-
-    //Shader outlinesShader;
 };
 
 }

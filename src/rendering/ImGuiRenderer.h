@@ -1,11 +1,8 @@
 #ifndef IMGUIRENDERER_H
 #define IMGUIRENDERER_H
 
-#include "TetMeshRenderer.h"
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
-#include <ImGuiFileDialog.h>
+#include "../utils/Typedefs.h"
+#include "GLFW/glfw3.h"
 
 namespace MV
 {
@@ -13,18 +10,13 @@ namespace MV
 class ImGuiRenderer
 {
 public:
-    static void init();
+    static void init(GLFWwindow* window);
 
     static void newFrame();
 
-    static void render(TetMeshRenderer& tetRenderer);
+    static void render(MeshRenderSettings& settings);
 
-    inline static void cleanup()
-    {
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
-    }
+    static void cleanup();
 
 private:
 };

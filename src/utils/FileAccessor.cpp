@@ -27,6 +27,29 @@ bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat 
     }
 }
 
+bool readHexMesh(const std::string& filename, HexahedralMesh& mesh, FileFormat ext)
+{
+    if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
+    if (ext == FileFormat::OVMA)
+    {
+        OVM::IO::FileManager fm;
+        return fm.readFile(filename, mesh);
+    }
+    else if (ext == FileFormat::OVMB)
+    {
+        auto codecs = OVM::IO::g_default_property_codecs;
+        auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
+        if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
+
+        return true;
+    }
+    else
+    {
+        std::cerr << "Unsupported File Format. Cannot read Input from: " << filename << std::endl;
+        return false;
+    }
+}
+
 void writeTetMesh(const std::string& filename, const TetrahedralMesh& mesh, FileFormat ext)
 {
     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
