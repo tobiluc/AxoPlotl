@@ -3,6 +3,7 @@
 
 #include "glad/glad.h"
 #include "commons/Camera.h"
+#include "rendering/HexMeshRenderer.h"
 #include "rendering/MeshRenderer.h"
 #include "rendering/TetMeshRenderer.h"
 #include "utils/Typedefs.h"
@@ -12,6 +13,16 @@ namespace MV
 
 class MeshViewer
 {
+private:
+class Mesh
+{
+public:
+    Mesh() {}
+    Mesh(const std::string& name, const std::shared_ptr<MeshRenderer>& mr) : name(name), renderer(mr)
+    {}
+    std::string name;
+    std::shared_ptr<MeshRenderer> renderer;
+};
 public:
     MeshViewer();
 
@@ -35,6 +46,8 @@ public:
 
     void addTetMesh(TetMeshRenderer& tmr);
 
+    void addHexMesh(HexMeshRenderer& hmr);
+
 public:
     GLFWwindow* window;
     Camera camera;
@@ -43,7 +56,7 @@ private:
 
     Color clearColor;
 
-    std::vector<std::shared_ptr<TetMeshRenderer>> tmrs;
+    std::vector<Mesh> meshes;
 
     void init();
 

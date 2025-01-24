@@ -2,7 +2,8 @@
 #define IMGUIRENDERER_H
 
 #include "../utils/Typedefs.h"
-#include "GLFW/glfw3.h"
+//#include "GLFW/glfw3.h"
+#include "../MeshViewer.h"
 
 namespace MV
 {
@@ -14,9 +15,7 @@ public:
 
     static void newFrame();
 
-    static void render(MeshRenderSettings& settings);
-
-    static void cleanup();
+    static void render(MeshViewer& mv, MeshRenderSettings& settings);
 
 private:
 };

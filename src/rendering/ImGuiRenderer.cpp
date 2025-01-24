@@ -28,7 +28,7 @@ void ImGuiRenderer::newFrame()
     IMGUI_FOCUS = (io.WantCaptureMouse || io.WantCaptureKeyboard);
 }
 
-void ImGuiRenderer::render(MeshRenderSettings& settings)
+void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
 {
     // Begin
     ImGui::Begin("Mesh Viewer Control Panel");
@@ -38,6 +38,9 @@ void ImGuiRenderer::render(MeshRenderSettings& settings)
     ImGui::Text("%s", ("FPS " + std::to_string(Time::FRAMES_PER_SECOND)).c_str());
     ImGui::NewLine();
 
+    //---------------------
+    // Load Tet Mesh
+    //---------------------
     if (ImGui::Button("Load Tet Mesh")) {
         IGFD::FileDialogConfig config;
         config.path = "..";
@@ -47,9 +50,10 @@ void ImGuiRenderer::render(MeshRenderSettings& settings)
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
 
-            MV::TetrahedralMesh mesh2;
-            MV::readTetMesh(filepath, mesh2);
-            //tetRenderer.setMesh(mesh2);
+            MV::TetrahedralMesh mesh;
+            MV::readMesh(filepath, mesh);
+            MV::TetMeshRenderer tetRenderer(mesh, mv.camera);
+            mv.addTetMesh(tetRenderer);
         }
         ImGuiFileDialog::Instance()->Close();
     }
@@ -85,10 +89,4 @@ void ImGuiRenderer::render(MeshRenderSettings& settings)
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ImGuiRenderer::cleanup()
-{
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-}
 }

@@ -1,5 +1,7 @@
 #include <glad/glad.h>
 #include "MeshViewer.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
 #include "utils/FileAccessor.h"
@@ -18,13 +20,21 @@ MeshViewer::MeshViewer() :
 
 MeshViewer::~MeshViewer()
 {
-    ImGuiRenderer::cleanup();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
     glfwTerminate();
 }
 
 void MeshViewer::addTetMesh(TetMeshRenderer& tmr)
 {
-    tmrs.push_back(std::make_shared<TetMeshRenderer>(tmr));
+    meshes.push_back(Mesh("Tet Mesh", std::make_shared<TetMeshRenderer>(tmr)));
+}
+
+void MeshViewer::addHexMesh(HexMeshRenderer& hmr)
+{
+    meshes.push_back(Mesh("Hex Mesh", std::make_shared<HexMeshRenderer>(hmr)));
 }
 
 void MeshViewer::run()
@@ -35,7 +45,7 @@ void MeshViewer::run()
     // variable and add it to a vector. Delete copy constructors/assignments of renderers/batches/buffers and implement move constructors/assignments
 
     MV::TetrahedralMesh tetMesh;
-    readTetMesh("../res/meshes/i25u.ovmb", tetMesh, MV::FileFormat::OVMB);
+    readMesh("../res/meshes/i25u.ovmb", tetMesh, MV::FileFormat::OVMB);
     MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
     addTetMesh(tetRenderer);
@@ -46,17 +56,13 @@ void MeshViewer::run()
     MV::Shader::EDGES_SHADER = MV::Shader("../res/shaders/edges.glsl");
     MV::Shader::VERTICES_SHADER = MV::Shader("../res/shaders/vertices.glsl");
 
-    //--------------
-    // render loop
-    //--------------
+    //--------------------
+    // Main Render Loop
+    //--------------------
     while (!glfwWindowShouldClose(window))
     {
         render();
     }
-
-    MV::ImGuiRenderer::cleanup();
-    glfwTerminate();
-
 }
 
 void MeshViewer::init()
@@ -144,10 +150,13 @@ void MeshViewer::render()
     MV::ImGuiRenderer::newFrame();
 
     // Render Meshes
-    for (auto& tmr : tmrs) tmr->render();
+    for (auto& mesh : meshes)
+    {
+        mesh.renderer->render();
+    }
 
     // ImGui - define and render
-    MV::ImGuiRenderer::render(tmrs[0]->settings);
+    MV::ImGuiRenderer::render(*this, meshes[0].renderer->settings);
 
     // Check for errors
     GLenum error = glGetError();
