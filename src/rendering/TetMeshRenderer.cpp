@@ -85,5 +85,12 @@ void TetMeshRenderer::render()
 
         verticesBatch.render();
     }
+    glUseProgram(0);
 }
+
+void TetMeshRenderer::renderPicking()
+{
+
+}
+
 }

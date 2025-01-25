@@ -11,6 +11,10 @@ class MeshRenderer
 public:
     virtual void render() = 0;
 
+    virtual void renderPicking() = 0;
+
+    virtual void deleteBuffers() = 0;
+
     MeshRenderSettings settings;
 };
 

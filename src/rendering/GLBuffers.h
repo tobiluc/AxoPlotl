@@ -53,11 +53,30 @@ public:
 
     ~VBO()
     {
-        deleteBuffer();
+        //deleteBuffer();
     }
 
-    //VBO(const VBO&) = delete;
-    //VBO& operator=(const VBO&) = delete;
+    // VBO(const VBO&) = delete;
+    // VBO& operator=(const VBO&) = delete;
+    // VBO(VBO&& other) noexcept : id(other.id), nVertices(other.nVertices), val(other.val), data(other.data), attrSlots(other.attrSlots)
+    // {other.id = 0; other.nVertices = 0;}
+    // VBO& operator=(VBO&& other) noexcept
+    // {
+    //     if (this != &other)
+    //     {
+    //         glDeleteBuffers(1, &id);
+
+    //         id = other.id;
+    //         nVertices = other.nVertices;
+    //         val = other.val;
+    //         data = other.data;
+    //         attrSlots = other.attrSlots;
+
+    //         other.id = 0;
+    //         other.nVertices = 0;
+    //     }
+    //     return *this;
+    // }
 
     // Generates a new vertex buffer for a given number of vertices and defines
     // which attribute slots should be used
@@ -165,13 +184,24 @@ public:
 
     ~IBO()
     {
-        deleteBuffer();
+        //deleteBuffer();
     }
 
-    //IBO(const IBO&) = delete;
-    //IBO& operator=(const IBO&) = delete;
-
-    //IBO(IBO&& other) : id(other.id), nIndices(other.nIndices) {other.id = 0;}
+    // IBO(const IBO&) = delete;
+    // IBO& operator=(const IBO&) = delete;
+    // IBO(IBO&& other) noexcept : id(other.id), nIndices(other.nIndices) {other.id = 0; other.nIndices = 0;}
+    // IBO& operator=(IBO&& other) noexcept
+    // {
+    //     if (this != &other)
+    //     {
+    //         glDeleteBuffers(1, &id);
+    //         id = other.id;
+    //         nIndices = other.nIndices;
+    //         other.id = 0;
+    //         other.nIndices = 0;
+    //     }
+    //     return *this;
+    // }
 
     // Buffers the given indices array
     GLuint generateNew(const std::vector<GLuint>& indices)
@@ -221,15 +251,24 @@ struct VAO
 public:
     VAO() {}
 
-    //VAO(const VAO&) = delete;
-    //VAO& operator=(const VAO&) = delete;
-
-    //VAO(VAO&& other) : id(other.id) {other.id = 0;}
-
     ~VAO()
     {
-        deleteBuffer();
+        //deleteBuffer();
     }
+
+    // VAO(const VAO&) = delete;
+    // VAO& operator=(const VAO&) = delete;
+    // VAO(VAO&& other) noexcept : id(other.id) {other.id = 0; }
+    // VAO& operator=(VAO&& other) noexcept
+    // {
+    //     if (this != &other)
+    //     {
+    //         glDeleteVertexArrays(1, &id);
+    //         id = other.id;
+    //         other.id = 0;
+    //     }
+    //     return *this;
+    // }
 
     inline void deleteBuffer()
     {

@@ -27,14 +27,21 @@ MeshViewer::~MeshViewer()
     glfwTerminate();
 }
 
-void MeshViewer::addTetMesh(TetMeshRenderer& tmr)
+void MeshViewer::addTetMesh(const std::string& name, TetMeshRenderer& tmr)
 {
-    meshes.push_back(Mesh("Tet Mesh", std::make_shared<TetMeshRenderer>(tmr)));
+    meshes.emplace_back(name, std::make_shared<TetMeshRenderer>(tmr));
 }
 
-void MeshViewer::addHexMesh(HexMeshRenderer& hmr)
+// void MeshViewer::addHexMesh(HexMeshRenderer& hmr)
+// {
+//     meshes.emplace_back("Hex Mesh", std::make_shared<HexMeshRenderer>(hmr));
+// }
+
+void MeshViewer::deleteMesh(size_t i)
 {
-    meshes.push_back(Mesh("Hex Mesh", std::make_shared<HexMeshRenderer>(hmr)));
+    auto& mesh = meshes[i];
+    mesh.renderer->deleteBuffers();
+    meshes.erase(meshes.begin() + i);
 }
 
 void MeshViewer::run()
@@ -44,17 +51,21 @@ void MeshViewer::run()
     // TODO: Currently, when we initialize a MeshRenderer this instance has to remain in scope. For example we cant create a temporary
     // variable and add it to a vector. Delete copy constructors/assignments of renderers/batches/buffers and implement move constructors/assignments
 
-    MV::TetrahedralMesh tetMesh;
-    readMesh("../res/meshes/i25u.ovmb", tetMesh, MV::FileFormat::OVMB);
-    MV::TetMeshRenderer tetRenderer(tetMesh, camera);
+    for (const std::string& filename : {"../res/meshes/i25u.ovmb","../res/meshes/i01c.ovmb"})
+    {
+        MV::TetrahedralMesh tetMesh;
+        readMesh(filename, tetMesh, MV::FileFormat::OVMB);
+        MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
-    addTetMesh(tetRenderer);
+        addTetMesh(filename, tetRenderer);
+    }
 
     MV::Shader::FACES_OUTLINES_SHADER = MV::Shader("../res/shaders/outlines.glsl");
     MV::Shader::TET_CELLS_SHADER = MV::Shader("../res/shaders/cells.glsl");
     MV::Shader::FACES_SHADER = MV::Shader("../res/shaders/faces.glsl");
     MV::Shader::EDGES_SHADER = MV::Shader("../res/shaders/edges.glsl");
     MV::Shader::VERTICES_SHADER = MV::Shader("../res/shaders/vertices.glsl");
+    MV::Shader::PICKING_SHADER = MV::Shader("../res/shaders/picking.glsl");
 
     //--------------------
     // Main Render Loop
@@ -113,6 +124,8 @@ void MeshViewer::init()
     // ImGui
     //------------------------------------------
     MV::ImGuiRenderer::init(window);
+
+    pickingTexture = PickingTexture(800, 600);
 }
 
 void MeshViewer::render()
@@ -120,18 +133,20 @@ void MeshViewer::render()
     // Close Window by pressing ESCAPE
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
+    // Picking
     if (MV::MouseHandler::LEFT_JUST_PRESSED)
     {
-        //pickingTexture.bind();
+        pickingTexture.bind();
 
-        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // USE SHADER
+        MV::Shader::PICKING_SHADER.use();
 
-        std::cout << "Click" << std::endl;
+        auto pixel = pickingTexture.readPixel(MV::MouseHandler::POSITION[0], 800-MV::MouseHandler::POSITION[1]-1);
+        std::cout << "XYZ = " << pixel.object_id << ", " << pixel.draw_id << ", " << pixel.primitive_id << std::endl;
 
-        //pickingTexture.unbind();
-
+        pickingTexture.unbind();
+        MV::Shader::PICKING_SHADER.detach();
     }
 
     // Clear the Screen Colors and Depth Buffer

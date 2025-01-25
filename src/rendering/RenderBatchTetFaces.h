@@ -24,6 +24,20 @@ public:
 
     ~RenderBatchTetFaces()
     {
+
+    }
+
+    inline void deleteBuffers()
+    {
+        vbo.deleteBuffer();
+        ibo.deleteBuffer();
+        vao.deleteBuffer();
+        vbo_outlines.deleteBuffer();
+        ibo_outlines.deleteBuffer();
+        vao_outlines.deleteBuffer();
+        vbo_picking.deleteBuffer();
+        ibo_picking.deleteBuffer();
+        vao_picking.deleteBuffer();
     }
 
     void initFromMesh(TetrahedralMesh& mesh);
@@ -47,6 +61,10 @@ private:
     VBO<GL_FLOAT, float, 3> vbo_outlines; // position
     IBO<GL_LINES> ibo_outlines;
     VAO vao_outlines;
+
+    VBO<GL_FLOAT, float, 3> vbo_picking; // position
+    IBO<GL_LINES> ibo_picking;
+    VAO vao_picking;
 
 };
 }

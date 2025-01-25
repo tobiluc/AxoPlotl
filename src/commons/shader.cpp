@@ -11,6 +11,7 @@ Shader Shader::TET_CELLS_SHADER;
 Shader Shader::FACES_SHADER;
 Shader Shader::EDGES_SHADER;
 Shader Shader::VERTICES_SHADER;
+Shader Shader::PICKING_SHADER;
 
 Shader::Shader(const char* filepath)
 {

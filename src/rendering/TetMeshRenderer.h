@@ -26,9 +26,17 @@ public:
         verticesBatch(mesh)
     {}
 
-    // Disable copy constructor and assignment operator
-    //TetMeshRenderer(const TetMeshRenderer&) = delete;
-    //TetMeshRenderer& operator=(const TetMeshRenderer&) = delete;
+    ~TetMeshRenderer()
+    {
+    }
+
+    inline void deleteBuffers() override
+    {
+        tetCellsBatch.deleteBuffers();
+        facesBatch.deleteBuffers();
+        edgesBatch.deleteBuffers();
+        verticesBatch.deleteBuffers();
+    }
 
     inline void setMesh(TetrahedralMesh& mesh)
     {
@@ -40,6 +48,8 @@ public:
     }
 
     void render() override;
+
+    void renderPicking() override;
 
     //MeshRenderSettings settings;
 

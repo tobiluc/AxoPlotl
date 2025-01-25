@@ -16,7 +16,17 @@ public:
         initFromMesh(mesh);
     }
 
-    ~RenderBatchTetCells() {}
+    ~RenderBatchTetCells()
+    {
+
+    }
+
+    inline void deleteBuffers()
+    {
+        vbo.deleteBuffer();
+        ibo.deleteBuffer();
+        vao.deleteBuffer();
+    }
 
     void initFromMesh(TetrahedralMesh& mesh);
 

@@ -1,6 +1,7 @@
 #ifndef MESHVIEWER_H
 #define MESHVIEWER_H
 
+#include "commons/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
 #include "rendering/HexMeshRenderer.h"
@@ -13,6 +14,7 @@ namespace MV
 
 class MeshViewer
 {
+friend class ImGuiRenderer;
 private:
 class Mesh
 {
@@ -20,6 +22,8 @@ public:
     Mesh() {}
     Mesh(const std::string& name, const std::shared_ptr<MeshRenderer>& mr) : name(name), renderer(mr)
     {}
+    Mesh(Mesh&& other) noexcept = default;
+    Mesh& operator=(Mesh&& other) noexcept = default;
     std::string name;
     std::shared_ptr<MeshRenderer> renderer;
 };
@@ -44,9 +48,11 @@ public:
         return viewport[3];
     }
 
-    void addTetMesh(TetMeshRenderer& tmr);
+    void deleteMesh(size_t i);
 
-    void addHexMesh(HexMeshRenderer& hmr);
+    void addTetMesh(const std::string& name, TetMeshRenderer& tmr);
+
+    //void addHexMesh(HexMeshRenderer& hmr);
 
 public:
     GLFWwindow* window;
@@ -55,7 +61,7 @@ public:
 private:
 
     Color clearColor;
-
+    PickingTexture pickingTexture;
     std::vector<Mesh> meshes;
 
     void init();

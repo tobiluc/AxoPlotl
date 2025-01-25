@@ -25,6 +25,15 @@ public:
 
     ~RenderBatchEdges()
     {
+
+    }
+
+    inline void deleteBuffers()
+    {
+        vbo.deleteBuffer();
+        ibo.deleteBuffer();
+        vao.deleteBuffer();
+        ibo_features.deleteBuffer();
     }
 
     void initFromMesh(MeshT& mesh);

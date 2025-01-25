@@ -10,14 +10,18 @@ namespace MV
 class PickingTexture
 {
 public:
-    PickingTexture(unsigned int width, unsigned int height) :
-        WIDTH(width),
-        HEIGHT(height)
+    PickingTexture() {}
+
+    PickingTexture(unsigned int width, unsigned int height)
     {
-        init();
+        init(width, height);
     }
 
     ~PickingTexture()
+    {
+    }
+
+    inline void deleteBuffers()
     {
         if (fboID) glDeleteFramebuffers(1, &fboID);
         if (textureID) glDeleteTextures(1, &textureID);
@@ -30,16 +34,21 @@ public:
 
     struct PixelData
     {
+        unsigned int object_id;
+        unsigned int draw_id;
+        unsigned int primitive_id;
     };
+
+    PixelData readPixel(unsigned int x, unsigned int y);
 
 private:
     GLuint fboID;
     GLuint textureID;
     GLuint depthTextureID;
+    unsigned int width;
+    unsigned int height;
 
-    void init();
-
-    const unsigned int WIDTH, HEIGHT;
+    void init(unsigned int width, unsigned int height);
 };
 
 

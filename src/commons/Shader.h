@@ -19,6 +19,7 @@ public:
     static Shader FACES_SHADER;
     static Shader EDGES_SHADER;
     static Shader VERTICES_SHADER;
+    static Shader PICKING_SHADER;
 
     unsigned int ID;
 

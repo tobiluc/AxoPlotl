@@ -39,6 +39,45 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
     ImGui::NewLine();
 
     //---------------------
+    // List of Meshes
+    //---------------------
+    size_t n_meshes = mv.meshes.size();
+    std::vector<char> tmp(n_meshes, 0);
+    for (int i = 0; i < n_meshes; ++i) {
+        ImGui::PushID(i);
+        const std::string& name = mv.meshes[i].name;
+
+        // Mesh Name
+        if (ImGui::Selectable(name.c_str())) {
+            std::cout << " clicked!" << std::endl;
+        }
+        ImGui::SameLine();
+
+        // Rightclick menu
+        if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+            ImGui::OpenPopup(("mesh_popup_" + std::to_string(i)).c_str());
+        }
+
+        if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(i)).c_str()))
+        {
+            if (ImGui::MenuItem("Delete"))
+            {
+                mv.deleteMesh(i);
+            }
+
+            ImGui::EndPopup(); // Close the popup
+        }
+
+        // Mesh Visibility
+        if (ImGui::Checkbox("##checkbox", reinterpret_cast<bool*>(&tmp[i])))
+        {
+            // State changed
+        }
+
+        ImGui::PopID();
+    }
+
+    //---------------------
     // Load Tet Mesh
     //---------------------
     if (ImGui::Button("Load Tet Mesh")) {
@@ -53,7 +92,7 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
             MV::TetrahedralMesh mesh;
             MV::readMesh(filepath, mesh);
             MV::TetMeshRenderer tetRenderer(mesh, mv.camera);
-            mv.addTetMesh(tetRenderer);
+            mv.addTetMesh(filepath, tetRenderer);
         }
         ImGuiFileDialog::Instance()->Close();
     }

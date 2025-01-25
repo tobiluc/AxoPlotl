@@ -19,7 +19,16 @@ public:
         initFromMesh(mesh);
     }
 
-    ~RenderBatchVertices() {}
+    ~RenderBatchVertices()
+    {
+    }
+
+    inline void deleteBuffers()
+    {
+        vbo.deleteBuffer();
+        ibo.deleteBuffer();
+        vao.deleteBuffer();
+    }
 
     void initFromMesh(MeshT& mesh);
 
