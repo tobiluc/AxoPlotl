@@ -12,7 +12,7 @@ class RenderBatchTetFaces
 {
 public:
     RenderBatchTetFaces(TetrahedralMesh& mesh) :
-        vbo_outlines(),
+        //vbo_outlines(),
         ibo_outlines(),
         vao_outlines(),
         vbo(),
@@ -32,17 +32,20 @@ public:
         vbo.deleteBuffer();
         ibo.deleteBuffer();
         vao.deleteBuffer();
-        vbo_outlines.deleteBuffer();
+        //vbo_outlines.deleteBuffer();
         ibo_outlines.deleteBuffer();
         vao_outlines.deleteBuffer();
-        vbo_picking.deleteBuffer();
-        ibo_picking.deleteBuffer();
         vao_picking.deleteBuffer();
+        //vbo_picking.deleteBuffer();
+        //ibo_picking.deleteBuffer();
     }
+
 
     void initFromMesh(TetrahedralMesh& mesh);
 
     void render();
+
+    void renderPicking();
 
     template <typename Data>
     inline void setFace(int i, const std::vector<Data>& data)
@@ -58,12 +61,11 @@ private:
 
     std::unordered_set<int> updatedFaces;
 
-    VBO<GL_FLOAT, float, 3> vbo_outlines; // position
+    //VBO<GL_FLOAT, float, 3> vbo_outlines; // position
     IBO<GL_LINES> ibo_outlines;
     VAO vao_outlines;
 
-    VBO<GL_FLOAT, float, 3> vbo_picking; // position
-    IBO<GL_LINES> ibo_picking;
+    //VBO<GL_FLOAT, float, 3> vbo_picking; // position
     VAO vao_picking;
 
 };

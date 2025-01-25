@@ -7,7 +7,7 @@ namespace MV
 void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 {
     uint nTriangles = mesh_n_boundary_faces(mesh);
-    uint nVertices = 3*nTriangles;
+    const uint nVertices = 3*nTriangles;
     uint nIndices = nVertices;
 
     vao.generateNew();
@@ -34,10 +34,10 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
         setFace(i++, std::vector({d0, d1, d2}));
     }
 
-    // GENERATE OUTLINES BUFFERS
-
+    // GENERATE OUTLINES
     vao_outlines.generateNew();
-    vbo_outlines.generateNew(nVertices);
+    vbo.defineAttributes({0});
+
     nIndices = 6*nTriangles;
     std::vector<GLuint> indices_outlines(nIndices);
     for (int i = 0; i < nTriangles; ++i)
@@ -51,19 +51,9 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
     };
     ibo_outlines.generateNew(indices_outlines);
 
-    i = 0;
-    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
-    {
-        auto fh = *f_it;
-        if (!mesh.is_boundary(fh)) continue;
-        auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
-
-        vbo_outlines.set(i++, mesh.vertex(vhs[0]));
-        vbo_outlines.set(i++, mesh.vertex(vhs[1]));
-        vbo_outlines.set(i++, mesh.vertex(vhs[2]));
-    }
-    vbo_outlines.bufferSubData(0, nVertices);
-
+    // Generate picking buffers
+    vao_picking.generateNew();
+    vbo.defineAttributes({0});
 }
 
 void RenderBatchTetFaces::render()
@@ -85,23 +75,41 @@ void RenderBatchTetFaces::render()
     vbo.disableAttributes();
     vao.unbind();
 
+    // Outlines
 
     Shader::FACES_OUTLINES_SHADER.use();
 
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-0.75f, -0.75f); // ensure the outline is drawn slightly in front
 
-    vbo_outlines.bind();
+    vbo.bind();
     vao_outlines.bind();
-    vbo_outlines.enableAttributes();
+    vbo.enableAttributes({0});
 
     ibo_outlines.draw();
 
-    vbo_outlines.disableAttributes();
+    vbo.disableAttributes();
     vao_outlines.unbind();
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 
+}
+
+void RenderBatchTetFaces::renderPicking()
+{
+    Shader::PICKING_SHADER.use();
+    Shader::PICKING_SHADER.setUInt("vao_index", vao_picking.ID());
+
+    vbo.bind();
+    vao_picking.bind();
+    vbo.enableAttributes({0});
+
+    ibo.draw();
+
+    vbo.disableAttributes();
+    vao_picking.unbind();
+
+    return;
 }
 
 }

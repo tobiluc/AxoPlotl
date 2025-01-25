@@ -5,7 +5,7 @@
 namespace MV
 {
 
-void HexMeshRenderer::render()
+void HexMeshRenderer::render(MeshViewer &mv)
 {
 
     glm::mat4x4 model_matrix(1.0f);

@@ -126,6 +126,9 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
     // Render ImGui
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 }

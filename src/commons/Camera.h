@@ -26,6 +26,7 @@ public:
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 getViewMatrix();
     glm::mat4 getProjectionMatrix();
+    glm::mat4 getProjectionMatrix(float width_over_height);
 
     void update(GLFWwindow* window);
 

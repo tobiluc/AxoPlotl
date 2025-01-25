@@ -14,7 +14,7 @@ public:
     static void init(GLFWwindow* window);
 
     static void newFrame();
-
+    
     static void render(MeshViewer& mv, MeshRenderSettings& settings);
 
 private:

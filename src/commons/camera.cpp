@@ -106,9 +106,14 @@ glm::mat4 Camera::getProjectionMatrix()
     float width = viewport[2];
     float height = viewport[3];
     float aspect_ratio = width/height;
+    return getProjectionMatrix(aspect_ratio);
+}
+
+glm::mat4 Camera::getProjectionMatrix(float width_over_height)
+{
     float near = 0.1f;
     float far = 4096.0f;
-    return glm::perspective(glm::radians(fov), aspect_ratio, near, far);
+    return glm::perspective(glm::radians(fov), width_over_height, near, far);
 }
 
 void Camera::updateCameraVectors() {

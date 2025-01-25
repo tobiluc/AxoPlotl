@@ -6,12 +6,14 @@
 namespace MV
 {
 
+class MeshViewer;
+
 class MeshRenderer
 {
 public:
-    virtual void render() = 0;
+    virtual void render(MeshViewer& mv) = 0;
 
-    virtual void renderPicking() = 0;
+    virtual void renderPicking(const glm::mat4x4& mvp, const uint object_id) = 0;
 
     virtual void deleteBuffers() = 0;
 

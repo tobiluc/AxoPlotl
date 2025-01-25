@@ -47,9 +47,9 @@ public:
         verticesBatch.initFromMesh(mesh);
     }
 
-    void render() override;
+    void render(MeshViewer& mv) override;
 
-    void renderPicking() override;
+    void renderPicking(const glm::mat4x4& mvp, const uint object_id) override;
 
     //MeshRenderSettings settings;
 

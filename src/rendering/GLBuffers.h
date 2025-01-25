@@ -47,8 +47,7 @@ struct VBO
 {
 public:
     VBO() :
-        val(),
-        attrSlots(val.numAttrs())
+        val()
     {};
 
     ~VBO()
@@ -56,59 +55,46 @@ public:
         //deleteBuffer();
     }
 
-    // VBO(const VBO&) = delete;
-    // VBO& operator=(const VBO&) = delete;
-    // VBO(VBO&& other) noexcept : id(other.id), nVertices(other.nVertices), val(other.val), data(other.data), attrSlots(other.attrSlots)
-    // {other.id = 0; other.nVertices = 0;}
-    // VBO& operator=(VBO&& other) noexcept
-    // {
-    //     if (this != &other)
-    //     {
-    //         glDeleteBuffers(1, &id);
-
-    //         id = other.id;
-    //         nVertices = other.nVertices;
-    //         val = other.val;
-    //         data = other.data;
-    //         attrSlots = other.attrSlots;
-
-    //         other.id = 0;
-    //         other.nVertices = 0;
-    //     }
-    //     return *this;
-    // }
-
-    // Generates a new vertex buffer for a given number of vertices and defines
-    // which attribute slots should be used
-    GLuint generateNew(size_t nVertices, const std::vector<int> attrSlots)
+    // Generates a new vertex buffer for a given number of vertices.
+    // Assumes the used attribute slots to be 0,1,2,...
+    GLuint generateNew(size_t nVertices)
     {
+        //std::vector<int> attrSlots(val.numAttrs());
+        //for (int i = 0; i < val.numAttrs(); ++i) attrSlots[i] = i;
+
         resize(nVertices);
 
         deleteBuffer();
-        this->attrSlots = attrSlots;
-        assert(this->attrSlots.size() == val.numAttrs());
+        //this->attrSlots = attrSlots;
+        //assert(this->attrSlots.size() <= val.numAttrs());
 
         glGenBuffers(1, &id);
         bind();
         glBufferData(GL_ARRAY_BUFFER, nVertices * val.totalSizeBytes(), &data[0], GL_DYNAMIC_DRAW);
 
-        // define attributes
-        for (int i = 0; i < val.numAttrs(); ++i)
-        {
-            glVertexAttribPointer(attrSlots[i], val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-            glEnableVertexAttribArray(attrSlots[i]);
-        }
+        defineAttributes();
 
         return id;
     }
 
-    // Generates a new vertex buffer for a given number of vertices.
-    // Assumes the used attribute slots to be 0,1,2,...
-    GLuint generateNew(size_t nVertices)
+    inline void defineAttributes()
     {
-        std::vector<int> attrSlots(val.numAttrs());
-        for (int i = 0; i < val.numAttrs(); ++i) attrSlots[i] = i;
-        return generateNew(nVertices, attrSlots);
+        for (int i = 0; i < val.numAttrs(); ++i)
+        {
+            glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
+            glEnableVertexAttribArray(i);
+        }
+
+    }
+
+    inline void defineAttributes(const std::vector<int> attribute_indices)
+    {
+        for (int i : attribute_indices)
+        {
+            glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
+            glEnableVertexAttribArray(i);
+        }
+
     }
 
     inline void bind()
@@ -121,20 +107,31 @@ public:
         glBufferSubData(GL_ARRAY_BUFFER, fromVertex*val.totalSizeBytes(), nVertices*val.totalSizeBytes(), &data[fromVertex*val.totalSize()]);
     }
 
+    inline void enableAttributes(const std::vector<int> attribute_indices)
+    {
+        for (int i : attribute_indices) glEnableVertexAttribArray(i);
+    }
+
     inline void enableAttributes()
     {
-        for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(attrSlots[i]);
+        for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
     }
 
     inline void disableAttributes()
     {
-        for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(attrSlots[i]);
+        for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
     }
 
     inline void resize(size_t nVertices)
     {
         this->nVertices = nVertices;
         data.resize(val.totalSize()*nVertices);
+    }
+
+    // Number of vertices
+    inline size_t size() const
+    {
+        return nVertices;
     }
 
     inline void deleteBuffer()
@@ -166,12 +163,17 @@ public:
         return val;
     }
 
+    inline GLuint ID() const
+    {
+        return id;
+    }
+
 private:
     unsigned int nVertices = 0;
     GLuint id = 0;
     VAL<GLT, T, S...> val;
     std::vector<T> data;
-    std::vector<int> attrSlots;
+    //std::vector<int> attrSlots;
 };
 
 // Index Buffer Object
@@ -211,7 +213,7 @@ public:
 
         glGenBuffers(1, &id);
         bind();
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+        bufferData(indices);
 
         return id;
     }
@@ -222,6 +224,11 @@ public:
         std::vector<GLuint> indices(nIndices);
         for (int i = 0; i < nIndices; ++i) {indices[i] = i;}
         generateNew(indices);
+    }
+
+    inline void bufferData(const std::vector<GLuint>& indices)
+    {
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
     }
 
     inline void deleteBuffer()
@@ -238,6 +245,16 @@ public:
     {
         bind();
         glDrawElements(GLMode, nIndices, GL_UNSIGNED_INT, NULL);
+    }
+
+    inline size_t size() const
+    {
+        return nIndices;
+    }
+
+    inline GLuint ID() const
+    {
+        return id;
     }
 
 private:
@@ -269,6 +286,11 @@ public:
     //     }
     //     return *this;
     // }
+
+    inline GLuint ID() const
+    {
+        return id;
+    }
 
     inline void deleteBuffer()
     {

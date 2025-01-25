@@ -34,12 +34,16 @@ public:
 
     struct PixelData
     {
-        unsigned int object_id;
-        unsigned int draw_id;
-        unsigned int primitive_id;
+        unsigned int object_id = 0;
+        unsigned int draw_id = 0;
+        unsigned int primitive_id = 0;
     };
 
     PixelData readPixel(unsigned int x, unsigned int y);
+
+    inline unsigned int getWidth() const {return width;}
+
+    inline unsigned int getHeight() const {return height;}
 
 private:
     GLuint fboID;

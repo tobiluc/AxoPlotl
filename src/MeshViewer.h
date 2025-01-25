@@ -15,6 +15,8 @@ namespace MV
 class MeshViewer
 {
 friend class ImGuiRenderer;
+friend class TetMeshRenderer;
+
 private:
 class Mesh
 {
@@ -62,6 +64,7 @@ private:
 
     Color clearColor;
     PickingTexture pickingTexture;
+    PickingTexture::PixelData picked = {0,0,0};
     std::vector<Mesh> meshes;
 
     void init();

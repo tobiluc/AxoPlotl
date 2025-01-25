@@ -2,11 +2,12 @@
 #include "GLFW/glfw3.h"
 #include "../commons/Camera.h"
 #include "../utils/Globals.h"
+#include "../MeshViewer.h"
 
 namespace MV
 {
 
-void TetMeshRenderer::render()
+void TetMeshRenderer::render(MeshViewer& mv)
 {
     glm::mat4x4 model_matrix(1.0f);
     const auto& view_matrix = camera.getViewMatrix();
@@ -45,6 +46,8 @@ void TetMeshRenderer::render()
     if (settings.showFaces)
     {
         Shader::FACES_SHADER.use();
+
+        Shader::FACES_SHADER.setInt("picked_primitive_id", mv.picked.primitive_id);
 
         Shader::FACES_SHADER.setMat4x4f("view_matrix", view_matrix);
         Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
@@ -88,9 +91,16 @@ void TetMeshRenderer::render()
     glUseProgram(0);
 }
 
-void TetMeshRenderer::renderPicking()
+void TetMeshRenderer::renderPicking(const glm::mat4x4 &mvp, const uint object_id)
 {
+    Shader::PICKING_SHADER.use();
 
+    Shader::PICKING_SHADER.setMat4x4f("model_view_projection_matrix", mvp);
+    Shader::PICKING_SHADER.setUInt("object_index", object_id);
+
+    facesBatch.renderPicking();
+
+    glUseProgram(0);
 }
 
 }

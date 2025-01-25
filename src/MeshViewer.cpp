@@ -11,6 +11,14 @@
 namespace MV
 {
 
+void checkOpenGLError()
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error: " << error << std::endl;
+    }
+}
+
 MeshViewer::MeshViewer() :
     window(nullptr),
     camera(Vec3f(0,0,30), Vec3f(0,0,-1)),
@@ -134,19 +142,56 @@ void MeshViewer::render()
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
     // Picking
-    if (MV::MouseHandler::LEFT_JUST_PRESSED)
+    if (MV::MouseHandler::LEFT_JUST_PRESSED && meshes.size() > 0)
     {
+        // Get Viewport and Framebuffer Size
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        GLint viewport_width = viewport[2];
+        GLint viewport_height = viewport[3];
+        int framebuffer_width, framebuffer_height;
+        glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+        float framebuffer_ratio = (float)(framebuffer_width) / framebuffer_height;
+
+        // Get Viewport Pixel Scale
+        float xscale, yscale;
+        glfwGetWindowContentScale(window, &xscale, &yscale);
+
+        // Set Viewport Size to picking texture
+        glViewport(0, 0, pickingTexture.getWidth(), pickingTexture.getHeight());
+
+        // Bind Texture
         pickingTexture.bind();
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Clear Texture
+        GLuint clearColor[3] = {0,0,0};
+        glClearBufferuiv(GL_COLOR, 0, clearColor);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
-        MV::Shader::PICKING_SHADER.use();
+        glm::mat4x4 model_matrix(1.0f);
+        const auto& view_matrix = camera.getViewMatrix();
+        const auto& projection_matrix = camera.getProjectionMatrix(framebuffer_ratio);
+        glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
+        glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
 
-        auto pixel = pickingTexture.readPixel(MV::MouseHandler::POSITION[0], 800-MV::MouseHandler::POSITION[1]-1);
-        std::cout << "XYZ = " << pixel.object_id << ", " << pixel.draw_id << ", " << pixel.primitive_id << std::endl;
+        // Render Meshes to Picking Texture
+        for (int i = 0; i < meshes.size(); ++i)
+        {
+            meshes[i].renderer->renderPicking(model_view_projection_matrix, i+1);
+        }
 
+        // Read Pixel from Picking Texture
+        int x = MV::MouseHandler::POSITION[0] * xscale / framebuffer_width * pickingTexture.getWidth();
+        int y = MV::MouseHandler::POSITION[1] * yscale / framebuffer_height * pickingTexture.getHeight();
+        picked = pickingTexture.readPixel(x, y);
+
+        // Unbind Texture
         pickingTexture.unbind();
-        MV::Shader::PICKING_SHADER.detach();
+
+        // Reset Viewport
+        glViewport(0, 0, viewport_width, viewport_height);
     }
 
     // Clear the Screen Colors and Depth Buffer
@@ -167,17 +212,14 @@ void MeshViewer::render()
     // Render Meshes
     for (auto& mesh : meshes)
     {
-        mesh.renderer->render();
+        mesh.renderer->render(*this);
     }
 
     // ImGui - define and render
     MV::ImGuiRenderer::render(*this, meshes[0].renderer->settings);
 
     // Check for errors
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error: " << error << std::endl;
-    }
+    checkOpenGLError();
 
     // End of frame
     glfwSwapBuffers(window);

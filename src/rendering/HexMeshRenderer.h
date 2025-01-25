@@ -25,7 +25,7 @@ public:
 
     }
 
-    void render() override;
+    void render(MeshViewer& mv) override;
 
     inline void setMesh(HexahedralMesh& mesh)
     {
