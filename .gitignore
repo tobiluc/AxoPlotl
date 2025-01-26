@@ -11,6 +11,9 @@
 *.gcda
 *.gcno
 
+*.ovm
+*.ovmb
+
 .cache
 external
 .DS_Store
