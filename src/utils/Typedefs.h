@@ -70,6 +70,7 @@ struct MeshRenderSettings
 {
 public:
     MeshRenderSettings() :
+        visible(true),
         showCells(true),
         showFaces(true),
         showEdges(true),
@@ -86,6 +87,7 @@ public:
 
     }
 
+    bool visible;
     bool showCells, showFaces, showEdges, showVertices;
     Light light;
     float cellScale;

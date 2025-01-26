@@ -3,7 +3,6 @@
 
 #include <glad/glad.h>
 #include <cassert>
-#include <iostream>
 #include <cstddef>
 #include <vector>
 #include <GLFW/glfw3.h>
@@ -16,30 +15,46 @@ template <GLenum GLT, typename T, size_t... S>
 struct VAL
 {
 public:
-    VAL() : sizes{S...}
+    VAL(size_t offset_layout, size_t offset_bytes) : sizes{S...}
     {
-        offsets.resize(sizes.size());
-        for (int i = 1; i < offsets.size(); ++i) offsets[i] = offsets[i-1] + sizes[i-1];
-        size = offsets[offsets.size()-1] + sizes[offsets.size()-1];
+        size_t n_attributes = sizes.size();
+        offsets_bytes.resize(n_attributes);
+        layouts.resize(n_attributes);
+        offsets_bytes[0] = offset_bytes;
+        layouts[0] = offset_layout;
+        for (int i = 1; i < n_attributes; ++i)
+        {
+            offsets_bytes[i] = offsets_bytes[i-1] + sizeof(T)*sizes[i-1];
+            layouts[i] = layouts[i-1] + 1;
+        }
+        size = 0;
+        for (int i = 0; i < n_attributes; ++i) size += sizes[i];
     }
 
+    VAL() : VAL(0, 0)
+    {}
+
     ~VAL() {}
-    inline size_t attrOffset(size_t i) const {return offsets[i];}
-    inline size_t attrOffsetBytes(size_t i) const {return sizeof(T)*offsets[i];}
+    inline size_t attrOffsetBytes(size_t i) const {return offsets_bytes[i];}
     inline size_t attrSize(size_t i) const {return sizes[i];}
     inline size_t attrSizeBytes(size_t i) const {return sizeof(T)*sizes[i];}
     inline size_t numAttrs() const {return sizes.size();}
     inline size_t totalSize() const {return size;}
-    inline size_t totalSizeBytes() const {return sizeof(T) * size;}
+    inline size_t totalSizeBytes() const {return sizeof(T)*size;}
     inline size_t typeSizeBytes() const {return sizeof(T);}
     inline GLenum type() const {return GLT;}
+    inline GLuint attrLayout(size_t i) const {return layouts[i];}
 private:
     std::vector<size_t> sizes;
-    std::vector<size_t> offsets;
+    std::vector<size_t> offsets_bytes;
+    std::vector<GLuint> layouts;
     size_t size;
 };
 using VAL343f = VAL<GL_FLOAT, float, 3, 4, 3>; // e.g. position, color, normal
-using VAL3f = VAL<GL_FLOAT, float, 3, 4>; // e.g. position, color
+using VAL34f = VAL<GL_FLOAT, float, 3, 4>; // e.g. position, color
+using VAL1i = VAL<GL_INT, int, 1>;
+using VAL3f = VAL<GL_FLOAT, float, 3>;
+using VAL1b = VAL<GL_BOOL, bool, 1>;
 
 // Vertex Buffer Object
 template <GLenum GLT, typename T, size_t... S>
@@ -50,6 +65,9 @@ public:
         val()
     {};
 
+    VBO(size_t layout_offset, size_t byte_offset) : val(layout_offset, byte_offset)
+    {}
+
     ~VBO()
     {
         //deleteBuffer();
@@ -59,14 +77,9 @@ public:
     // Assumes the used attribute slots to be 0,1,2,...
     GLuint generateNew(size_t nVertices)
     {
-        //std::vector<int> attrSlots(val.numAttrs());
-        //for (int i = 0; i < val.numAttrs(); ++i) attrSlots[i] = i;
-
         resize(nVertices);
 
         deleteBuffer();
-        //this->attrSlots = attrSlots;
-        //assert(this->attrSlots.size() <= val.numAttrs());
 
         glGenBuffers(1, &id);
         bind();
@@ -81,18 +94,18 @@ public:
     {
         for (int i = 0; i < val.numAttrs(); ++i)
         {
-            glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-            glEnableVertexAttribArray(i);
+            glVertexAttribPointer(val.attrLayout(i), val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
+            glEnableVertexAttribArray(val.attrLayout(i));
         }
 
     }
 
-    inline void defineAttributes(const std::vector<int> attribute_indices)
+    inline void defineAttributes(const std::vector<int>& attribute_indices)
     {
         for (int i : attribute_indices)
         {
-            glVertexAttribPointer(i, val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
-            glEnableVertexAttribArray(i);
+            glVertexAttribPointer(val.attrLayout(i), val.attrSize(i), val.type(), GL_FALSE, val.totalSizeBytes(), (void*)(val.attrOffsetBytes(i)));
+            glEnableVertexAttribArray(val.attrLayout(i));
         }
 
     }
@@ -109,17 +122,17 @@ public:
 
     inline void enableAttributes(const std::vector<int> attribute_indices)
     {
-        for (int i : attribute_indices) glEnableVertexAttribArray(i);
+        for (int i : attribute_indices) glEnableVertexAttribArray(val.attrLayout(i));
     }
 
     inline void enableAttributes()
     {
-        for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(i);
+        for (int i = 0; i < val.numAttrs(); ++i) glEnableVertexAttribArray(val.attrLayout(i));
     }
 
     inline void disableAttributes()
     {
-        for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(i);
+        for (int i = 0; i < val.numAttrs(); ++i) glDisableVertexAttribArray(val.attrLayout(i));
     }
 
     inline void resize(size_t nVertices)
@@ -189,22 +202,6 @@ public:
         //deleteBuffer();
     }
 
-    // IBO(const IBO&) = delete;
-    // IBO& operator=(const IBO&) = delete;
-    // IBO(IBO&& other) noexcept : id(other.id), nIndices(other.nIndices) {other.id = 0; other.nIndices = 0;}
-    // IBO& operator=(IBO&& other) noexcept
-    // {
-    //     if (this != &other)
-    //     {
-    //         glDeleteBuffers(1, &id);
-    //         id = other.id;
-    //         nIndices = other.nIndices;
-    //         other.id = 0;
-    //         other.nIndices = 0;
-    //     }
-    //     return *this;
-    // }
-
     // Buffers the given indices array
     GLuint generateNew(const std::vector<GLuint>& indices)
     {
@@ -272,20 +269,6 @@ public:
     {
         //deleteBuffer();
     }
-
-    // VAO(const VAO&) = delete;
-    // VAO& operator=(const VAO&) = delete;
-    // VAO(VAO&& other) noexcept : id(other.id) {other.id = 0; }
-    // VAO& operator=(VAO&& other) noexcept
-    // {
-    //     if (this != &other)
-    //     {
-    //         glDeleteVertexArrays(1, &id);
-    //         id = other.id;
-    //         other.id = 0;
-    //     }
-    //     return *this;
-    // }
 
     inline GLuint ID() const
     {

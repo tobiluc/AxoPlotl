@@ -34,8 +34,8 @@ public:
 
     struct PixelData
     {
-        unsigned int object_id = 0;
-        unsigned int draw_id = 0;
+        unsigned int mesh_index = 0;
+        unsigned int element_index = 0;
         unsigned int primitive_id = 0;
     };
 

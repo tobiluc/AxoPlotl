@@ -27,9 +27,9 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 
         Color col = COLORS[prop[fh]%COLORS.size()];
 
-        auto d0 = toArray<float,9>(mesh.vertex(vhs[0]), col, normal);
-        auto d1 = toArray<float,9>(mesh.vertex(vhs[1]), col, normal);
-        auto d2 = toArray<float,9>(mesh.vertex(vhs[2]), col, normal);
+        auto d0 = toArray<float,10>(mesh.vertex(vhs[0]), col, normal, fh.idx()+1);
+        auto d1 = toArray<float,10>(mesh.vertex(vhs[1]), col, normal, fh.idx()+1);
+        auto d2 = toArray<float,10>(mesh.vertex(vhs[2]), col, normal, fh.idx()+1);
 
         setFace(i++, std::vector({d0, d1, d2}));
     }
@@ -53,7 +53,7 @@ void RenderBatchTetFaces::initFromMesh(TetrahedralMesh& mesh)
 
     // Generate picking buffers
     vao_picking.generateNew();
-    vbo.defineAttributes({0});
+    vbo.defineAttributes({0,3});
 }
 
 void RenderBatchTetFaces::render()
@@ -98,11 +98,10 @@ void RenderBatchTetFaces::render()
 void RenderBatchTetFaces::renderPicking()
 {
     Shader::PICKING_SHADER.use();
-    Shader::PICKING_SHADER.setUInt("vao_index", vao_picking.ID());
 
     vbo.bind();
     vao_picking.bind();
-    vbo.enableAttributes({0});
+    vbo.enableAttributes({0,3});
 
     ibo.draw();
 

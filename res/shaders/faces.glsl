@@ -5,6 +5,7 @@
 layout (location = 0) in vec3 v_position;
 layout (location = 1) in vec3 v_color;
 layout (location = 2) in vec3 v_normal;
+layout (location = 3) in float v_face_index;
  
 uniform mat4 view_matrix;
 uniform mat4 model_view_projection_matrix;
@@ -43,16 +44,9 @@ uniform Light light;
 
 uniform float outline_width;
 uniform vec3 outline_color;
-uniform int picked_primitive_id;
   
 void main()
 {
-	if (gl_PrimitiveID == picked_primitive_id)
-	{
-		f_color = vec4(1.0, 0.8, 0.8, 1.0);
-	}
-	else
-	{
 
 	f_color = vec4(v2f_color, 1.0);
 
@@ -72,6 +66,4 @@ void main()
 	vec3 specular = light.specular * pow(max(dot(direction_to_camera, r), 0.0), shininess); 
 
 	f_color = vec4(ambient + diffuse + specular, 1.0);
-
-	}
 }

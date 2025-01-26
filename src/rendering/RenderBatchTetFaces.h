@@ -52,20 +52,21 @@ public:
     {
         assert(data.size()==3);
         updatedFaces.insert(i);
-        for (int j = 0; j < 3; ++j) vbo.set(3*i+j, data[j]);
+        for (int j = 0; j < 3; ++j)
+        {
+            vbo.set(3*i+j, data[j]);
+        }
     }
 private:
-    VBO<GL_FLOAT, float, 3, 3, 3> vbo; // position, color, normal
+    VBO<GL_FLOAT, float, 3, 3, 3, 1> vbo; // position, color, normal, face index
     IBO<GL_TRIANGLES> ibo;
     VAO vao;
 
     std::unordered_set<int> updatedFaces;
 
-    //VBO<GL_FLOAT, float, 3> vbo_outlines; // position
     IBO<GL_LINES> ibo_outlines;
     VAO vao_outlines;
 
-    //VBO<GL_FLOAT, float, 3> vbo_picking; // position
     VAO vao_picking;
 
 };

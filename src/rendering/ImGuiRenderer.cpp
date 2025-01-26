@@ -42,10 +42,12 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
     // List of Meshes
     //---------------------
     size_t n_meshes = mv.meshes.size();
-    std::vector<char> tmp(n_meshes, 0);
+    //std::vector<char> tmp(n_meshes, 0);
     for (int i = 0; i < n_meshes; ++i) {
         ImGui::PushID(i);
         const std::string& name = mv.meshes[i].name;
+        auto& renderer = mv.meshes[i].renderer;
+        bool isDeleted = false;
 
         // Mesh Name
         if (ImGui::Selectable(name.c_str())) {
@@ -60,21 +62,68 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
 
         if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(i)).c_str()))
         {
+            std::string str = "Mesh";
+            ImGui::Text("%s", str.c_str());
+
             if (ImGui::MenuItem("Delete"))
             {
                 mv.deleteMesh(i);
+                isDeleted = true;
             }
 
             ImGui::EndPopup(); // Close the popup
         }
 
-        // Mesh Visibility
-        if (ImGui::Checkbox("##checkbox", reinterpret_cast<bool*>(&tmp[i])))
+        // Dont continue if a mesh just got deleted, wait for the next frame
+        if (isDeleted)
         {
-            // State changed
+            ImGui::PopID();
+            break;
+        }
+
+        // Mesh Visibility
+        if (ImGui::Checkbox("##checkbox", &renderer->settings.visible))
+        {
+            // Visibility changed
         }
 
         ImGui::PopID();
+    }
+
+    //---------------------
+    // Right Click on Mesh
+    //---------------------
+    if (mv.picked.mesh_index != 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+    {
+        ImGui::OpenPopup(("mesh_popup_" + std::to_string(mv.picked.mesh_index)).c_str());
+    }
+    if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(mv.picked.mesh_index)).c_str()))
+    {
+        int i = mv.picked.mesh_index - 1;
+        auto& r = mv.meshes[i].renderer;
+        std::string str = mv.meshes[i].name;
+        ImGui::Text("%s", str.c_str());
+
+        // Mesh Visibility
+        ImGui::Checkbox("Show Cells", &r->settings.showCells);
+        ImGui::Checkbox("Show Faces", &r->settings.showFaces);
+        ImGui::Checkbox("Show Edges", &r->settings.showEdges);
+        ImGui::Checkbox("Show Vertices", &r->settings.showVertices);
+
+        // Material
+        ImGui::NewLine();
+        ImGui::SliderFloat("Vertex Size", &r->settings.pointSize, 1.f, 16.0f);
+        ImGui::SliderFloat("Edge Width", &r->settings.lineWidth, 1.f, 16.0f);
+        ImGui::SliderFloat("Cell Scale", &r->settings.cellScale, 0.0f, 1.0f);
+        ImGui::SliderFloat("Polygon Outline Width", &r->settings.outlineWidth, 0.0f, 12.0f);
+        ImGui::ColorEdit3("Polygon Outline Color", &r->settings.outlineColor[0]);
+        ImGui::Checkbox("Use Override Color", &r->settings.useColorOverride);
+        ImGui::ColorEdit3("Override Color", &r->settings.colorOverride[0]);
+        ImGui::ColorEdit3("Ambient", &r->settings.light.ambient[0]);
+        ImGui::ColorEdit3("Diffuse", &r->settings.light.diffuse[0]);
+        ImGui::ColorEdit3("Specular", &r->settings.light.specular[0]);
+
+        ImGui::EndPopup();
     }
 
     //---------------------
@@ -97,28 +146,7 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
         ImGuiFileDialog::Instance()->Close();
     }
 
-    ImGui::NewLine();
-    ImGui::Text("Mesh Visibility");
-    ImGui::Checkbox("Show Cells", &settings.showCells);
-    ImGui::Checkbox("Show Faces", &settings.showFaces);
-    ImGui::Checkbox("Show Edges", &settings.showEdges);
-    ImGui::Checkbox("Show Vertices", &settings.showVertices);
-    //ImGui::ColorEdit3("Background Color", &CLEAR_COLOR[0]);
-    ImGui::NewLine();
-    ImGui::Text("Mesh Render Settings");
-    ImGui::SliderFloat("Vertex Size", &settings.pointSize, 1.f, 16.0f);
-    ImGui::SliderFloat("Edge Width", &settings.lineWidth, 1.f, 16.0f);
-    ImGui::SliderFloat("Cell Scale", &settings.cellScale, 0.0f, 1.0f);
-    ImGui::SliderFloat("Polygon Outline Width", &settings.outlineWidth, 0.0f, 12.0f);
-    ImGui::ColorEdit3("Polygon Outline Color", &settings.outlineColor[0]);
-    ImGui::Checkbox("Use Override Color", &settings.useColorOverride);
-    ImGui::ColorEdit3("Override Color", &settings.colorOverride[0]);
-    ImGui::NewLine();
-    ImGui::Text("Camera and Lighting");
-    //ImGui::SliderFloat("fov", &MV::CAMERA.fov, 1.0f, 90.0f);
-    ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
-    ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
-    ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
+    ImGui::ColorEdit3("Background", &mv.clearColor[0]);
 
     // End
     ImGui::End();

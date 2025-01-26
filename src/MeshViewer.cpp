@@ -187,6 +187,8 @@ void MeshViewer::render()
         int y = MV::MouseHandler::POSITION[1] * yscale / framebuffer_height * pickingTexture.getHeight();
         picked = pickingTexture.readPixel(x, y);
 
+        std::cout << "Picked: Mesh: " << picked.mesh_index << ", Element: " << picked.element_index << ", Primitive: " << picked.primitive_id << std::endl;
+
         // Unbind Texture
         pickingTexture.unbind();
 
@@ -195,7 +197,7 @@ void MeshViewer::render()
     }
 
     // Clear the Screen Colors and Depth Buffer
-    glClearColor(1, 1, 1, 1.0f);
+    glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
