@@ -158,75 +158,58 @@ uint Renderer::findEmptyTrianglesBatch()
     return triangles.size()-1;
 }
 
+Renderer::GeometryLocation Renderer::addPoints(const std::vector<Point>& ps)
+{
+    uint batch_index = findPointsBatchIndexWithRoom(ps.size());
+    std::vector<uint> element_indices = points[batch_index]->add(ps);
+    return GeometryLocation(BatchLocation{.type = GL_POINTS, .batch_index = batch_index, .element_indices = element_indices});
+}
+
+Renderer::GeometryLocation Renderer::addLines(const std::vector<Line>& ls)
+{
+    uint batch_index = findLinesBatchIndexWithRoom(ls.size());
+    std::vector<uint> element_indices = lines[batch_index]->add(ls);
+    return GeometryLocation(BatchLocation{.type = GL_LINES, .batch_index = batch_index, .element_indices = element_indices});
+}
+
+Renderer::GeometryLocation Renderer::addTriangles(const std::vector<Triangle>& ts)
+{
+    uint batch_index = findTrianglesBatchIndexWithRoom(ts.size());
+    std::vector<uint> element_indices = triangles[batch_index]->add(ts);
+    return GeometryLocation(BatchLocation{.type = GL_TRIANGLES, .batch_index = batch_index, .element_indices = element_indices});
+}
+
+Renderer::GeometryLocation Renderer::addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts)
+{
+    return addPoints(ps).add(addLines(ls)).add(addTriangles(ts));
+}
+
 Renderer::GeometryLocation Renderer::addPoint(const Point& p)
 {
-    // Find a Batch with Room or create a new one
-    uint batch_index = findPointsBatchIndexWithRoom(1);
-
-    // Add the point to the batch
-    uint primitive_index = addPoint(batch_index, p);
-
-    // Return the Location of the point
-    return GeometryLocation{{BatchLocation{
-        .type = GL_POINTS,
-        .batch_index = batch_index,
-        .element_indices = {primitive_index}
-    }}};
+    return addPoints({p});
 }
 
 Renderer::GeometryLocation Renderer::addLine(const Line& l)
 {
-    // Find a Batch with Room or create a new one
-    uint batch_index = findLinesBatchIndexWithRoom(1);
-
-    // Add the line to the batch
-    uint primitive_index = addLine(batch_index, l);
-
-    // Return the Location of the line
-    return GeometryLocation{{BatchLocation{
-        .type = GL_LINES,
-        .batch_index = batch_index,
-        .element_indices = {primitive_index}
-    }}};
+    return addLines({l});
 }
 
 Renderer::GeometryLocation Renderer::addTriangle(const Triangle& t)
 {
-    // Find a Batch with Room or create a new one
-    uint batch_index = findTrianglesBatchIndexWithRoom(1);
-
-    // Add the Triangle to the batch
-    uint primitive_index = addTriangle(batch_index, t);
-
-    // Return the Location of the Triangle
-    return GeometryLocation{{BatchLocation{
-        .type = GL_TRIANGLES,
-        .batch_index = batch_index,
-        .element_indices = {primitive_index}
-    }}};
+    return addTriangles({t});
 }
 
 Renderer::GeometryLocation Renderer::addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
-    // Find a Batch with Room or create a new one
-    uint batch_index = findLinesBatchIndexWithRoom(3);
-
     std::array<float, 3> col0 = {1, 0, 0};
     std::array<float, 3> col1 = {0, 1, 0};
     std::array<float, 3> col2 = {0, 0, 1};
 
-    // Add Lines to the batch
-    std::vector<uint> primitive_indices = {
-        addLine(batch_index, Line(Point(p, col0), Point(p + v0, col0))),
-        addLine(batch_index, Line(Point(p, col1), Point(p + v1, col1))),
-        addLine(batch_index, Line(Point(p, col2), Point(p + v2, col2)))
-    };
-
-    return GeometryLocation{{BatchLocation{
-        .type = GL_TRIANGLES,
-        .batch_index = batch_index,
-        .element_indices = primitive_indices
-    }}};
+    return addLines({
+        Line(Point(p, col0), Point(p + v0, col0)),
+        Line(Point(p, col1), Point(p + v1, col1)),
+        Line(Point(p, col2), Point(p + v2, col2))
+    });
 }
 
 Renderer::GeometryLocation Renderer::addTetMesh(TetrahedralMesh& mesh)
@@ -240,11 +223,11 @@ Renderer::GeometryLocation Renderer::addTetMesh(TetrahedralMesh& mesh)
     lines[lines_batch_index]->initFromMesh(mesh);
     triangles[triangles_batch_index]->initFromMesh(mesh);
 
-    return GeometryLocation{{
-        BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()},
-        BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()},
-        BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()},
-    }};
+    GeometryLocation where;
+    where.add(BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()});
+    where.add(BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()});
+    where.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
+    return where;
 }
 
 Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)
@@ -254,38 +237,26 @@ Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std
 
     if (fill)
     {
-        uint batch_index = findTrianglesBatchIndexWithRoom(n - 2);
-
-        // Add Triangles to the batch
-        std::vector<uint> element_indices;
+        std::vector<Triangle> ts;
         for (uint i = 1; i < n-1; ++i)
         {
             Point p0(points[0], color);
             Point p1(points[i], color);
             Point p2(points[i+1], color);
-            element_indices.push_back(triangles[batch_index]->add(Triangle(p0, p1, p2)));
+            ts.emplace_back(p0, p1, p2);
         }
-
-        return GeometryLocation{{
-            BatchLocation{.type = GL_TRIANGLES, .batch_index = batch_index, .element_indices = element_indices},
-        }};
+        return addTriangles(ts);
     }
     else
     {
-        uint batch_index = findLinesBatchIndexWithRoom(n);
-
-        // Add Lines to the batch
-        std::vector<uint> element_indices;
+        std::vector<Line> ls;
         for (uint i = 0; i < n; ++i)
         {
             Point p0(points[i], color);
             Point p1(points[(i+1)%n], color);
-            element_indices.push_back(lines[batch_index]->add(Line(p0, p1)));
+            ls.emplace_back(p0, p1);
         }
-
-        return GeometryLocation{{
-         BatchLocation{.type = GL_LINES, .batch_index = batch_index, .element_indices = element_indices},
-        }};
+        return addLines(ls);
     }
 }
 
@@ -295,9 +266,7 @@ Renderer::GeometryLocation Renderer::addExplicitCurve(const ExplicitCurve<float,
     const float x_min = 0;
     const float x_max = 100;
 
-    uint batch_index = findLinesBatchIndexWithRoom(n-1);
-    std::vector<uint> primitive_indices;
-
+    std::vector<Line> ls;
     for (uint i = 0; i < n-1; ++i)
     {
         float x0 = x_min + (i+0) * (x_max - x_min) / (n-1);
@@ -307,18 +276,65 @@ Renderer::GeometryLocation Renderer::addExplicitCurve(const ExplicitCurve<float,
 
         Point from(glm::vec3(x0,y0,0), glm::vec3(1,0,0));
         Point to(glm::vec3(x1,y1,0), glm::vec3(0,0,1));
-        primitive_indices.push_back(lines[batch_index]->add(Line(from, to)));
+        ls.emplace_back(from, to);
+    }
+    return addLines(ls);
+}
+
+Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, const Color& color, const uint precision)
+{
+    // Generate Vertex Positions
+    std::vector<Point> points;
+    for (int i = 0; i <= precision; ++i)
+    {
+        float phi = M_PI * i / precision;
+        for (int j = 0; j <= precision; ++j)
+        {
+            float theta = 2.0f * M_PI * j / precision;
+
+            Vec3f pos = {
+                r * sin(phi) * cos(theta),
+                r * cos(phi),
+                r * sin(phi) * sin(theta)
+            };
+
+            points.push_back(Point(c + pos, color));
+        }
     }
 
-    return GeometryLocation{
-        .locations = {
-            BatchLocation{
-                .type = GL_LINES,
-                .batch_index = batch_index,
-                .element_indices = primitive_indices
-            }
+    // Generate Triangles
+    std::vector<Triangle> ts;
+    for (int i = 0; i < precision; ++i)
+    {
+        for (int j = 0; j < precision; ++j)
+        {
+            int row1 = i * (precision + 1);
+            int row2 = (i + 1) * (precision + 1);
+
+            ts.emplace_back(
+                points[row1 + j + 0],
+                points[row2 + j + 0],
+                points[row2 + j + 1]
+            );
+
+            ts.emplace_back(
+                points[row1 + j + 0],
+                points[row2 + j + 1],
+                points[row1 + j + 1]
+            );
         }
-    };
+    }
+    return addTriangles(ts);
+}
+
+Renderer::GeometryLocation Renderer::addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color)
+{
+    return addTriangles({
+        Triangle(p0, p2, p1, color),
+        Triangle(p3, p0, p1, color),
+        Triangle(p3, p1, p2, color) ,
+        Triangle(p0, p3, p2, color)
+    });
 }
 
 }

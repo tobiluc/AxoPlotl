@@ -31,6 +31,28 @@ public:
     struct GeometryLocation
     {
         std::vector<BatchLocation> locations;
+
+        GeometryLocation() {}
+
+        GeometryLocation(const BatchLocation& loc)
+        {
+            add(loc);
+        }
+
+        inline GeometryLocation& add(const BatchLocation& loc)
+        {
+            this->locations.push_back(loc);
+            return *this;
+        }
+
+        inline GeometryLocation& add(const GeometryLocation& where)
+        {
+            for (const auto& loc : where.locations)
+            {
+                this->locations.push_back(loc);
+            }
+            return *this;
+        }
     };
 
     struct RenderSettings
@@ -92,20 +114,20 @@ private:
     // Max Number of Elements per Render Batch if not exceeded by the mesh size or requested number of free elements.
     constexpr static uint BATCH_SIZE = 512;
 
-    inline uint addPoint(uint batch_index, const Point& p)
-    {
-        return points[batch_index]->add(p);
-    }
+    // inline uint addPoint(uint batch_index, const Point& p)
+    // {
+    //     return points[batch_index]->add(p);
+    // }
 
-    inline uint addLine(uint batch_index, const Line& l)
-    {
-        return lines[batch_index]->add(l);
-    }
+    // inline uint addLine(uint batch_index, const Line& l)
+    // {
+    //     return lines[batch_index]->add(l);
+    // }
 
-    inline uint addTriangle(uint batch_index, const Triangle& t)
-    {
-        return triangles[batch_index]->add(t);
-    }
+    // inline uint addTriangle(uint batch_index, const Triangle& t)
+    // {
+    //     return triangles[batch_index]->add(t);
+    // }
 
     uint findPointsBatchIndexWithRoom(uint n);
 
@@ -128,6 +150,14 @@ public:
 
     void remove(const GeometryLocation& where);
 
+    GeometryLocation addPoints(const std::vector<Point>& ps);
+
+    GeometryLocation addLines(const std::vector<Line>& ls);
+
+    GeometryLocation addTriangles(const std::vector<Triangle>& ts);
+
+    GeometryLocation addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts);
+
     GeometryLocation addPoint(const Point& p);
 
     GeometryLocation addLine(const Line& l);
@@ -142,6 +172,10 @@ public:
     GeometryLocation addExplicitCurve(const ExplicitCurve<float, float>& f);
 
     GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
+
+    GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
+
+    GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
 };
 
 }

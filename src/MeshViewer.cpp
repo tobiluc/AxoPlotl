@@ -38,7 +38,7 @@ void MeshViewer::run()
         readMesh(filename, tetMesh, MV::FileFormat::OVMB);
         MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
-        auto where = renderer.addTetMesh(tetMesh);
+        //auto where = renderer.addTetMesh(tetMesh);
     }
 
     //------------------------------------
@@ -74,6 +74,12 @@ void MeshViewer::run()
     }
     renderer.addConvexPolygon(true, circle, Color(1,1,0));
     renderer.addConvexPolygon(false, circle, Color(0,1,1));
+
+    // Sphere
+    renderer.addSphere(Vec3f(-100, -100, -100), 20, Color(1,0,0));
+
+    // Tet
+    renderer.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
 
     //-----------------------
     // Set Global Shaders

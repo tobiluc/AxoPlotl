@@ -85,6 +85,10 @@ struct Triangle
         computeNormal();
     }
 
+    Triangle(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Color& color) :
+        Triangle(Point(p0, color), Point(p1, color), Point(p2, color))
+    {}
+
     inline void buffer(VBO& vbo, uint idx) const
     {
         for (unsigned char i = 0; i < 3; ++i)
@@ -153,6 +157,19 @@ public:
 
         // Return the index
         return idx;
+    }
+
+    inline std::vector<uint> add(const std::vector<PRIMITIVE>& ps)
+    {
+        if (num_free_elements() < ps.size()) return {};
+
+        std::vector<uint> idxs;
+        idxs.reserve(ps.size());
+        for (const auto& p : ps)
+        {
+            idxs.push_back(add(p));
+        }
+        return idxs;
     }
 
     inline void remove(uint idx)
