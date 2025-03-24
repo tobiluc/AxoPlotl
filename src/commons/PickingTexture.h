@@ -32,14 +32,14 @@ public:
 
     void unbind();
 
-    struct PixelData
+    struct Pixel
     {
-        unsigned int mesh_index = 0;
-        unsigned int element_index = 0;
+        unsigned int batch_index = 0;
+        unsigned int buffer_index = 0;
         unsigned int primitive_id = 0;
     };
 
-    PixelData readPixel(unsigned int x, unsigned int y);
+    Pixel readPixel(unsigned int x, unsigned int y);
 
     inline unsigned int getWidth() const {return width;}
 

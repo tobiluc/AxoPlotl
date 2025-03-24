@@ -41,7 +41,7 @@ void PickingTexture::init(unsigned int width, unsigned int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-PickingTexture::PixelData PickingTexture::readPixel(unsigned int x, unsigned int y)
+PickingTexture::Pixel PickingTexture::readPixel(unsigned int x, unsigned int y)
 {
     y = getHeight() - y - 1;
     if (x >= width || y >= height) return {0,0,0};
@@ -50,7 +50,7 @@ PickingTexture::PixelData PickingTexture::readPixel(unsigned int x, unsigned int
 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
-    PixelData p;
+    Pixel p;
     glReadPixels(x, y, 1, 1, GL_RGB_INTEGER, GL_UNSIGNED_INT, &p);
 
     glReadBuffer(GL_NONE);

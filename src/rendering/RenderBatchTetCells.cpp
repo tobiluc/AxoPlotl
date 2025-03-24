@@ -51,7 +51,7 @@ void RenderBatchTetCells::render()
     vao.bind();
     vbo.enableAttributes();
 
-    ibo.draw();
+    ibo.drawAll();
 
     vbo.disableAttributes();
 

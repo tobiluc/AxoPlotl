@@ -66,36 +66,4 @@ using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::Hexahedra
 using Color = Vec3f;
 struct Light {Color ambient, diffuse, specular;};
 
-struct MeshRenderSettings
-{
-public:
-    MeshRenderSettings() :
-        visible(true),
-        showCells(true),
-        showFaces(true),
-        showEdges(true),
-        showVertices(true),
-        light({Color(0.7,0.7,0.7), Color(0.2,0.2,0.2), Color(0.1,0.1,0.1)}),
-        cellScale(0.9f),
-        outlineWidth(2.0f),
-        lineWidth(2.0f),
-        pointSize(5.0f),
-        outlineColor(Color(0,0,0)),
-        useColorOverride(false),
-        colorOverride(Color(1,1,1))
-    {
-
-    }
-
-    bool visible;
-    bool showCells, showFaces, showEdges, showVertices;
-    Light light;
-    float cellScale;
-    float outlineWidth;
-    float pointSize;
-    float lineWidth;
-    Color outlineColor;
-    bool useColorOverride = false;
-    Color colorOverride;
-};
 }

@@ -60,6 +60,9 @@ add_executable(MeshViewer
     src/rendering/PolygonRenderer.cpp
     src/rendering/Renderer.h
     src/rendering/Renderer.cpp
+    src/rendering/RenderBatch.h
+    src/rendering/RenderBatch.cpp
+
 )
 
 #=========================

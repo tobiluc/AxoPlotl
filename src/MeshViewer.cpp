@@ -35,59 +35,50 @@ MeshViewer::~MeshViewer()
     glfwTerminate();
 }
 
-void MeshViewer::addTetMesh(const std::string& name, TetMeshRenderer& tmr)
-{
-    meshes.emplace_back(name, std::make_shared<TetMeshRenderer>(tmr));
-}
+// void MeshViewer::addTetMesh(const std::string& name, TetMeshRenderer& tmr)
+// {
+//     meshes.emplace_back(name, std::make_shared<TetMeshRenderer>(tmr));
+// }
 
 // void MeshViewer::addHexMesh(HexMeshRenderer& hmr)
 // {
 //     meshes.emplace_back("Hex Mesh", std::make_shared<HexMeshRenderer>(hmr));
 // }
 
-void MeshViewer::deleteMesh(size_t i)
-{
-    auto& mesh = meshes[i];
-    mesh.renderer->deleteBuffers();
-    meshes.erase(meshes.begin() + i);
-}
+// void MeshViewer::deleteMesh(size_t i)
+// {
+//     auto& mesh = meshes[i];
+//     mesh.renderer->deleteBuffers();
+//     meshes.erase(meshes.begin() + i);
+// }
 
 void MeshViewer::run()
 {
     init();
 
-    for (const std::string& filename : {"../res/meshes/i25u.ovmb","../res/meshes/i01c.ovmb"})
+    //for (const std::string& filename : {"../res/meshes/i25u.ovmb","../res/meshes/i01c.ovmb"})
+    for (const std::string& filename : {"../res/meshes/i01c.ovmb"})
     {
         MV::TetrahedralMesh tetMesh;
         readMesh(filename, tetMesh, MV::FileFormat::OVMB);
         MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
-        addTetMesh(filename, tetRenderer);
+        //addTetMesh(filename, tetRenderer);
+
+        renderer.addTetMesh(tetMesh);
     }
 
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
-    TrianglesRenderBatch tr(1000);
-    triangles.emplace_back(std::make_unique<TrianglesRenderBatch>(tr));
-    triangles[0]->add(Triangle(
-            Point(glm::vec3{0,0,0}, glm::vec3{1,0,0}),
-            Point(glm::vec3{10,0,0}, glm::vec3{0,1,0}),
-            Point(glm::vec3{0,10,0}, glm::vec3{0,0,1})));
-    triangles[0]->add(Triangle(
-           Point(glm::vec3{10,10,0}, glm::vec3{1,0,0}),
-           Point(glm::vec3{0,10,0}, glm::vec3{0,1,0}),
-            Point(glm::vec3{10,0,0}, glm::vec3{0,0,1})));
-
-    // PolygonRenderer<4> qr(1000);
-    // quads.emplace_back(std::make_unique<PolygonRenderer<4>>(qr));
-    // quads[0]->add(Quad{.vertices = {
-    //         Point{.position = {0,0,0}, .color={1,0,0}},
-    //         Point{.position = {10,0,0}, .color={0,1,0}},
-    //         Point{.position = {10,10,0}, .color={0,0,1}},
-    //         Point{.position = {0,10,0}, .color={1,1,0}}
-    //     }, .normal = {0, 0, 1}
-    // });
+    Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
+    Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
+    Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
+    renderer.addPoint(p0);
+    renderer.addPoint(p1);
+    renderer.addPoint(p2);
+    renderer.addTriangle(Triangle(p0, p1, p2));
+    renderer.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
 
     //-----------------------
     // Set Global Shaders
@@ -166,15 +157,17 @@ void MeshViewer::render()
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
     // Cache matrices for rendering
-    const glm::mat4x4 model_matrix(1.0f);
-    const auto& view_matrix = camera.getViewMatrix();
-    const auto& projection_matrix = camera.getProjectionMatrix();
-    const glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
-    const glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
-    const glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
+    Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera.getViewMatrix(), camera.getProjectionMatrix());
+
+    // const glm::mat4x4 model_matrix(1.0f);
+    // const auto& view_matrix = ;
+    // const auto& projection_matrix = camera.getProjectionMatrix();
+    // const glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
+    // const glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
+    // const glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
 
     // Picking
-    if (MV::MouseHandler::LEFT_JUST_PRESSED && meshes.size() > 0)
+    if (MV::MouseHandler::LEFT_JUST_PRESSED)
     {
         // Get Viewport and Framebuffer Size
         GLint viewport[4];
@@ -204,20 +197,21 @@ void MeshViewer::render()
 
         // Change Projection Matrix for Framebuffer (ratio might differ from viewport)
         const auto& projection_matrix = camera.getProjectionMatrix(framebuffer_ratio);
-        const glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
+        const glm::mat4x4 model_view_projection_matrix = projection_matrix * matrices.model_view_matrix;
 
         // Render Meshes to Picking Texture
-        for (int i = 0; i < meshes.size(); ++i)
-        {
-            meshes[i].renderer->renderPicking(model_view_projection_matrix, i);
-        }
+        // for (int i = 0; i < meshes.size(); ++i)
+        // {
+        //     meshes[i].renderer->renderPicking(model_view_projection_matrix, i);
+        // }
+        renderer.renderPicking(model_view_projection_matrix);
 
         // Read Pixel from Picking Texture
         int x = MV::MouseHandler::POSITION[0] * xscale / framebuffer_width * pickingTexture.getWidth();
         int y = MV::MouseHandler::POSITION[1] * yscale / framebuffer_height * pickingTexture.getHeight();
         picked = pickingTexture.readPixel(x, y);
 
-        std::cout << "Picked: Mesh: " << picked.mesh_index << ", Element: " << picked.element_index << ", Primitive: " << picked.primitive_id << std::endl;
+        std::cout << "Picked: Batch: " << picked.batch_index << ", Buffer: " << picked.buffer_index << ", Primitive: " << picked.primitive_id << std::endl;
 
         // Unbind Texture
         pickingTexture.unbind();
@@ -248,41 +242,16 @@ void MeshViewer::render()
     float height = viewport[3];
 
     // Render Meshes
-    for (auto& mesh : meshes)
-    {
-        mesh.renderer->render(*this);
-    }
-
-    // Render Triangles
-    Shader::FACES_SHADER.use();
-
-    Shader::FACES_SHADER.setMat4x4f("view_matrix", view_matrix);
-    Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-    Shader::FACES_SHADER.setMat3x3f("normal_matrix", normal_matrix);
-
-    Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
-    Shader::FACES_SHADER.setVec3f("light.ambient", Color{0.7f,0.7f,0.7f});
-    Shader::FACES_SHADER.setVec3f("light.diffuse", Color{0.2f,0.2f,0.2f});
-    Shader::FACES_SHADER.setVec3f("light.specular", Color{0.1f,0.1f,0.1f});
-
-    Shader::FACES_OUTLINES_SHADER.use();
-
-    Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", model_view_projection_matrix);
-    Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-    Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", 5);
-    Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", Color{0.f,0.f,0.f});
-
-    for (auto& tr : triangles)
-    {
-        tr->render();
-    }
-    // for (auto& qr : quads)
+    // for (auto& mesh : meshes)
     // {
-    //     qr->render();
+    //     mesh.renderer->render(*this);
     // }
 
+    // Render
+    renderer.render(matrices);
+
     // ImGui - define and render
-    MV::ImGuiRenderer::render(*this, meshes[0].renderer->settings);
+    MV::ImGuiRenderer::render(*this, renderer.settings);
 
     // Check for errors
     checkOpenGLError();

@@ -6,6 +6,7 @@
 #include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"
 #include "rendering/PolygonRenderer.h"
+#include "rendering/Renderer.h"
 #include "rendering/TrianglesRenderBatch.h"
 #include "rendering/TetMeshRenderer.h"
 #include "utils/Typedefs.h"
@@ -19,17 +20,17 @@ friend class ImGuiRenderer;
 friend class TetMeshRenderer;
 
 private:
-class Mesh
-{
-public:
-    Mesh() {}
-    Mesh(const std::string& name, const std::shared_ptr<MeshRenderer>& mr) : name(name), renderer(mr)
-    {}
-    Mesh(Mesh&& other) noexcept = default;
-    Mesh& operator=(Mesh&& other) noexcept = default;
-    std::string name;
-    std::shared_ptr<MeshRenderer> renderer;
-};
+// class Mesh
+// {
+// public:
+//     Mesh() {}
+//     Mesh(const std::string& name, const std::shared_ptr<MeshRenderer>& mr) : name(name), renderer(mr)
+//     {}
+//     Mesh(Mesh&& other) noexcept = default;
+//     Mesh& operator=(Mesh&& other) noexcept = default;
+//     std::string name;
+//     std::shared_ptr<MeshRenderer> renderer;
+// };
 public:
     MeshViewer();
 
@@ -51,9 +52,9 @@ public:
         return viewport[3];
     }
 
-    void deleteMesh(size_t i);
+    //void deleteMesh(size_t i);
 
-    void addTetMesh(const std::string& name, TetMeshRenderer& tmr);
+    //void addTetMesh(const std::string& name, TetMeshRenderer& tmr);
 
     //void addHexMesh(HexMeshRenderer& hmr);
 
@@ -65,13 +66,10 @@ private:
 
     Color clearColor;
     PickingTexture pickingTexture;
-    PickingTexture::PixelData picked = {0,0,0};
+    PickingTexture::Pixel picked = {0,0,0};
 
-    std::vector<Mesh> meshes;
-    std::vector<PointsRenderBatch> points;
-    std::vector<LinesRenderBatch> lines;
-    std::vector<std::unique_ptr<TrianglesRenderBatch>> triangles;
-    std::vector<std::unique_ptr<PolygonRenderer<4>>> quads;
+    //std::vector<Mesh> meshes;
+    Renderer renderer;
 
     void init();
 

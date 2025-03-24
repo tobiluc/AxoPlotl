@@ -15,7 +15,7 @@ public:
 
     static void newFrame();
     
-    static void render(MeshViewer& mv, MeshRenderSettings& settings);
+    static void render(MeshViewer& mv, RenderSettings& settings);
 
 private:
 };

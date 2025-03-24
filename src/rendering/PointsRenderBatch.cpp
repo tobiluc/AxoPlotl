@@ -11,10 +11,7 @@ PointsRenderBatch::PointsRenderBatch(size_t max_num_points)
     vbo.generateNew(max_num_points);
     ibo.generateNew(max_num_points);
 
-    for (uint i = 0; i < max_num_points; ++i)
-    {
-        free.insert(i);
-    }
+    removeAll(max_num_points);
 
     vao.unbind();
 }
@@ -32,11 +29,12 @@ void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     vbo.generateNew(max_num_points);
     ibo.generateNew(max_num_points);
 
+    removeAll(max_num_points);
+
     auto prop = mesh.template request_vertex_property<int>("AlgoHex::FeatureVertices");
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it)
     {
         auto vh = *v_it;
-        free.insert(vh.idx());
         const auto& pos = mesh.vertex(vh);
         Color col = COLORS[prop[vh]%COLORS.size()];
         add(Point(pos, col));
@@ -52,7 +50,7 @@ void PointsRenderBatch::render()
     vbo.bind();
     while (!updated.empty())
     {
-        uint i = updated.extract(updated.begin()).value(); // pop
+        GLuint i = updated.extract(updated.begin()).value(); // pop
         vbo.bufferSubData(i, 1);
     }
 
@@ -62,38 +60,14 @@ void PointsRenderBatch::render()
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
 
-    ibo.draw();
+    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
+    else {ibo.drawMultiElements(begin_offsets_bytes);}
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 
     vbo.disableAttributes();
 
     vao.unbind();
-}
-
-int PointsRenderBatch::add(const Point& p)
-{
-    if (free.empty()) return -1;
-
-    // Get the first free index
-    uint idx = free.extract(free.begin()).value();
-
-    // Add the index to the updated list
-    updated.insert(idx);
-
-    // Store the data in the vbo
-    p.buffer(vbo, idx);
-
-    // Return the index
-    return idx;
-}
-
-void PointsRenderBatch::remove(uint idx)
-{
-    // TODO
-
-    updated.insert(idx);
-    free.insert(idx);
 }
 
 }

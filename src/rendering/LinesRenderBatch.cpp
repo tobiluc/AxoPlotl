@@ -11,10 +11,7 @@ LinesRenderBatch::LinesRenderBatch(size_t max_num_lines)
     vbo.generateNew(2 * max_num_lines);
     ibo.generateNew(2 * max_num_lines);
 
-    for (uint i = 0; i < max_num_lines; ++i)
-    {
-        free.insert(i);
-    }
+    removeAll(max_num_lines);
 
     vao.unbind();
 }
@@ -33,6 +30,8 @@ void LinesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     vbo.generateNew(nVertices);
     ibo.generateNew(nIndices);
 
+    removeAll(mesh.n_edges());
+
     std::vector<GLuint> indices_features;
 
     // create the vertex data and indices arrays
@@ -41,7 +40,6 @@ void LinesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     {
         auto eh = *e_it;
         int i = eh.idx();
-        free.insert(eh.idx());
         auto heh = eh.halfedge_handle(0);
         auto vh0 = mesh.from_vertex_handle(heh);
         auto vh1 = mesh.to_vertex_handle(heh);
@@ -58,7 +56,7 @@ void LinesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
             indices_features.push_back(2*i+1);
         }
     }
-    ibo_features.generateNew(indices_features);
+    // ibo_features.generateNew(indices_features);
 }
 
 void LinesRenderBatch::render()
@@ -79,7 +77,8 @@ void LinesRenderBatch::render()
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
 
-    ibo.draw();
+    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
+    else {ibo.drawMultiElements(begin_offsets_bytes);}
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 
@@ -87,30 +86,43 @@ void LinesRenderBatch::render()
     vao.unbind();
 }
 
-int LinesRenderBatch::add(const Line& l)
-{
-    if (free.empty()) return -1;
+// int LinesRenderBatch::add(const Line& l)
+// {
+//     if (free.empty()) return -1;
 
-    // Get the first free index
-    uint idx = free.extract(free.begin()).value();
+//     // Get the first free index
+//     uint idx = free.extract(free.begin()).value();
 
-    // Add the index to the updated list
-    updated.insert(idx);
+//     // Add the index to the updated list
+//     updated.insert(idx);
 
-    // Store the data in the vbo
-    l.buffer(vbo, idx);
+//     // Update the array of active indices
+//     begin_offsets_bytes.push_back((void*)(2 * idx * sizeof(GLuint)));
+//     index_in_begin_offsets[idx] = num_lines()-1;
 
-    // Return the index
-    return idx;
-}
+//     // Store the data in the vbo
+//     l.buffer(vbo, idx);
 
-void LinesRenderBatch::remove(uint idx)
-{
-    assert(!free.contains(idx));
-    // TODO
+//     // Return the index
+//     return idx;
+// }
 
-    updated.insert(idx);
-    free.insert(idx);
-}
+// void LinesRenderBatch::remove(uint idx)
+// {
+//     // Remove index from list of active indices
+//     begin_offsets_bytes.erase(begin_offsets_bytes.begin() + index_in_begin_offsets[idx]);
+
+//     // Shift indices of later points
+//     for (uint idx2 = idx; idx2 < index_in_begin_offsets.size(); ++idx2)
+//     {
+//         index_in_begin_offsets[idx2] -= 1;
+//     }
+
+//     // Declare as updated and mark as free
+//     updated.insert(idx);
+//     free.insert(idx);
+
+//     assert(free.size() + num_lines() == max_num_lines());
+// }
 
 }

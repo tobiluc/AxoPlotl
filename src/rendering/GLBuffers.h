@@ -203,6 +203,11 @@ public:
         //deleteBuffer();
     }
 
+    inline constexpr uint NUM_INDICES_PER_ELEMENT() const
+    {
+        return (GLMode == GL_POINTS)? 1 : (GLMode == GL_LINES)? 2 : 3;
+    }
+
     // Buffers the given indices array
     GLuint generateNew(const std::vector<GLuint>& indices)
     {
@@ -212,6 +217,12 @@ public:
         glGenBuffers(1, &id);
         bind();
         bufferData(indices);
+
+        // Create the Count Array for glDrawMultiElements
+        // Vector of 1s for points, 2s for lines, 3s for triangles
+        uint n = NUM_INDICES_PER_ELEMENT();
+        count.resize(indices.size() / n);
+        std::fill(count.begin(), count.end(), n);
 
         return id;
     }
@@ -234,21 +245,26 @@ public:
         if (id) glDeleteBuffers(1, &id);
     }
 
-    template<uint N>
-    inline void set(uint i, const std::array<uint, N>& subIndices)
-    {
-        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, i*sizeof(GLuint), N*sizeof(GLuint), &subIndices[0]);
-    }
-
     inline void bind()
     {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, id);
     }
 
-    inline void draw()
+    // Draws all elements
+    inline void drawAll()
     {
         bind();
         glDrawElements(GLMode, nIndices, GL_UNSIGNED_INT, NULL);
+    }
+
+    // Only draws the given subset of elements.
+    // indices must contain the offsets in bytes of where to find the elemnts to draw
+    inline void drawMultiElements(const std::vector<void*>& begin_bytes)
+    {
+        bind();
+        size_t n_elements = begin_bytes.size();
+        assert(count.size() >= n_elements);
+        glMultiDrawElements(GLMode, &count[0], GL_UNSIGNED_INT, &begin_bytes[0], n_elements);
     }
 
     inline size_t size() const
@@ -263,7 +279,9 @@ public:
 
 private:
     GLuint id = 0;
-    unsigned int nIndices;
+    unsigned int nIndices; // max number of indices
+
+    std::vector<GLsizei> count; // Count vector for drawMultiElements
 };
 
 // Vertex Array Object

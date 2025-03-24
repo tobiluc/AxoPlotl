@@ -2,9 +2,11 @@
 #define MESHRENDERER_H
 
 #include "../utils/Typedefs.h"
+#include "Renderer.h"
 
 namespace MV
 {
+using RenderSettings = Renderer::RenderSettings;
 
 class MeshViewer;
 
@@ -17,7 +19,7 @@ public:
 
     virtual void deleteBuffers() = 0;
 
-    MeshRenderSettings settings;
+    RenderSettings settings;
 };
 
 template<typename MeshT>
