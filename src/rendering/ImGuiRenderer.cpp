@@ -146,7 +146,21 @@ void ImGuiRenderer::render(MeshViewer& mv, MeshRenderSettings& settings)
         ImGuiFileDialog::Instance()->Close();
     }
 
+    //---------------------
+    // General Settings
+    //---------------------
+    ImGui::Checkbox("Orthographic", &mv.camera.isOrthographic);
     ImGui::ColorEdit3("Background", &mv.clearColor[0]);
+
+    //---------------------
+    // Geometry Objects
+    //---------------------
+    ImGui::Separator();
+
+    char buffer[128] = "";
+    ImGui::InputText("(1)", buffer, sizeof(buffer));
+
+    ImGui::Separator();
 
     // End
     ImGui::End();

@@ -14,12 +14,10 @@ namespace MV
 
 class Camera {
 public:
-    enum Camera_Movement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
+    enum CameraMovement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
 
     // Camera Options
-    float movement_speed;
-    float sensitivity;
-    float fov;
+    bool isOrthographic = false;
 
     Camera(glm::vec3 position, glm::vec3 forward);
 
@@ -32,7 +30,7 @@ public:
 
     void processKeyboard(GLFWwindow* window);
 
-    void processKeyboard(Camera_Movement dir);
+    void processKeyboard(CameraMovement dir);
 
     void processMouseScroll(float dy);
 
@@ -42,16 +40,31 @@ private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void updateCameraVectors();
 
-    // Camera Attributes
-    glm::vec3 position;
-    glm::vec3 forward;
-    glm::vec3 up;
-    glm::vec3 right;
-    glm::vec3 world_up;
+    static constexpr glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    static constexpr float sensitivity = 0.001f; // mouse movement and scroll
+    static constexpr float movement_speed = 40.0f;
 
-    // Euler Angles
-    float yaw;
-    float pitch;
+    struct PerspectiveProjection
+    {
+        // Camera Attributes
+        glm::vec3 position;
+        glm::vec3 forward;
+        glm::vec3 up;
+        glm::vec3 right;
+
+        // Euler Angles in radians
+        float yaw;
+        float pitch;
+
+        float fov; // field of view in radians
+
+    } perspective;
+
+    struct OrthographicProjection
+    {
+        glm::vec3 position;
+        float height;
+    } orthographic;
 };
 }
 

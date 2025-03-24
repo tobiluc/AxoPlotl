@@ -2,12 +2,13 @@
 #define TETMESHRENDERER_H
 
 #include <glad/glad.h>
+#include "LinesRenderBatch.h"
 #include "MeshRenderer.h"
-#include "RenderBatchEdges.h"
+#include "PointsRenderBatch.h"
 #include "RenderBatchTetCells.h"
 #include "RenderBatchTetFaces.h"
-#include "RenderBatchVertices.h"
 #include "../commons/Camera.h"
+#include "TrianglesRenderBatch.h"
 
 namespace MV
 {
@@ -57,9 +58,12 @@ private:
     Camera& camera;
 
     RenderBatchTetCells tetCellsBatch;
-    RenderBatchTetFaces facesBatch;
-    RenderBatchEdges<TetrahedralMesh> edgesBatch;
-    RenderBatchVertices<TetrahedralMesh> verticesBatch;
+    //RenderBatchTetFaces facesBatch;
+    //RenderBatchEdges<TetrahedralMesh> edgesBatch;
+    TrianglesRenderBatch facesBatch;
+    LinesRenderBatch edgesBatch;
+    PointsRenderBatch verticesBatch;
+    //RenderBatchVertices<TetrahedralMesh> verticesBatch;
 };
 
 }

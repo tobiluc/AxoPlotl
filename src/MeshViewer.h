@@ -4,8 +4,9 @@
 #include "commons/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
-#include "rendering/HexMeshRenderer.h"
 #include "rendering/MeshRenderer.h"
+#include "rendering/PolygonRenderer.h"
+#include "rendering/TrianglesRenderBatch.h"
 #include "rendering/TetMeshRenderer.h"
 #include "utils/Typedefs.h"
 
@@ -65,7 +66,12 @@ private:
     Color clearColor;
     PickingTexture pickingTexture;
     PickingTexture::PixelData picked = {0,0,0};
+
     std::vector<Mesh> meshes;
+    std::vector<PointsRenderBatch> points;
+    std::vector<LinesRenderBatch> lines;
+    std::vector<std::unique_ptr<TrianglesRenderBatch>> triangles;
+    std::vector<std::unique_ptr<PolygonRenderer<4>>> quads;
 
     void init();
 

@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <cassert>
 #include <cstddef>
+#include <sys/types.h>
 #include <vector>
 #include <GLFW/glfw3.h>
 
@@ -219,7 +220,7 @@ public:
     void generateNew(size_t nIndices)
     {
         std::vector<GLuint> indices(nIndices);
-        for (int i = 0; i < nIndices; ++i) {indices[i] = i;}
+        for (unsigned int i = 0; i < nIndices; ++i) {indices[i] = i;}
         generateNew(indices);
     }
 
@@ -231,6 +232,12 @@ public:
     inline void deleteBuffer()
     {
         if (id) glDeleteBuffers(1, &id);
+    }
+
+    template<uint N>
+    inline void set(uint i, const std::array<uint, N>& subIndices)
+    {
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, i*sizeof(GLuint), N*sizeof(GLuint), &subIndices[0]);
     }
 
     inline void bind()

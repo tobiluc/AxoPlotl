@@ -95,12 +95,12 @@ void TetMeshRenderer::renderPicking(const glm::mat4x4 &mvp, const uint object_id
 {
     if (!settings.visible) return;
 
-    Shader::PICKING_SHADER.use();
+    // Shader::PICKING_SHADER.use();
 
-    Shader::PICKING_SHADER.setMat4x4f("model_view_projection_matrix", mvp);
-    Shader::PICKING_SHADER.setUInt("mesh_index", object_id);
+    // Shader::PICKING_SHADER.setMat4x4f("model_view_projection_matrix", mvp);
+    // Shader::PICKING_SHADER.setUInt("mesh_index", object_id);
 
-    facesBatch.renderPicking();
+    facesBatch.renderPicking(mvp, object_id);
 
     glUseProgram(0);
 }

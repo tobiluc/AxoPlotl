@@ -10,10 +10,57 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
 endif()
 
+#file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+#file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
+add_executable(MeshViewer
+    src/main.cpp
 
-file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
-add_executable(MeshViewer ${SRC_FILES} ${HEADER_FILES})
+    src/MeshViewer.h
+    src/MeshViewer.cpp
+
+    src/commons/Camera.h
+    src/commons/Camera.cpp
+    src/commons/PickingTexture.h
+    src/commons/PickingTexture.cpp
+    src/commons/Shader.h
+    src/commons/shader.cpp
+    src/commons/Texture.h
+    src/commons/Texture.cpp
+
+    src/geometry/GeometryObject.h
+
+    src/rendering/GLBuffers.h
+    src/rendering/ImGuiRenderer.h
+    src/rendering/ImGuiRenderer.cpp
+    src/rendering/TetMeshRenderer.h
+    src/rendering/TetMeshRenderer.cpp
+    src/rendering/RenderBatchTetCells.h
+    src/rendering/RenderBatchTetCells.cpp
+    src/rendering/TrianglesRenderBatch.h
+    src/rendering/TrianglesRenderBatch.cpp
+    src/rendering/LinesRenderBatch.h
+    src/rendering/LinesRenderBatch.cpp
+    src/rendering/PointsRenderBatch.h
+    src/rendering/PointsRenderBatch.cpp
+
+    src/utils/FileAccessor.h
+    src/utils/FileAccessor.cpp
+    src/utils/Globals.h
+    src/utils/Globals.cpp
+    src/utils/KeyHandler.h
+    src/utils/MouseHandler.h
+    src/utils/MouseHandler.cpp
+    src/utils/simplex_noise.h
+    src/utils/simplex_noise.cpp
+    src/utils/stb_image.h
+    src/utils/Typedefs.h
+    src/utils/Utils.h
+    src/utils/Utils.cpp
+    src/rendering/PolygonRenderer.h
+    src/rendering/PolygonRenderer.cpp
+    src/rendering/Renderer.h
+    src/rendering/Renderer.cpp
+)
 
 #=========================
 # GLFW
