@@ -1,7 +1,7 @@
 #ifndef GEOMETRYOBJECT_H
 #define GEOMETRYOBJECT_H
 
-#include <cstdint>
+#include "../rendering/Renderer.h"
 
 namespace MV
 {
@@ -11,7 +11,8 @@ class GeometryObject
 public:
     GeometryObject();
 
-    uint32_t renderToBatch();
+    std::string name;
+    Renderer::GeometryLocation location;
 };
 
 }

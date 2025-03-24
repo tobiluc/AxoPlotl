@@ -77,8 +77,9 @@ void LinesRenderBatch::render()
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
 
-    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
-    else {ibo.drawMultiElements(begin_offsets_bytes);}
+    ibo.drawAll();
+    // if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
+    // else {ibo.drawMultiElements(begin_offsets_bytes);}
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 

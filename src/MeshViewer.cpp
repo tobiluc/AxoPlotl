@@ -11,14 +11,6 @@
 namespace MV
 {
 
-void checkOpenGLError()
-{
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error: " << error << std::endl;
-    }
-}
-
 MeshViewer::MeshViewer() :
     window(nullptr),
     camera(Vec3f(0,0,30), Vec3f(0,0,-1)),
@@ -35,23 +27,6 @@ MeshViewer::~MeshViewer()
     glfwTerminate();
 }
 
-// void MeshViewer::addTetMesh(const std::string& name, TetMeshRenderer& tmr)
-// {
-//     meshes.emplace_back(name, std::make_shared<TetMeshRenderer>(tmr));
-// }
-
-// void MeshViewer::addHexMesh(HexMeshRenderer& hmr)
-// {
-//     meshes.emplace_back("Hex Mesh", std::make_shared<HexMeshRenderer>(hmr));
-// }
-
-// void MeshViewer::deleteMesh(size_t i)
-// {
-//     auto& mesh = meshes[i];
-//     mesh.renderer->deleteBuffers();
-//     meshes.erase(meshes.begin() + i);
-// }
-
 void MeshViewer::run()
 {
     init();
@@ -63,14 +38,14 @@ void MeshViewer::run()
         readMesh(filename, tetMesh, MV::FileFormat::OVMB);
         MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
-        //addTetMesh(filename, tetRenderer);
-
-        renderer.addTetMesh(tetMesh);
+        auto where = renderer.addTetMesh(tetMesh);
     }
 
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
+
+    // Triangle
     Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
     Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
     Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
@@ -78,7 +53,27 @@ void MeshViewer::run()
     renderer.addPoint(p1);
     renderer.addPoint(p2);
     renderer.addTriangle(Triangle(p0, p1, p2));
+
+    // Frame
     renderer.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
+
+    // Sinus
+    renderer.addExplicitCurve(Sin());
+
+    // Circle
+    std::vector<glm::vec3> circle;
+    uint n = 100;
+    float r = 20;
+    for (uint i = 0; i < n; ++i)
+    {
+        circle.push_back(glm::vec3(
+            r * std::cos(2.0 * M_PI * i / n),
+            0,
+            r * std::sin(2.0 * M_PI * i / n)
+        ));
+    }
+    renderer.addConvexPolygon(true, circle, Color(1,1,0));
+    renderer.addConvexPolygon(false, circle, Color(0,1,1));
 
     //-----------------------
     // Set Global Shaders
@@ -159,13 +154,6 @@ void MeshViewer::render()
     // Cache matrices for rendering
     Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera.getViewMatrix(), camera.getProjectionMatrix());
 
-    // const glm::mat4x4 model_matrix(1.0f);
-    // const auto& view_matrix = ;
-    // const auto& projection_matrix = camera.getProjectionMatrix();
-    // const glm::mat4x4 model_view_matrix = view_matrix * model_matrix;
-    // const glm::mat4x4 model_view_projection_matrix = projection_matrix * model_view_matrix;
-    // const glm::mat3x3 normal_matrix = glm::transpose(glm::inverse(model_view_matrix));
-
     // Picking
     if (MV::MouseHandler::LEFT_JUST_PRESSED)
     {
@@ -199,11 +187,7 @@ void MeshViewer::render()
         const auto& projection_matrix = camera.getProjectionMatrix(framebuffer_ratio);
         const glm::mat4x4 model_view_projection_matrix = projection_matrix * matrices.model_view_matrix;
 
-        // Render Meshes to Picking Texture
-        // for (int i = 0; i < meshes.size(); ++i)
-        // {
-        //     meshes[i].renderer->renderPicking(model_view_projection_matrix, i);
-        // }
+        // Render to Picking Texture
         renderer.renderPicking(model_view_projection_matrix);
 
         // Read Pixel from Picking Texture
@@ -235,18 +219,6 @@ void MeshViewer::render()
     // ImGui - declare new frame
     MV::ImGuiRenderer::newFrame();
 
-    // Cache Viewport Size
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    float width = viewport[2];
-    float height = viewport[3];
-
-    // Render Meshes
-    // for (auto& mesh : meshes)
-    // {
-    //     mesh.renderer->render(*this);
-    // }
-
     // Render
     renderer.render(matrices);
 
@@ -262,11 +234,6 @@ void MeshViewer::render()
     MV::Time::update();
     camera.update(window);
     glfwPollEvents();
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
 }
 
 }

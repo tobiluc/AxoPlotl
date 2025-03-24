@@ -62,6 +62,7 @@ add_executable(MeshViewer
     src/rendering/Renderer.cpp
     src/rendering/RenderBatch.h
     src/rendering/RenderBatch.cpp
+    src/math/curves.h
 
 )
 

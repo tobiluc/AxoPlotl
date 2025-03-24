@@ -19,18 +19,6 @@ class MeshViewer
 friend class ImGuiRenderer;
 friend class TetMeshRenderer;
 
-private:
-// class Mesh
-// {
-// public:
-//     Mesh() {}
-//     Mesh(const std::string& name, const std::shared_ptr<MeshRenderer>& mr) : name(name), renderer(mr)
-//     {}
-//     Mesh(Mesh&& other) noexcept = default;
-//     Mesh& operator=(Mesh&& other) noexcept = default;
-//     std::string name;
-//     std::shared_ptr<MeshRenderer> renderer;
-// };
 public:
     MeshViewer();
 
@@ -52,12 +40,6 @@ public:
         return viewport[3];
     }
 
-    //void deleteMesh(size_t i);
-
-    //void addTetMesh(const std::string& name, TetMeshRenderer& tmr);
-
-    //void addHexMesh(HexMeshRenderer& hmr);
-
 public:
     GLFWwindow* window;
     Camera camera;
@@ -68,7 +50,6 @@ private:
     PickingTexture pickingTexture;
     PickingTexture::Pixel picked = {0,0,0};
 
-    //std::vector<Mesh> meshes;
     Renderer renderer;
 
     void init();
@@ -76,9 +57,18 @@ private:
     void render();
 };
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+inline void checkOpenGLError()
+{
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR) {
+        std::cerr << "OpenGL Error: " << error << std::endl;
+    }
+}
 
-void checkOpenGLError();
+inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
 
 }
 

@@ -60,8 +60,7 @@ void PointsRenderBatch::render()
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
 
-    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
-    else {ibo.drawMultiElements(begin_offsets_bytes);}
+    ibo.drawAll();
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 

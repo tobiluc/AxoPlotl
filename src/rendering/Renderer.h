@@ -8,6 +8,7 @@
 #include <array>
 #include <sys/types.h>
 #include <unordered_set>
+#include "../math/curves.h"
 
 namespace MV
 {
@@ -17,23 +18,19 @@ class Renderer
 public:
 
     // Describes a set of primitives within a batch
-    struct PrimitivesLocations
+    struct BatchLocation
     {
         const GLenum type; // GL_POINTS, GL_LINES or GL_TRIANGLES
         const uint batch_index;
-        const std::vector<uint> primitive_indices;
+        const std::vector<uint> element_indices;
     };
 
+    /*
+     * Locations of Grouped Geometry.
+     */
     struct GeometryLocation
     {
-        std::vector<PrimitivesLocations> locations;
-    };
-
-    struct MeshLocation
-    {
-        const uint points_batch_index;
-        const uint lines_batch_index;
-        const uint triangles_batch_index;
+        std::vector<BatchLocation> locations;
     };
 
     struct RenderSettings
@@ -92,8 +89,8 @@ private:
     std::vector<std::unique_ptr<LinesRenderBatch>> lines;
     std::vector<std::unique_ptr<TrianglesRenderBatch>> triangles;
 
-    // Max Number of Primitives per Render Batch
-    constexpr static uint BATCH_SIZE = 8192;
+    // Max Number of Elements per Render Batch if not exceeded by the mesh size or requested number of free elements.
+    constexpr static uint BATCH_SIZE = 512;
 
     inline uint addPoint(uint batch_index, const Point& p)
     {
@@ -129,18 +126,22 @@ public:
 
     void renderPicking(const glm::mat4x4& mvp);
 
-    PrimitivesLocations addPoint(const Point& p);
+    void remove(const GeometryLocation& where);
 
-    PrimitivesLocations addLine(const Line& l);
+    GeometryLocation addPoint(const Point& p);
 
-    PrimitivesLocations addTriangle(const Triangle& t);
+    GeometryLocation addLine(const Line& l);
+
+    GeometryLocation addTriangle(const Triangle& t);
 
     // Shows three vectors originating at a common point p as a red, green and blue line
-    PrimitivesLocations addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
+    GeometryLocation addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 
-    MeshLocation addTetMesh(TetrahedralMesh& mesh);
+    GeometryLocation addTetMesh(TetrahedralMesh& mesh);
 
-    PrimitivesLocations addAABB(const glm::vec3& min, glm::vec3& max);
+    GeometryLocation addExplicitCurve(const ExplicitCurve<float, float>& f);
+
+    GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
 };
 
 }

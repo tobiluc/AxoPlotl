@@ -2,12 +2,12 @@
 #version 330 core
 
 layout (location = 0) in vec3 v_position; // in model space
-layout (location = 1) in vec3 v_color;
+layout (location = 1) in vec4 v_color;
  
 uniform mat4 model_view_projection_matrix;
 uniform float time;
 
-out vec3 v2g_color;
+out vec4 v2g_color;
 
 void main() {
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
@@ -25,9 +25,9 @@ layout(triangle_strip, max_vertices = 4) out;
 uniform float line_width;
 uniform vec2 inverse_viewport_size;
 
-in vec3 v2g_color[];
+in vec4 v2g_color[];
 
-out vec3 g2f_color;
+out vec4 g2f_color;
 
 void main() {
     float r = line_width * 0.5;
@@ -62,8 +62,8 @@ void main() {
 #version 330 core
 out vec4 f_color;
 
-in vec3 g2f_color;
+in vec4 g2f_color;
 
 void main() {
-	f_color = vec4(g2f_color, 1.0);
+	f_color = g2f_color;
 }

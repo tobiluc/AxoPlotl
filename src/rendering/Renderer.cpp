@@ -83,12 +83,33 @@ void Renderer::renderPicking(const glm::mat4x4& mvp)
     glUseProgram(0);
 }
 
+void Renderer::remove(const GeometryLocation& where)
+{
+    for (const auto& loc : where.locations)
+    {
+        switch (loc.type)
+        {
+        case GL_POINTS:
+            points[loc.batch_index]->remove(loc.element_indices);
+            break;
+        case GL_LINES:
+            lines[loc.batch_index]->remove(loc.element_indices);
+            break;
+        case GL_TRIANGLES:
+            triangles[loc.batch_index]->remove(loc.element_indices);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 uint Renderer::findPointsBatchIndexWithRoom(uint n)
 {
     for (uint i = 0; i < points.size(); ++i)
         if (points[i]->num_free_elements() >= n)
             return i;
-    points.emplace_back(std::make_unique<PointsRenderBatch>(BATCH_SIZE));
+    points.emplace_back(std::make_unique<PointsRenderBatch>(std::max(n, BATCH_SIZE)));
     return points.size()-1;
 }
 
@@ -97,7 +118,7 @@ uint Renderer::findLinesBatchIndexWithRoom(uint n)
     for (uint i = 0; i < lines.size(); ++i)
         if (lines[i]->num_free_elements() >= n)
             return i;
-    lines.emplace_back(std::make_unique<LinesRenderBatch>(BATCH_SIZE));
+    lines.emplace_back(std::make_unique<LinesRenderBatch>(std::max(n, BATCH_SIZE)));
     return lines.size()-1;
 }
 
@@ -106,7 +127,7 @@ uint Renderer::findTrianglesBatchIndexWithRoom(uint n)
     for (uint i = 0; i < triangles.size(); ++i)
         if (triangles[i]->num_free_elements() >= n)
             return i;
-    triangles.emplace_back(std::make_unique<TrianglesRenderBatch>(BATCH_SIZE));
+    triangles.emplace_back(std::make_unique<TrianglesRenderBatch>(std::max(n, BATCH_SIZE)));
     return triangles.size()-1;
 }
 
@@ -137,7 +158,7 @@ uint Renderer::findEmptyTrianglesBatch()
     return triangles.size()-1;
 }
 
-Renderer::PrimitivesLocations Renderer::addPoint(const Point& p)
+Renderer::GeometryLocation Renderer::addPoint(const Point& p)
 {
     // Find a Batch with Room or create a new one
     uint batch_index = findPointsBatchIndexWithRoom(1);
@@ -146,14 +167,14 @@ Renderer::PrimitivesLocations Renderer::addPoint(const Point& p)
     uint primitive_index = addPoint(batch_index, p);
 
     // Return the Location of the point
-    return PrimitivesLocations{
+    return GeometryLocation{{BatchLocation{
         .type = GL_POINTS,
         .batch_index = batch_index,
-        .primitive_indices = {primitive_index}
-    };
+        .element_indices = {primitive_index}
+    }}};
 }
 
-Renderer::PrimitivesLocations Renderer::addLine(const Line& l)
+Renderer::GeometryLocation Renderer::addLine(const Line& l)
 {
     // Find a Batch with Room or create a new one
     uint batch_index = findLinesBatchIndexWithRoom(1);
@@ -162,14 +183,14 @@ Renderer::PrimitivesLocations Renderer::addLine(const Line& l)
     uint primitive_index = addLine(batch_index, l);
 
     // Return the Location of the line
-    return PrimitivesLocations{
+    return GeometryLocation{{BatchLocation{
         .type = GL_LINES,
         .batch_index = batch_index,
-        .primitive_indices = {primitive_index}
-    };
+        .element_indices = {primitive_index}
+    }}};
 }
 
-Renderer::PrimitivesLocations Renderer::addTriangle(const Triangle& t)
+Renderer::GeometryLocation Renderer::addTriangle(const Triangle& t)
 {
     // Find a Batch with Room or create a new one
     uint batch_index = findTrianglesBatchIndexWithRoom(1);
@@ -178,14 +199,14 @@ Renderer::PrimitivesLocations Renderer::addTriangle(const Triangle& t)
     uint primitive_index = addTriangle(batch_index, t);
 
     // Return the Location of the Triangle
-    return PrimitivesLocations{
+    return GeometryLocation{{BatchLocation{
         .type = GL_TRIANGLES,
         .batch_index = batch_index,
-        .primitive_indices = {primitive_index}
-    };
+        .element_indices = {primitive_index}
+    }}};
 }
 
-Renderer::PrimitivesLocations Renderer::addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
+Renderer::GeometryLocation Renderer::addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
     // Find a Batch with Room or create a new one
     uint batch_index = findLinesBatchIndexWithRoom(3);
@@ -201,48 +222,103 @@ Renderer::PrimitivesLocations Renderer::addFrame(const glm::vec3& p, const glm::
         addLine(batch_index, Line(Point(p, col2), Point(p + v2, col2)))
     };
 
-    return PrimitivesLocations{
+    return GeometryLocation{{BatchLocation{
         .type = GL_TRIANGLES,
         .batch_index = batch_index,
-        .primitive_indices = primitive_indices
-    };
+        .element_indices = primitive_indices
+    }}};
 }
 
-Renderer::MeshLocation Renderer::addTetMesh(TetrahedralMesh& mesh)
+Renderer::GeometryLocation Renderer::addTetMesh(TetrahedralMesh& mesh)
 {
     // Create a new set of batches for the mesh
-    MeshLocation where{
-        .points_batch_index = findEmptyPointsBatch(),
-        .lines_batch_index = findEmptyLinesBatch(),
-        .triangles_batch_index = findEmptyTrianglesBatch()
-    };
+    uint points_batch_index = findEmptyPointsBatch();
+    uint lines_batch_index = findEmptyLinesBatch();
+    uint triangles_batch_index = findEmptyTrianglesBatch();
 
-    points[where.points_batch_index]->initFromMesh(mesh);
-    lines[where.lines_batch_index]->initFromMesh(mesh);
-    triangles[where.triangles_batch_index]->initFromMesh(mesh);
+    points[points_batch_index]->initFromMesh(mesh);
+    lines[lines_batch_index]->initFromMesh(mesh);
+    triangles[triangles_batch_index]->initFromMesh(mesh);
 
-    return where;
+    return GeometryLocation{{
+        BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()},
+        BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()},
+        BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()},
+    }};
 }
 
-Renderer::PrimitivesLocations Renderer::addAABB(const glm::vec3& min, glm::vec3& max)
+Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)
 {
-    // // Find a Batch with Room or create a new one
-    // uint batch_index = findLinesBatchIndexWithRoom(12);
+    const uint n = points.size();
+    if (n < 3) return {};
 
-    // std::array<float, 3> col = {0.5f, 1.f, 0.5f};
+    if (fill)
+    {
+        uint batch_index = findTrianglesBatchIndexWithRoom(n - 2);
 
-    // // Add Lines to the batch
-    // std::vector<uint> primitive_indices = {
-    //     addLine(batch_index, Line(Point(min, col), Point(min + , col0))),
-    //     addLine(batch_index, Line(Point(p, col1), Point(p + v1, col1))),
-    //     addLine(batch_index, Line(Point(p, col2), Point(p + v2, col2)))
-    // };
+        // Add Triangles to the batch
+        std::vector<uint> element_indices;
+        for (uint i = 1; i < n-1; ++i)
+        {
+            Point p0(points[0], color);
+            Point p1(points[i], color);
+            Point p2(points[i+1], color);
+            element_indices.push_back(triangles[batch_index]->add(Triangle(p0, p1, p2)));
+        }
 
-    // return Location{
-    //     .type = GL_TRIANGLES,
-    //     .batch_index = batch_index,
-    //     .primitive_indices = primitive_indices
-    // };
+        return GeometryLocation{{
+            BatchLocation{.type = GL_TRIANGLES, .batch_index = batch_index, .element_indices = element_indices},
+        }};
+    }
+    else
+    {
+        uint batch_index = findLinesBatchIndexWithRoom(n);
+
+        // Add Lines to the batch
+        std::vector<uint> element_indices;
+        for (uint i = 0; i < n; ++i)
+        {
+            Point p0(points[i], color);
+            Point p1(points[(i+1)%n], color);
+            element_indices.push_back(lines[batch_index]->add(Line(p0, p1)));
+        }
+
+        return GeometryLocation{{
+         BatchLocation{.type = GL_LINES, .batch_index = batch_index, .element_indices = element_indices},
+        }};
+    }
+}
+
+Renderer::GeometryLocation Renderer::addExplicitCurve(const ExplicitCurve<float, float>& f)
+{
+    const uint n = 1000;
+    const float x_min = 0;
+    const float x_max = 100;
+
+    uint batch_index = findLinesBatchIndexWithRoom(n-1);
+    std::vector<uint> primitive_indices;
+
+    for (uint i = 0; i < n-1; ++i)
+    {
+        float x0 = x_min + (i+0) * (x_max - x_min) / (n-1);
+        float x1 = x_min + (i+1) * (x_max - x_min) / (n-1);
+        float y0 = f.compute(x0);
+        float y1 = f.compute(x1);
+
+        Point from(glm::vec3(x0,y0,0), glm::vec3(1,0,0));
+        Point to(glm::vec3(x1,y1,0), glm::vec3(0,0,1));
+        primitive_indices.push_back(lines[batch_index]->add(Line(from, to)));
+    }
+
+    return GeometryLocation{
+        .locations = {
+            BatchLocation{
+                .type = GL_LINES,
+                .batch_index = batch_index,
+                .element_indices = primitive_indices
+            }
+        }
+    };
 }
 
 }

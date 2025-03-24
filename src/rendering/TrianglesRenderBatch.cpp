@@ -85,8 +85,7 @@ void TrianglesRenderBatch::render()
     vao.bind();
     vbo.enableAttributes();
 
-    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
-    else {ibo.drawMultiElements(begin_offsets_bytes);}
+    ibo.drawAll();
 
     vbo.disableAttributes();
     vao.unbind();
@@ -103,8 +102,7 @@ void TrianglesRenderBatch::renderPicking(const glm::mat4x4& mvp, const uint batc
     vao_picking.bind();
     vbo.enableAttributes({0,3}); // position and index
 
-    if (num_visible_elements() == max_num_elements()) {ibo.drawAll();}
-    else {ibo.drawMultiElements(begin_offsets_bytes);}
+    ibo.drawAll();
 
     vbo.disableAttributes();
     vao_picking.unbind();

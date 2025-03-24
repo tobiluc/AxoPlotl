@@ -162,6 +162,14 @@ public:
         }
     }
 
+    inline void setZero(uint index)
+    {
+        for (int k = 0; k < val.totalSize(); ++k)
+        {
+            data[index*val.totalSize()+k] = {0};
+        }
+    }
+
     inline T& operator[] (size_t index)
     {
         return data[index];
@@ -188,6 +196,15 @@ private:
     VAL<GLT, T, S...> val;
     std::vector<T> data;
     //std::vector<int> attrSlots;
+};
+
+struct DrawElementsIndirectCommand
+{
+    GLuint count;       // Number of indices to draw (2 for lines)
+    GLuint instanceCount; // Number of instances (1 per line)
+    GLuint firstIndex;  // Offset into the index buffer
+    GLint baseVertex;   // Base vertex (0 if unused)
+    GLuint baseInstance; // Base instance (not needed here)
 };
 
 // Index Buffer Object
@@ -223,6 +240,8 @@ public:
         uint n = NUM_INDICES_PER_ELEMENT();
         count.resize(indices.size() / n);
         std::fill(count.begin(), count.end(), n);
+
+
 
         return id;
     }
