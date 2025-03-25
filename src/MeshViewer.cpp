@@ -81,6 +81,12 @@ void MeshViewer::run()
     // Tet
     renderer.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
 
+    // Parametric Curve
+    renderer.addParametricCurve([](float t) {return 100.f*Vec3f(2*cos(t)*cos(t),2*cos(t)*sin(t),sin(t));}, 0, 2*M_PI, Color(1,0,0));
+
+    // Parametric Surface
+    renderer.addParametricSurface([](float s, float t) {return Vec3f(s,30+s*s+t*t,t);}, Vec2f(-3,-3), Vec2f(3,3), Color(0,1,0));
+
     //-----------------------
     // Set Global Shaders
     //-----------------------

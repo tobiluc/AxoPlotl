@@ -283,22 +283,59 @@ Renderer::GeometryLocation Renderer::addExplicitCurve(const ExplicitCurve<float,
 
 Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, const Color& color, const uint precision)
 {
+    return addParametricSurface([&](float phi, float theta)
+    {
+        return c + Vec3f(
+            r * sin(phi) * cos(theta),
+            r * cos(phi),
+            r * sin(phi) * sin(theta)
+        );
+    }, Vec2f(0,0), Vec2f(M_PI, 2.0*M_PI), color);
+}
+
+Renderer::GeometryLocation Renderer::addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color)
+{
+    return addTriangles({
+        Triangle(p0, p2, p1, color),
+        Triangle(p3, p0, p1, color),
+        Triangle(p3, p1, p2, color) ,
+        Triangle(p0, p3, p2, color)
+    });
+}
+
+Renderer::GeometryLocation Renderer::addParametricCurve(const std::function<Vec3f(float)>& f, const float min_t, const float max_t, const Color& color, const uint precision)
+{
+    std::vector<Line> ls;
+    float t = min_t;
+    Vec3f f0 = f(t);
+    Vec3f f1;
+    for (uint i = 0; i < precision; ++i)
+    {
+        t = min_t + (i+1) * (max_t - min_t) / precision;
+        f1 = f(t);
+
+        Point from(f0, color);
+        Point to(f1, color);
+        ls.emplace_back(from, to);
+
+        f0 = f1;
+    }
+    return addLines(ls);
+}
+
+Renderer::GeometryLocation Renderer::addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st, const Color& color, const uint precision)
+{
     // Generate Vertex Positions
     std::vector<Point> points;
+    float s, t;
     for (int i = 0; i <= precision; ++i)
     {
-        float phi = M_PI * i / precision;
+        s = min_st[0] + i * (max_st[0] - min_st[0]) / precision;
         for (int j = 0; j <= precision; ++j)
         {
-            float theta = 2.0f * M_PI * j / precision;
+            t = min_st[1] + j * (max_st[1] - min_st[1]) / precision;
 
-            Vec3f pos = {
-                r * sin(phi) * cos(theta),
-                r * cos(phi),
-                r * sin(phi) * sin(theta)
-            };
-
-            points.push_back(Point(c + pos, color));
+            points.push_back(Point(f(s, t), color));
         }
     }
 
@@ -315,26 +352,16 @@ Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, co
                 points[row1 + j + 0],
                 points[row2 + j + 0],
                 points[row2 + j + 1]
-            );
+                );
 
             ts.emplace_back(
                 points[row1 + j + 0],
                 points[row2 + j + 1],
                 points[row1 + j + 1]
-            );
+                );
         }
     }
     return addTriangles(ts);
-}
-
-Renderer::GeometryLocation Renderer::addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color)
-{
-    return addTriangles({
-        Triangle(p0, p2, p1, color),
-        Triangle(p3, p0, p1, color),
-        Triangle(p3, p1, p2, color) ,
-        Triangle(p0, p3, p2, color)
-    });
 }
 
 }

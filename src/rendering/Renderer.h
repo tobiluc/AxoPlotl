@@ -176,6 +176,10 @@ public:
     GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
 
     GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
+
+    GeometryLocation addParametricCurve(const std::function<Vec3f(float)>& f, const float min_t, const float max_t, const Color& color, const uint precision = 32);
+
+    GeometryLocation addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st, const Color& color, const uint precision = 32);
 };
 
 }
