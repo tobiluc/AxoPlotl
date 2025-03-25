@@ -32,10 +32,10 @@ add_executable(MeshViewer
     src/rendering/GLBuffers.h
     src/rendering/ImGuiRenderer.h
     src/rendering/ImGuiRenderer.cpp
-    src/rendering/TetMeshRenderer.h
-    src/rendering/TetMeshRenderer.cpp
-    src/rendering/RenderBatchTetCells.h
-    src/rendering/RenderBatchTetCells.cpp
+
+
+
+
     src/rendering/TrianglesRenderBatch.h
     src/rendering/TrianglesRenderBatch.cpp
     src/rendering/LinesRenderBatch.h
@@ -45,8 +45,8 @@ add_executable(MeshViewer
 
     src/utils/FileAccessor.h
     src/utils/FileAccessor.cpp
-    src/utils/Globals.h
-    src/utils/Globals.cpp
+    src/utils/Time.h
+    src/utils/Time.cpp
     src/utils/KeyHandler.h
     src/utils/MouseHandler.h
     src/utils/MouseHandler.cpp
@@ -56,13 +56,15 @@ add_executable(MeshViewer
     src/utils/Typedefs.h
     src/utils/Utils.h
     src/utils/Utils.cpp
-    src/rendering/PolygonRenderer.h
-    src/rendering/PolygonRenderer.cpp
+
+
     src/rendering/Renderer.h
     src/rendering/Renderer.cpp
     src/rendering/RenderBatch.h
     src/rendering/RenderBatch.cpp
-    src/math/curves.h
+
+    src/utils/Color.h
+    src/utils/Color.cpp
 
 )
 

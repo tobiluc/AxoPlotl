@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Color.h"
 #define _USE_MATH_DEFINES
 #include <math.h>
 
@@ -63,7 +64,8 @@ using TetrahedralMesh = OVM::TetrahedralGeometryKernel<OVM::Vec3d, OpenVolumeMes
 using PolyhedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::TopologyKernel>;
 using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::HexahedralMeshTopologyKernel>;
 
-using Color = Vec3f;
 struct Light {Color ambient, diffuse, specular;};
+
+
 
 }

@@ -3,12 +3,13 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuiFileDialog.h>
-#include "../utils/Globals.h"
+#include "../utils/Time.h"
 #include "../utils/FileAccessor.h"
 #include "../commons/Camera.h"
 
 namespace MV
 {
+bool ImGuiRenderer::IMGUI_FOCUS = false;
 
 void ImGuiRenderer::init(GLFWwindow* window)
 {

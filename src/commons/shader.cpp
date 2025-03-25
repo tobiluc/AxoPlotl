@@ -13,6 +13,16 @@ Shader Shader::EDGES_SHADER;
 Shader Shader::VERTICES_SHADER;
 Shader Shader::PICKING_SHADER;
 
+void Shader::loadGlobalShaders()
+{
+    FACES_OUTLINES_SHADER = Shader("../res/shaders/outlines.glsl");
+    TET_CELLS_SHADER =      Shader("../res/shaders/cells.glsl");
+    FACES_SHADER =          Shader("../res/shaders/faces.glsl");
+    EDGES_SHADER =          Shader("../res/shaders/edges.glsl");
+    VERTICES_SHADER =       Shader("../res/shaders/vertices.glsl");
+    PICKING_SHADER =        Shader("../res/shaders/picking.glsl");
+}
+
 Shader::Shader(const char* filepath)
 {
     std::string vs = "", gs = "", fs = "";

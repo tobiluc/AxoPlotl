@@ -1,5 +1,6 @@
+#include "../rendering/ImGuiRenderer.h"
 #include "Camera.h"
-#include "../utils/Globals.h"
+#include "../utils/Time.h"
 #include "../utils/MouseHandler.h"
 
 namespace MV
@@ -27,7 +28,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 forward)
 
 void Camera::update(GLFWwindow* window)
 {
-    if (IMGUI_FOCUS) return;
+    if (ImGuiRenderer::IMGUI_FOCUS) return;
 
     processKeyboard(window);
     processMouseScroll(MouseHandler::SCROLL_DELTA[1]);

@@ -5,11 +5,7 @@
 #include "glad/glad.h"
 #include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"
-#include "rendering/PolygonRenderer.h"
 #include "rendering/Renderer.h"
-#include "rendering/TrianglesRenderBatch.h"
-#include "rendering/TetMeshRenderer.h"
-#include "utils/Typedefs.h"
 
 namespace MV
 {

@@ -11,6 +11,8 @@ namespace MV
 class ImGuiRenderer
 {
 public:
+    static bool IMGUI_FOCUS;
+
     static void init(GLFWwindow* window);
 
     static void newFrame();

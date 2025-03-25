@@ -21,6 +21,9 @@ public:
     static Shader VERTICES_SHADER;
     static Shader PICKING_SHADER;
 
+    // Call this one OpenGL is initialized
+    static void loadGlobalShaders();
+
     unsigned int ID;
 
     Shader() : ID(0) {}

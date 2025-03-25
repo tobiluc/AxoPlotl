@@ -5,10 +5,7 @@
 #include "LinesRenderBatch.h"
 #include "PointsRenderBatch.h"
 #include "TrianglesRenderBatch.h"
-#include <array>
 #include <sys/types.h>
-#include <unordered_set>
-#include "../math/curves.h"
 
 namespace MV
 {
@@ -169,11 +166,11 @@ public:
 
     GeometryLocation addTetMesh(TetrahedralMesh& mesh);
 
-    GeometryLocation addExplicitCurve(const ExplicitCurve<float, float>& f);
-
     GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
 
     GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
+
+    GeometryLocation addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision = 16);
 
     GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
 

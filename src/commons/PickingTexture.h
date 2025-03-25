@@ -7,6 +7,9 @@
 namespace MV
 {
 
+/**
+ * @brief Intended to access fragment data using a mouse click
+ */
 class PickingTexture
 {
 public:

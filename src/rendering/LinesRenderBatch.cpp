@@ -1,6 +1,6 @@
 #include "LinesRenderBatch.h"
 #include "../commons/Shader.h"
-#include "../utils/Globals.h"
+#include "../utils/Time.h"
 
 namespace MV
 {
@@ -43,7 +43,7 @@ void LinesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
         auto heh = eh.halfedge_handle(0);
         auto vh0 = mesh.from_vertex_handle(heh);
         auto vh1 = mesh.to_vertex_handle(heh);
-        Color col = COLORS[prop[eh]%COLORS.size()];
+        Color col = Color::COLORS[prop[eh]%Color::COLORS.size()];
 
         const auto& p0 = mesh.vertex(vh0);
         const auto& p1 = mesh.vertex(vh1);

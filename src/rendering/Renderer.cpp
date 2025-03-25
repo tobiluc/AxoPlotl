@@ -260,27 +260,6 @@ Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std
     }
 }
 
-Renderer::GeometryLocation Renderer::addExplicitCurve(const ExplicitCurve<float, float>& f)
-{
-    const uint n = 1000;
-    const float x_min = 0;
-    const float x_max = 100;
-
-    std::vector<Line> ls;
-    for (uint i = 0; i < n-1; ++i)
-    {
-        float x0 = x_min + (i+0) * (x_max - x_min) / (n-1);
-        float x1 = x_min + (i+1) * (x_max - x_min) / (n-1);
-        float y0 = f.compute(x0);
-        float y1 = f.compute(x1);
-
-        Point from(glm::vec3(x0,y0,0), glm::vec3(1,0,0));
-        Point to(glm::vec3(x1,y1,0), glm::vec3(0,0,1));
-        ls.emplace_back(from, to);
-    }
-    return addLines(ls);
-}
-
 Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, const Color& color, const uint precision)
 {
     return addParametricSurface([&](float phi, float theta)
@@ -290,7 +269,22 @@ Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, co
             r * cos(phi),
             r * sin(phi) * sin(theta)
         );
-    }, Vec2f(0,0), Vec2f(M_PI, 2.0*M_PI), color);
+    }, Vec2f(0,0), Vec2f(M_PI, 2.0*M_PI), color, precision);
+}
+
+Renderer::GeometryLocation Renderer::addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision)
+{
+    axis = glm::normalize(axis);
+    const Vec3f e1 = glm::normalize(cross(abs(axis[2]) < 0.99f ? Vec3f(0,0,1) : Vec3f(1,0,0), axis));
+    const Vec3f e2 = cross(axis, e1);
+
+    return addParametricSurface([&](float u, float v)
+    {
+        return center
+               + (R + r * cos(v)) * (cos(u) * e1 + sin(u) * e2)
+               + r * sin(v) * axis;
+
+    }, Vec2f(0,0), Vec2f(2.0*M_PI, 2.0*M_PI), color, precision);
 }
 
 Renderer::GeometryLocation Renderer::addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color)

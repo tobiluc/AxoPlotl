@@ -2,10 +2,12 @@
 #include "MeshViewer.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "commons/Shader.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
+#include "utils/Color.h"
 #include "utils/FileAccessor.h"
-#include "utils/Globals.h"
+#include "utils/Time.h"
 #include "utils/MouseHandler.h"
 
 namespace MV
@@ -36,7 +38,6 @@ void MeshViewer::run()
     {
         MV::TetrahedralMesh tetMesh;
         readMesh(filename, tetMesh, MV::FileFormat::OVMB);
-        MV::TetMeshRenderer tetRenderer(tetMesh, camera);
 
         //auto where = renderer.addTetMesh(tetMesh);
     }
@@ -57,9 +58,6 @@ void MeshViewer::run()
     // Frame
     renderer.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
 
-    // Sinus
-    renderer.addExplicitCurve(Sin());
-
     // Circle
     std::vector<glm::vec3> circle;
     uint n = 100;
@@ -76,7 +74,10 @@ void MeshViewer::run()
     renderer.addConvexPolygon(false, circle, Color(0,1,1));
 
     // Sphere
-    renderer.addSphere(Vec3f(-100, -100, -100), 20, Color(1,0,0));
+    renderer.addSphere(Vec3f(50, 0, 0), 10, Color(1,0,0));
+
+    // Torus
+    renderer.addTorus(Vec3f(100, 0, 0), Vec3f(0,1,0), 4, 10, Color::BLUE);
 
     // Tet
     renderer.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
@@ -90,12 +91,7 @@ void MeshViewer::run()
     //-----------------------
     // Set Global Shaders
     //-----------------------
-    MV::Shader::FACES_OUTLINES_SHADER = MV::Shader("../res/shaders/outlines.glsl");
-    MV::Shader::TET_CELLS_SHADER = MV::Shader("../res/shaders/cells.glsl");
-    MV::Shader::FACES_SHADER = MV::Shader("../res/shaders/faces.glsl");
-    MV::Shader::EDGES_SHADER = MV::Shader("../res/shaders/edges.glsl");
-    MV::Shader::VERTICES_SHADER = MV::Shader("../res/shaders/vertices.glsl");
-    MV::Shader::PICKING_SHADER = MV::Shader("../res/shaders/picking.glsl");
+    Shader::loadGlobalShaders();
 
     //--------------------
     // Main Render Loop

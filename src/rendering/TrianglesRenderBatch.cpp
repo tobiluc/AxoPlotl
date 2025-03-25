@@ -1,6 +1,6 @@
 #include "TrianglesRenderBatch.h"
 #include "../utils/Utils.h"
-#include "../utils/Globals.h"
+#include "../utils/Time.h"
 #include "../commons/Shader.h"
 
 namespace MV
@@ -52,7 +52,7 @@ void TrianglesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
 
         auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
 
-        Color col = COLORS[prop[fh]%COLORS.size()];
+        Color col = Color::COLORS[prop[fh]%Color::COLORS.size()];
 
         // Vertex Positions
         const auto& p0 = mesh.vertex(vhs[0]);

@@ -1,6 +1,6 @@
 #include "PointsRenderBatch.h"
 #include "../commons/Shader.h"
-#include "../utils/Globals.h"
+#include "../utils/Time.h"
 
 namespace MV
 {
@@ -36,7 +36,7 @@ void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     {
         auto vh = *v_it;
         const auto& pos = mesh.vertex(vh);
-        Color col = COLORS[prop[vh]%COLORS.size()];
+        Color col = Color::COLORS[prop[vh]%Color::COLORS.size()];
         add(Point(pos, col));
     }
 
