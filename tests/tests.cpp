@@ -1,12 +1,22 @@
 
 #include "gtest/gtest.h"
 
+#include <AxoPlotl/parsing/parsing.h>
+
 namespace AxPl
 {
 
 TEST(HelloWorldTest, OnePlusOneIsTwo)
 {
     ASSERT_EQ(1+1, 2);
+}
+
+TEST(HelloWorldTest, ds)
+{
+    // auto text = "a = 1 + 1";
+    // auto tokens = Parsing::tokenize(text);
+    // auto root = Parsing::Parser(tokens).parse();
+    // ASSERT_EQ(1+1, 2);
 }
 
 int main(int argc, char** argv)

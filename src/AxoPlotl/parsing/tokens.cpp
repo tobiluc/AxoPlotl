@@ -4,6 +4,7 @@ namespace AxPl::Parsing
 {
 
 const Token Token::UNKNOWN = Token{.TYPE = Token::Type::UNKNOWN, .LEXEME = ""};
+const Token Token::END = Token{.TYPE = Token::Type::END, .LEXEME = ""};
 
 std::vector<Token> tokenize(const char* text)
 {

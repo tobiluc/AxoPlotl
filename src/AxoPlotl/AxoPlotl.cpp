@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "AxoPlotl.h"
+#include "AxoPlotl/utils/simplex_noise.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "commons/Shader.h"
@@ -87,6 +88,13 @@ void MeshViewer::run()
 
     // Parametric Surface
     renderer.addParametricSurface([](float s, float t) {return Vec3f(s,30+s*s+t*t,t);}, Vec2f(-3,-3), Vec2f(3,3), Color(0,1,0));
+
+    // Terrain
+    renderer.addParametricSurface([&](float s, float t) {
+        return Vec3f(10*s,-100+SimplexNoise::noise(s, t),10*t);
+        },
+        Vec2f(-10,-10), Vec2f(10,10), Color::WHITE, 128
+    );
 
     //-----------------------
     // Set Global Shaders

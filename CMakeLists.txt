@@ -12,7 +12,7 @@ endif()
 
 #file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/AxoPlotl/*.cpp")
 #file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/AxoPlotl/*.h")
-add_executable(AxoPlotl
+add_executable(${PROJECT_NAME}
     src/AxoPlotl/main.cpp
 
     src/AxoPlotl/AxoPlotl.h
@@ -32,9 +32,6 @@ add_executable(AxoPlotl
     src/AxoPlotl/rendering/GLBuffers.h
     src/AxoPlotl/rendering/ImGuiRenderer.h
     src/AxoPlotl/rendering/ImGuiRenderer.cpp
-
-
-
 
     src/AxoPlotl/rendering/TrianglesRenderBatch.h
     src/AxoPlotl/rendering/TrianglesRenderBatch.cpp
@@ -174,7 +171,7 @@ endif()
 #=========================
 # Link
 #=========================
-target_link_libraries(AxoPlotl
+target_link_libraries(${PROJECT_NAME}
 glad
 glfw 
 OpenGL::GL
@@ -203,7 +200,15 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 add_executable(${PROJECT_NAME}-Tests tests/tests.cpp)
 target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
-    gtest gtest_main
+    gtest
+    gtest_main
+    glad
+    glfw
+    OpenGL::GL
+    glm
+    OpenVolumeMesh::OpenVolumeMesh
+    ImGui
+    ImGuiFileDialog
 )
 target_include_directories(${PROJECT_NAME}-Tests PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

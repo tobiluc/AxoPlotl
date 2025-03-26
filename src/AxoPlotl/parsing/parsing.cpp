@@ -1,4 +1,6 @@
 #include "parsing.h"
+#include <format>
+#include <strstream>
 
 namespace AxPl::Parsing
 {
@@ -162,9 +164,15 @@ std::unique_ptr<ASTNode> Parser::parsePrimary()
         primary = parseExpression();
         consume(Token::Type::RPAREN);
     }
+    else if (type == Token::Type::END)
+    {
+        return std::make_unique<EmptyNode>();
+    }
     else
     {
-        throw std::runtime_error("Unexpected Token in Primary Expression");
+        std::strstream ss;
+        ss << "Unexpected Token " << peek(0) << " in Primary Expression";
+        throw std::runtime_error(ss.str());
     }
 
     // Parse Indexing on List, Identifier or Expression

@@ -296,6 +296,16 @@ struct AssignOpNode : public ASTNode
     }
 };
 
+struct EmptyNode : public ASTNode
+{
+    EmptyNode() {}
+
+    inline std::unique_ptr<Value> evaluate() const override
+    {
+        return nullptr;
+    }
+};
+
 }
 
 #endif // TREE_H

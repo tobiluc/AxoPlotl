@@ -15,6 +15,7 @@ private:
 
     inline const Token& peek(uint n = 0) const
     {
+        if (index + n >= tokens.size()) return Token::END;
         return tokens[index + n];
     }
 
@@ -25,6 +26,7 @@ private:
 
     inline const Token& advance()
     {
+        if (isAtEnd()) return Token::END;
         return tokens[index++];
     }
 
@@ -46,6 +48,10 @@ private:
         }
     }
 
+    inline bool isAtEnd() const
+    {
+        return index >= tokens.size();
+    }
 
 public:
     Parser(const std::vector<Token>& tokens) :

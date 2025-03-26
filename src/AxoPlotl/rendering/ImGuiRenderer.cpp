@@ -6,6 +6,7 @@
 #include "../utils/Time.h"
 #include "../utils/FileAccessor.h"
 #include "../commons/Camera.h"
+#include "AxoPlotl/parsing/parsing.h"
 #include <AxoPlotl/parsing/tokens.h>
 
 namespace AxPl
@@ -161,6 +162,11 @@ void ImGuiRenderer::render(MeshViewer& mv, Renderer::RenderSettings &settings)
     ImGui::InputText("(1)", buffer, sizeof(buffer));
     auto tokens = Parsing::tokenize(buffer);
     for (auto& token : tokens) std::cout << token << std::endl;
+    auto value = Parsing::Parser(tokens).parse()->evaluate();
+    if (value)
+    {
+        value->print(); std::cout << std::endl;
+    } else {std::cout << "INVALID EVALUATION" << std::endl;}
 
     ImGui::Separator();
 

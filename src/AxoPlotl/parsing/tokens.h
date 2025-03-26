@@ -14,7 +14,7 @@ struct Token
 
     enum class Type : unsigned char
     {
-        UNKNOWN,
+        UNKNOWN, END,
         INT, FLOAT, IDENTIFIER,
         ASSIGN,
         COMMA, LPAREN, RPAREN, LBOXBRACKET, RBOXBRACKET,
@@ -27,6 +27,7 @@ struct Token
     std::string LEXEME;
 
     static const Token UNKNOWN;
+    static const Token END;
 };
 
 inline std::ostream& operator<<(std::ostream& os, const Token& token)
