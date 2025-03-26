@@ -4,67 +4,72 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-project(MeshViewer VERSION 0.1.0 LANGUAGES C CXX)
+project(AxoPlotl VERSION 0.1.0 LANGUAGES C CXX)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
 endif()
 
-#file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-#file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
-add_executable(MeshViewer
-    src/main.cpp
+#file(GLOB_RECURSE SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/AxoPlotl/*.cpp")
+#file(GLOB_RECURSE HEADER_FILES "${CMAKE_CURRENT_SOURCE_DIR}/src/AxoPlotl/*.h")
+add_executable(AxoPlotl
+    src/AxoPlotl/main.cpp
 
-    src/MeshViewer.h
-    src/MeshViewer.cpp
+    src/AxoPlotl/AxoPlotl.h
+    src/AxoPlotl/AxoPlotl.cpp
 
-    src/commons/Camera.h
-    src/commons/Camera.cpp
-    src/commons/PickingTexture.h
-    src/commons/PickingTexture.cpp
-    src/commons/Shader.h
-    src/commons/shader.cpp
-    src/commons/Texture.h
-    src/commons/Texture.cpp
+    src/AxoPlotl/commons/Camera.h
+    src/AxoPlotl/commons/Camera.cpp
+    src/AxoPlotl/commons/PickingTexture.h
+    src/AxoPlotl/commons/PickingTexture.cpp
+    src/AxoPlotl/commons/Shader.h
+    src/AxoPlotl/commons/shader.cpp
+    src/AxoPlotl/commons/Texture.h
+    src/AxoPlotl/commons/Texture.cpp
 
-    src/geometry/GeometryObject.h
+    src/AxoPlotl/geometry/GeometryObject.h
 
-    src/rendering/GLBuffers.h
-    src/rendering/ImGuiRenderer.h
-    src/rendering/ImGuiRenderer.cpp
-
-
+    src/AxoPlotl/rendering/GLBuffers.h
+    src/AxoPlotl/rendering/ImGuiRenderer.h
+    src/AxoPlotl/rendering/ImGuiRenderer.cpp
 
 
-    src/rendering/TrianglesRenderBatch.h
-    src/rendering/TrianglesRenderBatch.cpp
-    src/rendering/LinesRenderBatch.h
-    src/rendering/LinesRenderBatch.cpp
-    src/rendering/PointsRenderBatch.h
-    src/rendering/PointsRenderBatch.cpp
-
-    src/utils/FileAccessor.h
-    src/utils/FileAccessor.cpp
-    src/utils/Time.h
-    src/utils/Time.cpp
-    src/utils/KeyHandler.h
-    src/utils/MouseHandler.h
-    src/utils/MouseHandler.cpp
-    src/utils/simplex_noise.h
-    src/utils/simplex_noise.cpp
-    src/utils/stb_image.h
-    src/utils/Typedefs.h
-    src/utils/Utils.h
-    src/utils/Utils.cpp
 
 
-    src/rendering/Renderer.h
-    src/rendering/Renderer.cpp
-    src/rendering/RenderBatch.h
-    src/rendering/RenderBatch.cpp
+    src/AxoPlotl/rendering/TrianglesRenderBatch.h
+    src/AxoPlotl/rendering/TrianglesRenderBatch.cpp
+    src/AxoPlotl/rendering/LinesRenderBatch.h
+    src/AxoPlotl/rendering/LinesRenderBatch.cpp
+    src/AxoPlotl/rendering/PointsRenderBatch.h
+    src/AxoPlotl/rendering/PointsRenderBatch.cpp
 
-    src/utils/Color.h
-    src/utils/Color.cpp
+    src/AxoPlotl/utils/FileAccessor.h
+    src/AxoPlotl/utils/FileAccessor.cpp
+    src/AxoPlotl/utils/Time.h
+    src/AxoPlotl/utils/Time.cpp
+    src/AxoPlotl/utils/KeyHandler.h
+    src/AxoPlotl/utils/MouseHandler.h
+    src/AxoPlotl/utils/MouseHandler.cpp
+    src/AxoPlotl/utils/simplex_noise.h
+    src/AxoPlotl/utils/simplex_noise.cpp
+    src/AxoPlotl/utils/stb_image.h
+    src/AxoPlotl/utils/Typedefs.h
+    src/AxoPlotl/utils/Utils.h
+    src/AxoPlotl/utils/Utils.cpp
+
+
+    src/AxoPlotl/rendering/Renderer.h
+    src/AxoPlotl/rendering/Renderer.cpp
+    src/AxoPlotl/rendering/RenderBatch.h
+    src/AxoPlotl/rendering/RenderBatch.cpp
+
+    src/AxoPlotl/utils/Color.h
+    src/AxoPlotl/utils/Color.cpp
+    src/AxoPlotl/parsing/tokens.h
+    src/AxoPlotl/parsing/tokens.cpp
+    src/AxoPlotl/parsing/tree.h
+    src/AxoPlotl/parsing/parsing.h
+    src/AxoPlotl/parsing/parsing.cpp
 
 )
 
@@ -169,7 +174,7 @@ endif()
 #=========================
 # Link
 #=========================
-target_link_libraries(MeshViewer
+target_link_libraries(AxoPlotl
 glad
 glfw 
 OpenGL::GL
@@ -181,9 +186,27 @@ ImGuiFileDialog
 target_link_libraries(ImGuiFileDialog ImGui)
 
 #=========================
+# Define what to include
+#=========================
+target_include_directories(${PROJECT_NAME} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+)
+
+#=========================
 # Testing
 #=========================
-include(CTest)
-
-enable_testing()
-
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+)
+FetchContent_MakeAvailable(googletest)
+add_executable(${PROJECT_NAME}-Tests tests/tests.cpp)
+target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
+    gtest gtest_main
+)
+target_include_directories(${PROJECT_NAME}-Tests PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+)
+add_test(NAME MyGoogleTest COMMAND test_runner)
