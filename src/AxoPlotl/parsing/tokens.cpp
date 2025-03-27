@@ -67,7 +67,6 @@ std::vector<Token> tokenize(const char* text)
         case '/': tokens.push_back({Token::Type::DIV, "/"}); break;
         case '^': tokens.push_back({Token::Type::POW, "^"}); break;
         case '!': tokens.push_back({Token::Type::NOT, "!"}); break;
-        case '%': tokens.push_back({Token::Type::PERCENT, "%"}); break;
         default: tokens.push_back({Token::Type::UNKNOWN, std::string(1, *p)}); break;
         }
 

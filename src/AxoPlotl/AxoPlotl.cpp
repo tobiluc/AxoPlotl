@@ -96,6 +96,14 @@ void MeshViewer::run()
         Vec2f(-10,-10), Vec2f(10,10), Color::WHITE, 128
     );
 
+
+    //-----------------------
+    // Init Input Field
+    //-----------------------
+    inputs.clear();
+    inputs.push_back(AxPlInput(rootScope));
+    inputs.push_back(AxPlInput(rootScope));
+
     //-----------------------
     // Set Global Shaders
     //-----------------------

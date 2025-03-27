@@ -158,17 +158,13 @@ void ImGuiRenderer::render(MeshViewer& mv, Renderer::RenderSettings &settings)
     //---------------------
     ImGui::Separator();
 
-    char buffer[128] = "";
-    ImGui::InputText("(1)", buffer, sizeof(buffer));
-    auto tokens = Parsing::tokenize(buffer);
-    for (auto& token : tokens) std::cout << token << std::endl;
-    auto value = Parsing::Parser(tokens).parse()->evaluate();
-    if (value)
+    for (uint i = 0; i < mv.inputs.size(); ++i)
     {
-        value->print(); std::cout << std::endl;
-    } else {std::cout << "INVALID EVALUATION" << std::endl;}
-
-    ImGui::Separator();
+        ImGui::PushID(i);
+        mv.inputs[i].renderImGui();
+        ImGui::Separator();
+        ImGui::PopID();
+    }
 
     // End
     ImGui::End();

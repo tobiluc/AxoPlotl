@@ -1,6 +1,8 @@
 #ifndef AXOPLOTL_H
 #define AXOPLOTL_H
 
+#include "AxoPlotl/geometry/AxPlInput.h"
+#include "AxoPlotl/parsing/Scope.h"
 #include "commons/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
@@ -13,7 +15,6 @@ namespace AxPl
 class MeshViewer
 {
 friend class ImGuiRenderer;
-friend class TetMeshRenderer;
 
 public:
     MeshViewer();
@@ -42,11 +43,16 @@ public:
 
 private:
 
+    // Rendering
+    Renderer renderer;
+
     Color clearColor;
     PickingTexture pickingTexture;
     PickingTexture::Pixel picked = {0,0,0};
 
-    Renderer renderer;
+    // Input Logic
+    std::vector<AxPlInput> inputs;
+    Scope rootScope;
 
     void init();
 

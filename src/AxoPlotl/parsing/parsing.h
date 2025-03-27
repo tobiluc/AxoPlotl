@@ -3,6 +3,7 @@
 
 #include "AxoPlotl/parsing/tokens.h"
 #include "AxoPlotl/parsing/tree.h"
+#include <stack>
 
 namespace AxPl::Parsing
 {
@@ -12,6 +13,9 @@ class Parser
 private:
     uint index = 0;
     const std::vector<Token>& tokens;
+    std::stack<Token::Type> brackets;
+
+    static const std::array<std::pair<Token::Type, Token::Type>, 2> BRACKETS;
 
     inline const Token& peek(uint n = 0) const
     {
@@ -27,17 +31,56 @@ private:
     inline const Token& advance()
     {
         if (isAtEnd()) return Token::END;
-        return tokens[index++];
+        const auto& token = tokens[index++];
+
+        // Check for brackets mismatch
+        for (uint i = 0; i < BRACKETS.size(); ++i) {
+            if (token.TYPE == BRACKETS[i].first) //left bracket
+            {
+                brackets.push(token.TYPE);
+                break;
+            }
+            else if (token.TYPE == BRACKETS[i].second) // right bracket
+            {
+                if (brackets.empty())
+                {
+                    // Brackets Mismatch (No opening bracket to closing bracket)
+                    std::cerr << "Parser: Brackets Mismatch" << std::endl;
+                }
+                else
+                {
+                    const Token::Type last = brackets.top();
+                    brackets.pop();
+                    if (last != BRACKETS[i].first)
+                    {
+                        // Brackets Mismatch
+                        std::cerr << "Parser: Brackets Mismatch" << std::endl;
+                    }
+                }
+            }
+        }
+
+        return token;
     }
 
-    inline bool match(Token::Type type) const
+    /**
+     * If the next token matches the expected type, it is consumed and true is returned.
+     * Otherwise, the token is not cosumed and false is returned.
+     **/
+    inline bool match(Token::Type type)
     {
-        return index < tokens.size() && tokens[index].TYPE == type;
+        if (isAtEnd()) return false;
+        if (peekIs(0, type))
+        {
+            advance();
+            return true;
+        }
+        return false;
     }
 
     inline const Token& consume(Token::Type expected)
     {
-        if (!match(expected))
+        if (!peekIs(0, expected))
         {
             printf("Unexpected Token. Expected %s but got %s\n", expected, peek(0).TYPE);
             return Token::UNKNOWN;
@@ -69,7 +112,7 @@ private:
     std::unique_ptr<ASTNode> parseExpression();
 
     /**
-     * assignment := IDENTIFIER "=" assignment | logic_or
+     * assignment := (ID "=" expression) | (ID "(" (ID)+  ")" "=" expression) | logic_or
      */
     std::unique_ptr<ASTNode> parseAssignment();
 
@@ -118,7 +161,7 @@ private:
      **/
     std::unique_ptr<ASTNode> parsePrimary();
 
-    std::unique_ptr<ASTNode> parseCall();
+    std::unique_ptr<ASTNode> parseFunctionCall();
 
     /**
      * list := "[" "]" | "[" expression ("," expression)* "]"

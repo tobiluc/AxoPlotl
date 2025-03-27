@@ -4,6 +4,7 @@
 #include "../utils/Typedefs.h"
 //#include "GLFW/glfw3.h"
 #include "../AxoPlotl.h"
+#include "AxoPlotl/geometry/AxPlInput.h"
 
 namespace AxPl
 {

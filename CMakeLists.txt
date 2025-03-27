@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/commons/Texture.h
     src/AxoPlotl/commons/Texture.cpp
 
-    src/AxoPlotl/geometry/GeometryObject.h
+    src/AxoPlotl/geometry/AxPlInput.h
 
     src/AxoPlotl/rendering/GLBuffers.h
     src/AxoPlotl/rendering/ImGuiRenderer.h
@@ -67,6 +67,11 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/parsing/tree.h
     src/AxoPlotl/parsing/parsing.h
     src/AxoPlotl/parsing/parsing.cpp
+    src/AxoPlotl/geometry/AxPlInput.cpp
+    src/AxoPlotl/parsing/values.h
+    src/AxoPlotl/parsing/Scope.h
+    src/AxoPlotl/parsing/Scope.cpp
+    src/AxoPlotl/parsing/tree.cpp
 
 )
 
