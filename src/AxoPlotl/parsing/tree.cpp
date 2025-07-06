@@ -1,7 +1,7 @@
 #include "tree.h"
 #include "Scope.h"
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 inline void printDepthPrefix(uint depth)

@@ -3,7 +3,7 @@
 #include "../utils/Time.h"
 #include "../commons/Shader.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 TrianglesRenderBatch::TrianglesRenderBatch(size_t max_num_triangles)

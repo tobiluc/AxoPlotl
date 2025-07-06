@@ -3,7 +3,7 @@
 #include <AxoPlotl/parsing/Scope.h>
 #include "imgui.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 AxPlInput::AxPlInput(Scope &scope) :

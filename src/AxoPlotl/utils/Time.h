@@ -4,7 +4,7 @@
 #include "Typedefs.h"
 #include <array>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 namespace Time

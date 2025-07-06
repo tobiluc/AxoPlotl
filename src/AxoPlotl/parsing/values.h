@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 struct Value

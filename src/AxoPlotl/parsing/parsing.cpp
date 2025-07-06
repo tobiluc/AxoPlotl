@@ -2,7 +2,7 @@
 #include <format>
 #include <strstream>
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 const std::array<std::pair<Token::Type, Token::Type>, 2> Parser::BRACKETS = {{

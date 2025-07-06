@@ -1,26 +1,14 @@
-#ifndef IMGUIRENDERER_H
-#define IMGUIRENDERER_H
+#pragma once
 
-#include "../utils/Typedefs.h"
-//#include "GLFW/glfw3.h"
-#include "../AxoPlotl.h"
-#include "AxoPlotl/geometry/AxPlInput.h"
+#include "GLFW/glfw3.h"
 
-namespace AxPl
+namespace AxoPlotl::Rendering
 {
 
-class ImGuiRenderer
-{
-public:
-    static bool IMGUI_FOCUS;
+extern bool IMGUI_FOCUS;
 
-    static void init(GLFWwindow* window);
+void ImGuiInit(GLFWwindow* window);
 
-    static void newFrame();
-    
-    static void render(MeshViewer& mv, Renderer::RenderSettings& settings);
+void ImGuiNewFrame();
 
-private:
-};
 }
-#endif // IMGUIRENDERER_H

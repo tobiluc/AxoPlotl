@@ -5,7 +5,7 @@
 #include "AxoPlotl/parsing/tree.h"
 #include <stack>
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 class Parser

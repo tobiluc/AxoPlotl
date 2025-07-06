@@ -1,7 +1,7 @@
 #include "FileAccessor.h"
 #include <iomanip>
 
-namespace AxPl
+namespace AxoPlotl::IO
 {
 
 // bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext)

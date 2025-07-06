@@ -8,7 +8,7 @@
 #include <ostream>
 #include <string>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class Shader {

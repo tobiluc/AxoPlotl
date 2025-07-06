@@ -1,6 +1,6 @@
 #include "Utils.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
     int mesh_n_boundary_faces(TetrahedralMesh& mesh)
     {

@@ -7,7 +7,7 @@
 #include "TrianglesRenderBatch.h"
 #include <sys/types.h>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class Renderer
@@ -64,7 +64,6 @@ public:
             cellScale(0.9f),
             outlineWidth(2.0f),
             lineWidth(2.0f),
-            pointSize(5.0f),
             outlineColor(Color(0,0,0)),
             useColorOverride(false),
             colorOverride(Color(1,1,1))
@@ -75,7 +74,7 @@ public:
         Light light;
         float cellScale;
         float outlineWidth;
-        float pointSize;
+        //float pointSize;
         float lineWidth;
         Color outlineColor;
         bool useColorOverride = false;
@@ -170,13 +169,18 @@ public:
 
     GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
 
+    /// Add a function f:R^3->R defined on the unit sphere visualized as the set
+    /// (x*f(x), y*f(y), z*f(z)) where x^2+y^2+z^2=1
+    GeometryLocation addSphericalHarmonic(const std::function<float(Vec3f)>& f, const float scale=1.0f, const uint precision = 32);
+
     GeometryLocation addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision = 16);
 
     GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
 
     GeometryLocation addParametricCurve(const std::function<Vec3f(float)>& f, const float min_t, const float max_t, const Color& color, const uint precision = 32);
 
-    GeometryLocation addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st, const Color& color, const uint precision = 32);
+    GeometryLocation addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st,
+                                        const ColorFunction2f& color, const uint precision = 32);
 };
 
 }

@@ -9,7 +9,7 @@
 #include "OpenVolumeMesh/IO/ovmb_read.hh"
 
 
-namespace AxPl
+namespace AxoPlotl::IO
 {
     enum FileFormat : char16_t {INVALID, MESH, OVMA, OVMB};
 

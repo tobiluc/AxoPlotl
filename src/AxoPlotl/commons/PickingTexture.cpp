@@ -1,7 +1,7 @@
 #include "PickingTexture.h"
 #include <iostream>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 void PickingTexture::init(unsigned int width, unsigned int height)

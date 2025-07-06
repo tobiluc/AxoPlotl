@@ -1,22 +1,26 @@
 #ifndef AXOPLOTL_H
 #define AXOPLOTL_H
 
-#include "AxoPlotl/geometry/AxPlInput.h"
-#include "AxoPlotl/parsing/Scope.h"
-#include "commons/PickingTexture.h"
+#include "AxoPlotl/Scene.h"
 #include "glad/glad.h"
-#include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"
-#include "rendering/Renderer.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class MeshViewer
 {
-friend class ImGuiRenderer;
+
+private:
+
+    TestScene scene_;
+
+    void init();
 
 public:
+
+    GLFWwindow* window;
+
     MeshViewer();
 
     ~MeshViewer();
@@ -36,27 +40,6 @@ public:
         glGetIntegerv(GL_VIEWPORT, viewport);
         return viewport[3];
     }
-
-public:
-    GLFWwindow* window;
-    Camera camera;
-
-private:
-
-    // Rendering
-    Renderer renderer;
-
-    Color clearColor;
-    PickingTexture pickingTexture;
-    PickingTexture::Pixel picked = {0,0,0};
-
-    // Input Logic
-    std::vector<AxPlInput> inputs;
-    Scope rootScope;
-
-    void init();
-
-    void render();
 };
 
 inline void checkOpenGLError()

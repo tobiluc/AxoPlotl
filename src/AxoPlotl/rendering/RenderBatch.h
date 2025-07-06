@@ -6,7 +6,7 @@
 #include "GLBuffers.h"
 #include "../utils/Typedefs.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 //===============
@@ -130,6 +130,8 @@ protected:
 
     PRIMITIVE::VBO vbo;
     IBO<PRIMITIVE::MODE> ibo;
+    //IBO<PRIMITIVE::MODE> ibo_visible;
+
     VAO vao;
     VAO vao_picking;
 
@@ -139,6 +141,12 @@ public:
     inline uint max_num_elements() const {return ibo.size() / ibo.NUM_INDICES_PER_ELEMENT();}
 
     inline uint num_elements() const {return max_num_elements() - num_free_elements();}
+
+    // Sets the i-th primitive (in)visible
+    inline void setVisible(const uint idx, bool visible)
+    {
+        //TODO
+    }
 
     inline int add(const PRIMITIVE& p)
     {

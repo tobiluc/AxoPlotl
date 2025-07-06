@@ -1,6 +1,6 @@
 #include "tokens.h"
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 const Token Token::UNKNOWN = Token{.TYPE = Token::Type::UNKNOWN, .LEXEME = ""};

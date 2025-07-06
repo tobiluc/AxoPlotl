@@ -3,7 +3,7 @@
 
 #include <AxoPlotl/parsing/parsing.h>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 TEST(HelloWorldTest, OnePlusOneIsTwo)

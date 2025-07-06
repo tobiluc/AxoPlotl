@@ -1,6 +1,6 @@
 #include "RenderBatch.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 void Triangle::computeNormal()

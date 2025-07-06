@@ -2,7 +2,7 @@
 #include "../utils/Utils.h"
 #include "../commons/Shader.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 Renderer::Renderer()
@@ -22,7 +22,6 @@ void Renderer::render(const RenderMatrices& matrices)
     //===========================
     Shader::VERTICES_SHADER.use();
     Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", matrices.model_view_projection_matrix);
-    Shader::VERTICES_SHADER.setFloat("point_size", settings.pointSize);
 
     for (uint i = 0; i < points.size(); ++i)
     {
@@ -272,6 +271,29 @@ Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, co
     }, Vec2f(0,0), Vec2f(M_PI, 2.0*M_PI), color, precision);
 }
 
+Renderer::GeometryLocation Renderer::addSphericalHarmonic(const std::function<float(Vec3f)>& f,
+    const float scale, const uint precision)
+{
+    std::function<Vec3f(float,float)> func = [&](float phi, float theta)
+    {
+        Vec3f p(sin(phi) * cos(theta), cos(phi), sin(phi) * sin(theta));
+        float r = f(p);
+        return Vec3f(
+           scale * r * p.x,
+           scale * r * p.y,
+           scale * r * p.z
+        );
+    };
+    std::function<Color(float,float)> color = [&](float phi, float theta)
+    {
+        Vec3f p(sin(phi) * cos(theta), cos(phi), sin(phi) * sin(theta));
+        float r = f(p);
+        return Color::RED.mix(Color::BLUE, r);
+    };
+    return addParametricSurface(func, Vec2f(0,0), Vec2f(M_PI, 2.0*M_PI),
+        color, precision);
+}
+
 Renderer::GeometryLocation Renderer::addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision)
 {
     axis = glm::normalize(axis);
@@ -317,7 +339,8 @@ Renderer::GeometryLocation Renderer::addParametricCurve(const std::function<Vec3
     return addLines(ls);
 }
 
-Renderer::GeometryLocation Renderer::addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st, const Color& color, const uint precision)
+Renderer::GeometryLocation Renderer::addParametricSurface(const std::function<Vec3f(float,float)>& f,
+    const Vec2f& min_st, const Vec2f& max_st, const ColorFunction2f& color, const uint precision)
 {
     // Generate Vertex Positions
     std::vector<Point> points;
@@ -329,7 +352,7 @@ Renderer::GeometryLocation Renderer::addParametricSurface(const std::function<Ve
         {
             t = min_st[1] + j * (max_st[1] - min_st[1]) / precision;
 
-            points.push_back(Point(f(s, t), color));
+            points.push_back(Point(f(s, t), color(s, t)));
         }
     }
 

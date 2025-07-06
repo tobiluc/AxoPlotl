@@ -9,7 +9,7 @@
 #include <ostream>
 #include <vector>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class Camera {

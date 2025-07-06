@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "tree.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class Scope

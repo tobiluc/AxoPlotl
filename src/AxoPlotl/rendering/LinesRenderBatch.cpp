@@ -2,7 +2,7 @@
 #include "../commons/Shader.h"
 #include "../utils/Time.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 LinesRenderBatch::LinesRenderBatch(size_t max_num_lines)

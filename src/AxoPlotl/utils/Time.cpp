@@ -1,7 +1,7 @@
 #include "Time.h"
 #include "GLFW/glfw3.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 float Time::DELTA_TIME = 0;

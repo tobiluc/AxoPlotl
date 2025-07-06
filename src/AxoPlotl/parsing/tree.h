@@ -4,12 +4,12 @@
 #include "tokens.h"
 #include "values.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 class Scope;
 }
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 struct ASTNode

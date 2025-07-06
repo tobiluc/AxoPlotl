@@ -4,7 +4,7 @@
 #include <regex>
 #include <sstream>
 
-namespace AxPl
+namespace AxoPlotl
 {
 Shader Shader::FACES_OUTLINES_SHADER;
 Shader Shader::TET_CELLS_SHADER;

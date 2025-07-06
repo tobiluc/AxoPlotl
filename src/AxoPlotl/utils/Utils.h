@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <unordered_set>
 
-namespace AxPl
+namespace AxoPlotl
 {
     enum MeshRenderMode {NONE, CELLS, BOUNDARY_FACES, EDGES};
 
@@ -105,6 +105,10 @@ namespace AxPl
     {
         auto i = filename.find_last_of(".");
         return std::make_pair(filename.substr(0,i), filename.substr(i));
+    }
+
+    inline Vec3f lerp(const Vec3f& a, const Vec3f& b, float t) {
+        return a + (b - a) * t;
     }
 
     inline std::string getWorkingDirectory()

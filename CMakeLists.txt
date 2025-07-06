@@ -47,8 +47,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/KeyHandler.h
     src/AxoPlotl/utils/MouseHandler.h
     src/AxoPlotl/utils/MouseHandler.cpp
-    src/AxoPlotl/utils/simplex_noise.h
-    src/AxoPlotl/utils/simplex_noise.cpp
+    src/AxoPlotl/algorithms/simplex_noise.h
+    src/AxoPlotl/algorithms/simplex_noise.cpp
     src/AxoPlotl/utils/stb_image.h
     src/AxoPlotl/utils/Typedefs.h
     src/AxoPlotl/utils/Utils.h
@@ -72,6 +72,16 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/parsing/Scope.h
     src/AxoPlotl/parsing/Scope.cpp
     src/AxoPlotl/parsing/tree.cpp
+    src/AxoPlotl/geometry/AxPlGeometryObject.h
+    src/AxoPlotl/geometry/AxPlGeometryObject.cpp
+    src/AxoPlotl/algorithms/marching_cubes.h
+    src/AxoPlotl/algorithms/marching_cubes.cpp
+    src/AxoPlotl/Scene.h
+    src/AxoPlotl/Scene.cpp
+    src/AxoPlotl/geometry/presets.h
+    src/AxoPlotl/geometry/presets.cpp
+    src/AxoPlotl/utils/Memory.h
+    src/AxoPlotl/utils/Memory.cpp
 
 )
 

@@ -1,7 +1,7 @@
 #include "../rendering/ImGuiRenderer.h"
 #include "MouseHandler.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 float MouseHandler::POSITION[2] = {0,0};
@@ -31,7 +31,7 @@ void MouseHandler::update(GLFWwindow* window)
 
 void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 {
-    if (ImGuiRenderer::IMGUI_FOCUS) return;
+    if (Rendering::IMGUI_FOCUS) return;
 
     MouseHandler::POSITION_DELTA[0] = (float)(mouse_x - MouseHandler::POSITION[0]);
     MouseHandler::POSITION_DELTA[1] = (float)(MouseHandler::POSITION[1] - mouse_y); // reversed since y-coordinates range from bottom to top
@@ -45,7 +45,7 @@ void mouse_callback(GLFWwindow* window, double mouse_x, double mouse_y)
 
 void scroll_callback(GLFWwindow* window, double dx, double dy)
 {
-    if (ImGuiRenderer::IMGUI_FOCUS) return;
+    if (Rendering::IMGUI_FOCUS) return;
     MouseHandler::SCROLL_DELTA[0] = dx;
     MouseHandler::SCROLL_DELTA[1] = dy;
     //MV::CAMERA.processMouseScroll((float)dy);

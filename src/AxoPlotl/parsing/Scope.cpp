@@ -3,7 +3,7 @@
 #include <iostream>
 #include <ostream>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 Scope::Scope(std::unique_ptr<Scope> parent) :

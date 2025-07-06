@@ -5,6 +5,6 @@
 
 int main()
 {
-    AxPl::MeshViewer mv;
+    AxoPlotl::MeshViewer mv;
     mv.run();
 }

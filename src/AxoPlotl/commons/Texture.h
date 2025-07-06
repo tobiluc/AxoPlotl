@@ -2,7 +2,6 @@
 #define TEXTURE_H
 
 #include "../utils/stb_image.h"
-#include "../utils/simplex_noise.h"
 
 /*
 namespace MV

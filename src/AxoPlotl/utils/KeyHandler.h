@@ -3,7 +3,7 @@
 
 #include <GLFW/glfw3.h>
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class KeyHandler

@@ -3,8 +3,6 @@
  * @brief   A Perlin Simplex Noise C++ Implementation (1D, 2D, 3D).
  *
  * Copyright (c) 2014-2018 Sebastien Rombauts (sebastien.rombauts@gmail.com)
- * 
- * Expanded by Tobias Kohler
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -13,6 +11,9 @@
 
 #include <cstddef>  // size_t
 #include <cmath>
+
+namespace AxoPlotl::Algo
+{
 
  /**
   * @brief A Perlin Simplex Noise C++ Implementation (1D, 2D, 3D, 4D).
@@ -60,3 +61,5 @@ private:
     float mLacunarity;  ///< Lacunarity specifies the frequency multiplier between successive octaves (default to 2.0).
     float mPersistence; ///< Persistence is the loss of amplitude between successive octaves (usually 1/lacunarity)
 };
+
+}

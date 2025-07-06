@@ -28,6 +28,9 @@
 
 #include <cstdint>  // int32_t/uint8_t
 
+namespace AxoPlotl::Algo
+{
+
  /**
   * Computes the largest integer value not greater than the float one
   *
@@ -563,4 +566,6 @@ float SimplexNoise::turbulence(size_t octaves, float x, float y, float z) const 
     }
 
     return (output / denom);
+}
+
 }

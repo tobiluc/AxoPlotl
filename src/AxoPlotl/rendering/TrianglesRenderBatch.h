@@ -3,7 +3,7 @@
 
 #include "RenderBatch.h"
 
-namespace AxPl {
+namespace AxoPlotl {
 
 class TrianglesRenderBatch : public RenderBatch<Triangle>
 {

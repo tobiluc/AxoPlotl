@@ -6,7 +6,7 @@
 #include <cctype>
 #include <string>
 
-namespace AxPl::Parsing
+namespace AxoPlotl::Parsing
 {
 
 struct Token

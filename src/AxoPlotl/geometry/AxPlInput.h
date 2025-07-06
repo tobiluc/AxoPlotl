@@ -3,7 +3,7 @@
 
 #include "AxoPlotl/parsing/tree.h"
 
-namespace AxPl
+namespace AxoPlotl
 {
 
 class AxPlInput
