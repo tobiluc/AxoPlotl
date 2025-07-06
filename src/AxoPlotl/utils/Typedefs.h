@@ -53,6 +53,10 @@ using Mat3x3d = Mat3x3<double>;
 using Mat4x4f = Mat4x4<float>;
 using Mat4x4d = Mat4x4<double>;
 
+inline std::ostream& operator<<(std::ostream& os, const Vec3f& v) {
+    return os << v.x << " " << v.y << " " << v.z;
+}
+
 namespace OVM = OpenVolumeMesh;
 using VertexHandle = OVM::VertexHandle;
 using EdgeHandle = OVM::EdgeHandle;

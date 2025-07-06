@@ -37,7 +37,7 @@ public:
 
     struct Pixel
     {
-        unsigned int batch_index = 0;
+        unsigned int batch_index = 0; // encodes type as batch_index % 3 + 2
         unsigned int buffer_index = 0;
         unsigned int primitive_id = 0;
     };

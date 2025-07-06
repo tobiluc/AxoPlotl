@@ -62,8 +62,29 @@ void AxPlGeometryObject::endRenderUI()
     ImGui::PopID();
 }
 
+void TetrahedralMeshObject::addToRenderer(Renderer& r)
+{
+    r.addTetMesh(mesh_, renderLocation_);
+}
+
 void TetrahedralMeshObject::updateRenderUI()
 {
+}
+
+void ExplicitSurfaceObject::addToRenderer(Renderer& r)
+{
+    TriangleMesh mesh;
+    createTriangles(f_, mesh, resolution_);
+    std::vector<Rendering::Triangle> tris;
+    for (uint i = 0; i < mesh.triangles.size(); ++i) {
+        tris.emplace_back(
+            mesh.vertices[mesh.triangles[i][0]],
+            mesh.vertices[mesh.triangles[i][1]],
+            mesh.vertices[mesh.triangles[i][2]],
+            ui_color_ // TODO: Display correct color
+        );
+    }
+    r.addTriangles(tris, renderLocation_);
 }
 
 void ExplicitSurfaceObject::updateRenderUI()
@@ -82,6 +103,11 @@ void ExplicitSurfaceObject::updateRenderUI()
     //-------------------
     ImGui::InputFloat2("u Range", &f_.uMin);
     ImGui::InputFloat2("v Range", &f_.vMin);
+}
+
+void ImplicitSurfaceObject::addToRenderer(Renderer& r)
+{
+
 }
 
 void ImplicitSurfaceObject::updateRenderUI()

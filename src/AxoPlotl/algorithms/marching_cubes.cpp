@@ -310,7 +310,7 @@ const int MarchingCubes::cubeEdges[12][2] = {
     {0,4}, {1,5}, {2,6}, {3,7}
 };
 
-void MarchingCubes::generate(const std::function<float(float,float,float)>& f, Mesh& mesh)
+void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh &mesh)
 {
     // Compute cube sizes
     float dx = (x1 - x0) / (nx - 1);
@@ -332,7 +332,7 @@ void MarchingCubes::generate(const std::function<float(float,float,float)>& f, M
                 float y = y0 + iy * dy;
                 float z = z0 + iz * dz;
 
-                field[index(ix, iy, iz)] = f(x, y, z);
+                field[index(ix, iy, iz)] = f(Vec3f(x, y, z));
             }
         }
     }

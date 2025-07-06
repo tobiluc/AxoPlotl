@@ -3,9 +3,10 @@
 
 #include <sys/types.h>
 #include "../utils/Typedefs.h"
+#include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 
-namespace AxoPlotl
+namespace AxoPlotl::Rendering
 {
 
 class PointsRenderBatch : public RenderBatch<Point>

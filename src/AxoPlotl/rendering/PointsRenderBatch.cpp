@@ -2,7 +2,7 @@
 #include "../commons/Shader.h"
 #include "../utils/Time.h"
 
-namespace AxoPlotl
+namespace AxoPlotl::Rendering
 {
 
 PointsRenderBatch::PointsRenderBatch(size_t max_num_points)

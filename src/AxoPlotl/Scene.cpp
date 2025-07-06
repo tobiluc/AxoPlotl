@@ -214,7 +214,7 @@ void Scene::renderUI()
     }
 
     // Begin
-    ImGui::Begin("Mesh Viewer Control Panel");
+    ImGui::Begin("AxoPlotl Control Panel");
 
     // Define
     ImGui::Text("Info");
@@ -306,36 +306,48 @@ void TestScene::init()
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
+    Rendering::Renderer::GeometryLocation loc;
 
     // Triangle
-    Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
-    Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
-    Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
-    renderer_.addPoint(p0);
-    renderer_.addPoint(p1);
-    renderer_.addPoint(p2);
-    renderer_.addTriangle(Triangle(p0, p1, p2));
+    Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
+    Rendering::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
+    Rendering::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
+    renderer_.addPoint(p0, loc);
+    renderer_.addPoint(p1, loc);
+    renderer_.addPoint(p2, loc);
+    renderer_.addTriangle(Rendering::Triangle(p0, p1, p2), loc);
 
     // Frame
-    renderer_.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
+    //renderer_.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
 
     // Circle
-    std::vector<glm::vec3> circle;
-    uint n = 100;
-    float r = 20;
-    for (uint i = 0; i < n; ++i)
-    {
-        circle.push_back(glm::vec3(
-            r * std::cos(2.0 * M_PI * i / n),
-            0,
-            r * std::sin(2.0 * M_PI * i / n)
-            ));
-    }
-    renderer_.addConvexPolygon(true, circle, Color(1,1,0));
-    renderer_.addConvexPolygon(false, circle, Color(0,1,1));
+    // std::vector<glm::vec3> circle;
+    // uint n = 100;
+    // float r = 20;
+    // for (uint i = 0; i < n; ++i)
+    // {
+    //     circle.push_back(glm::vec3(
+    //         r * std::cos(2.0 * M_PI * i / n),
+    //         0,
+    //         r * std::sin(2.0 * M_PI * i / n)
+    //         ));
+    // }
+    // renderer_.addConvexPolygon(true, circle, Color(1,1,0));
+    // renderer_.addConvexPolygon(false, circle, Color(0,1,1));
 
     // Sphere
-    renderer_.addSphere(Vec3f(50, 0, 0), 10, Color(1,0,0));
+    // renderer_.addSphere(Vec3f(50, 0, 0), 10, Color(1,0,0));
+    // TriangleMesh mesh;
+    // createTriangles(ExplictSurfaceFunctionBuilder::sphere(), mesh);
+    // std::vector<Rendering::Triangle> tris;
+    // for (uint i = 0; i < mesh.triangles.size(); ++i) {
+    //     tris.emplace_back(
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][0]],Color::BLUE),
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][1]],Color::BLUE),
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][2]],Color::BLUE)
+    //         );
+    // }
+    // renderer_.addTriangles(tris, loc);
 
     // Spherical Harmonic
     // renderer_.addSphericalHarmonic([&](Vec3f p) {
@@ -343,45 +355,34 @@ void TestScene::init()
     // }, 10);
 
     // Implicit Sphere
-    std::function<float(float,float,float)> func = [](float x,float y,float z) {
-        // x += 7; y += 7; z += 7;
-        // return (x-2)*(x-2)*(x+2)*(x+2)
-        //      + (y-2)*(y-2)*(y+2)*(y+2)
-        //      + (z-2)*(z-2)*(z+2)*(z+2)
-        //      + 3*(x*x*y*y + x*x*z*z + y*y*z*z)
-        //        + 6*x*y*z - 10*(x*x+y*y+z*z) + 22;
-        x /= 5; y /= 5; z /= 5;
-        float t = (2*x*x + 2*y*y + z*z - 1);
-        return t*t*t - 0.1f*x*x*z*z*z - y*y*z*z*z;
-    };
-    Algo::MarchingCubes mc;
-    mc.setBounds(-10,10,-10,10,-10,10);
-    mc.setResolution(128,128,128);
-    Algo::MarchingCubes::Mesh mesh;
-    mc.generate(func, mesh);
-    std::vector<Triangle> tris;
-    for (int i = 0; i < mesh.triangles.size(); ++i) {
-        tris.emplace_back(
-            Point(mesh.vertices[mesh.triangles[i][0]], Color::GREEN),
-            Point(mesh.vertices[mesh.triangles[i][1]], Color::GREEN),
-            Point(mesh.vertices[mesh.triangles[i][2]], Color::GREEN)
-            );
-    }
-    std::cout << tris.size() << " Triangles" << std::endl;
-    renderer_.addTriangles(tris);
+    // {
+    // auto func = ImplicitSurfaceFunctionBuilder::heart();
+    // TriangleMesh mesh;
+    // createTriangles(func, mesh, 32);
+    // std::vector<Rendering::Triangle> tris;
+    // for (int i = 0; i < mesh.triangles.size(); ++i) {
+    //     tris.emplace_back(
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][0]], Color::GREEN),
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][1]], Color::GREEN),
+    //         Rendering::Point(mesh.vertices[mesh.triangles[i][2]], Color::GREEN)
+    //         );
+    // }
+    // std::cout << tris.size() << " Triangles" << std::endl;
+    // renderer_.addTriangles(tris, loc);
+    // }
 
     // Torus
-    renderer_.addTorus(Vec3f(100, 0, 0), Vec3f(0,1,0), 4, 10, Color::BLUE);
+    // renderer_.addTorus(Vec3f(100, 0, 0), Vec3f(0,1,0), 4, 10, Color::BLUE);
 
     // Tet
-    renderer_.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
+    // renderer_.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
 
     // Parametric Curve
-    renderer_.addParametricCurve([](float t) {return 100.f*Vec3f(2*cos(t)*cos(t),2*cos(t)*sin(t),sin(t));}, 0, 2*M_PI, Color(1,0,0));
+    // renderer_.addParametricCurve([](float t) {return 100.f*Vec3f(2*cos(t)*cos(t),2*cos(t)*sin(t),sin(t));}, 0, 2*M_PI, Color(1,0,0));
 
     // Parametric Surface
-    renderer_.addParametricSurface([](float s, float t) {return Vec3f(s,30+s*s+t*t,t);}, Vec2f(-3,-3), Vec2f(3,3),
-                                   Color(0,1,0));
+    // renderer_.addParametricSurface([](float s, float t) {return Vec3f(s,30+s*s+t*t,t);}, Vec2f(-3,-3), Vec2f(3,3),
+                                   // Color(0,1,0));
 
     // Terrain
     // renderer_.addParametricSurface([&](float s, float t) {

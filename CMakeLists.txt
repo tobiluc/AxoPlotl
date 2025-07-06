@@ -82,6 +82,9 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/presets.cpp
     src/AxoPlotl/utils/Memory.h
     src/AxoPlotl/utils/Memory.cpp
+    src/AxoPlotl/commons/Mesh.h
+    src/AxoPlotl/rendering/Primitives.h
+    src/AxoPlotl/rendering/Primitives.cpp
 
 )
 

@@ -9,6 +9,14 @@
 namespace AxoPlotl
 {
 
+using Renderer = Rendering::Renderer;
+
+class TriMesh
+{
+    std::vector<Vec3f> vertices;
+    std::vector<Vec3i> triangles;
+};
+
 class AxPlGeometryObject
 {
 protected:
@@ -19,7 +27,7 @@ protected:
     Color ui_color_;
     bool visible_ = true;
     bool deleted_ = false;
-    std::vector<Renderer::BatchLocation> renderLocation_;
+    Renderer::GeometryLocation renderLocation_;
 
     void startRenderUI();
 
@@ -32,6 +40,10 @@ public:
         id_(++id_counter_), type_name_(_type_name), name_(_name), ui_color_(Color::random())
     {}
 
+    virtual ~AxPlGeometryObject() = default;
+
+    virtual void addToRenderer(Renderer& r) = 0;
+
     inline void renderUI() {
         startRenderUI();
         updateRenderUI();
@@ -43,6 +55,8 @@ class EmptyObject : public AxPlGeometryObject
 {
 public:
     EmptyObject()  : AxPlGeometryObject("Empty", "NULL") {}
+
+    inline void addToRenderer(Renderer& r) override {}
 
     inline void updateRenderUI() override {}
 };
@@ -61,6 +75,8 @@ public:
         IO::readMesh(filepath_, mesh_);
     }
 
+    void addToRenderer(Renderer& r) override;
+
     void updateRenderUI() override;
 };
 
@@ -77,6 +93,8 @@ public:
         AxPlGeometryObject("Explicit Surface", _name),  f_(_f), color_(_color)
     {}
 
+    void addToRenderer(Renderer& r) override;
+
     void updateRenderUI() override;
 
 };
@@ -92,6 +110,8 @@ public:
     ImplicitSurfaceObject(const std::function<float(float,float,float)>& _f, Color _color = Color::RED) :
         AxPlGeometryObject("Implicit Surface", "NONAME"), f_(_f), color_(_color)
     {}
+
+    void addToRenderer(Renderer& r) override;
 
     void updateRenderUI() override;
 

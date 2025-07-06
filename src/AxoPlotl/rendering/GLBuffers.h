@@ -8,7 +8,7 @@
 #include <vector>
 #include <GLFW/glfw3.h>
 
-namespace AxoPlotl
+namespace AxoPlotl::Rendering
 {
 
 // Vertex Attributes Layout of a common type

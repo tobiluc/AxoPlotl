@@ -40,10 +40,12 @@ public:
 
     inline void addTetrahedralMesh(const std::string& filename) {
         objects_.push_back(std::make_unique<TetrahedralMeshObject>(filename));
+        objects_.back()->addToRenderer(renderer_);
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceObject>(name, func, color));
+        objects_.back()->addToRenderer(renderer_);
     }
 
     // inline void addImplicitSurface(const std::function<float(float,float,float)>& func, Color color = Color::RED) {

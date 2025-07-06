@@ -5,7 +5,7 @@
 #include "PointsRenderBatch.h"
 #include "RenderBatch.h"
 
-namespace AxoPlotl
+namespace AxoPlotl::Rendering
 {
 
 class LinesRenderBatch : public RenderBatch<Line>

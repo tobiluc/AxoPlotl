@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AxoPlotl/commons/Mesh.h"
 #include "AxoPlotl/utils/Typedefs.h"
 
 namespace AxoPlotl::Algo
@@ -17,10 +18,6 @@ private:
     float x0 = -5, x1 = 5, y0 = -5, y1 = 5, z0 = -5, z1 = 5;
 
 public:
-    typedef struct {
-        std::vector<Vec3f> vertices;
-        std::vector<Vec3i> triangles;
-    } Mesh;
 
     inline void setBounds(float x0, float x1, float y0, float y1, float z0, float z1) {
         this->x0 = x0;
@@ -38,7 +35,7 @@ public:
     }
 
     /// Generates a Triangle Mesh representing the surface f(x,y,z) = 0
-    void generate(const std::function<float(float,float,float)>& f, Mesh& mesh);
+    void generate(const std::function<float(Vec3f)>& f, TriangleMesh& mesh);
 
 };
 

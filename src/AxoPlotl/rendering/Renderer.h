@@ -1,13 +1,14 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "AxoPlotl/commons/Mesh.h"
 #include "GLBuffers.h"
 #include "LinesRenderBatch.h"
 #include "PointsRenderBatch.h"
 #include "TrianglesRenderBatch.h"
 #include <sys/types.h>
 
-namespace AxoPlotl
+namespace AxoPlotl::Rendering
 {
 
 class Renderer
@@ -31,24 +32,18 @@ public:
 
         GeometryLocation() {}
 
-        GeometryLocation(const BatchLocation& loc)
-        {
+        GeometryLocation(const BatchLocation& loc) {
             add(loc);
         }
 
-        inline GeometryLocation& add(const BatchLocation& loc)
-        {
+        inline void add(const BatchLocation& loc) {
             this->locations.push_back(loc);
-            return *this;
         }
 
-        inline GeometryLocation& add(const GeometryLocation& where)
-        {
-            for (const auto& loc : where.locations)
-            {
+        inline void add(const GeometryLocation& where) {
+            for (const auto& loc : where.locations) {
                 this->locations.push_back(loc);
             }
-            return *this;
         }
     };
 
@@ -146,41 +141,41 @@ public:
 
     void remove(const GeometryLocation& where);
 
-    GeometryLocation addPoints(const std::vector<Point>& ps);
+    void addPoints(const std::vector<Point>& ps, GeometryLocation& loc);
 
-    GeometryLocation addLines(const std::vector<Line>& ls);
+    void addLines(const std::vector<Line>& ls, GeometryLocation& loc);
 
-    GeometryLocation addTriangles(const std::vector<Triangle>& ts);
+    void addTriangles(const std::vector<Triangle>& ts, GeometryLocation& loc);
 
-    GeometryLocation addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts);
+    void addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts, GeometryLocation& loc);
 
-    GeometryLocation addPoint(const Point& p);
+    void addPoint(const Point& p, GeometryLocation& loc);
 
-    GeometryLocation addLine(const Line& l);
+    void addLine(const Line& l, GeometryLocation& loc);
 
-    GeometryLocation addTriangle(const Triangle& t);
+    void addTriangle(const Triangle& t, GeometryLocation& loc);
 
-    // Shows three vectors originating at a common point p as a red, green and blue line
-    GeometryLocation addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
+    /// Shows three vectors originating at a common point p as a red, green and blue line
+    // GeometryLocation addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 
-    GeometryLocation addTetMesh(TetrahedralMesh& mesh);
+    void addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc);
 
-    GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
+    // GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
 
-    GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
+    // GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
 
     /// Add a function f:R^3->R defined on the unit sphere visualized as the set
     /// (x*f(x), y*f(y), z*f(z)) where x^2+y^2+z^2=1
-    GeometryLocation addSphericalHarmonic(const std::function<float(Vec3f)>& f, const float scale=1.0f, const uint precision = 32);
+    //GeometryLocation addSphericalHarmonic(const std::function<float(Vec3f)>& f, const float scale=1.0f, const uint precision = 32);
 
-    GeometryLocation addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision = 16);
+    //GeometryLocation addTorus(const Vec3f& center, Vec3f axis, const float r, const float R, const Color& color, const uint precision = 16);
 
-    GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
+    //GeometryLocation addTetrahedron(const Vec3f& p0, const Vec3f& p1, const Vec3f& p2, const Vec3f& p3, const Color& color);
 
-    GeometryLocation addParametricCurve(const std::function<Vec3f(float)>& f, const float min_t, const float max_t, const Color& color, const uint precision = 32);
+    //GeometryLocation addParametricCurve(const std::function<Vec3f(float)>& f, const float min_t, const float max_t, const Color& color, const uint precision = 32);
 
-    GeometryLocation addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st,
-                                        const ColorFunction2f& color, const uint precision = 32);
+    // GeometryLocation addParametricSurface(const std::function<Vec3f(float,float)>& f, const Vec2f& min_st, const Vec2f& max_st,
+    //                                     const ColorFunction2f& color, const uint precision = 32);
 };
 
 }

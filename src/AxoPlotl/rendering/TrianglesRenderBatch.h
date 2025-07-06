@@ -1,9 +1,10 @@
 #ifndef TRIANGLESRENDERBATCH_H
 #define TRIANGLESRENDERBATCH_H
 
+#include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 
-namespace AxoPlotl {
+namespace AxoPlotl::Rendering {
 
 class TrianglesRenderBatch : public RenderBatch<Triangle>
 {
