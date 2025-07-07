@@ -4,10 +4,7 @@
 #include "GLFW/glfw3.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <iostream>
-#include <ostream>
-#include <vector>
+#include "AxoPlotl/utils/Typedefs.h"
 
 namespace AxoPlotl
 {
@@ -22,9 +19,9 @@ public:
     Camera(glm::vec3 position, glm::vec3 forward);
 
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 getViewMatrix();
-    glm::mat4 getProjectionMatrix();
-    glm::mat4 getProjectionMatrix(float width_over_height);
+    glm::mat4 getViewMatrix() const;
+    glm::mat4 getProjectionMatrix() const;
+    glm::mat4 getProjectionMatrix(float width_over_height) const;
 
     void update(GLFWwindow* window);
 
@@ -42,7 +39,7 @@ private:
 
     static constexpr glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
     static constexpr float sensitivity = 0.001f; // mouse movement and scroll
-    static constexpr float movement_speed = 40.0f;
+    static constexpr float movement_speed = 5.0f;
 
     struct PerspectiveProjection
     {
@@ -58,13 +55,23 @@ private:
 
         float fov; // field of view in radians
 
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveProjection,
+            position, forward, up, right, yaw, pitch, fov)
+
     } perspective;
 
     struct OrthographicProjection
     {
         glm::vec3 position;
         float height;
+
+        NLOHMANN_DEFINE_TYPE_INTRUSIVE(OrthographicProjection, position, height)
+
     } orthographic;
+
+public:
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Camera, perspective, orthographic)
+
 };
 }
 

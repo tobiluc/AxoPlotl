@@ -132,7 +132,7 @@ void Camera::processMouseMovement(float dx, float dy)
     updateCameraVectors();
 }
 
-glm::mat4 Camera::getViewMatrix()
+glm::mat4 Camera::getViewMatrix() const
 {
     if (isOrthographic)
     {
@@ -144,7 +144,7 @@ glm::mat4 Camera::getViewMatrix()
     }
 }
 
-glm::mat4 Camera::getProjectionMatrix()
+glm::mat4 Camera::getProjectionMatrix() const
 {
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -154,7 +154,7 @@ glm::mat4 Camera::getProjectionMatrix()
     return getProjectionMatrix(aspect_ratio);
 }
 
-glm::mat4 Camera::getProjectionMatrix(float width_over_height)
+glm::mat4 Camera::getProjectionMatrix(float width_over_height) const
 {
     constexpr float near = 0.1f;
     constexpr float far = 4096.0f;

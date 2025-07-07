@@ -1,8 +1,7 @@
 #ifndef LINESRENDERBATCH_H
 #define LINESRENDERBATCH_H
 
-#include "GLBuffers.h"
-#include "PointsRenderBatch.h"
+#include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 
 namespace AxoPlotl::Rendering

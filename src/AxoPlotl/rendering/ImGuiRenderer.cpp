@@ -28,3 +28,25 @@ void ImGuiNewFrame()
 }
 
 }
+
+bool ImGui::InputFloat4x4(const std::string& label, glm::mat4 *M)
+{
+    ImGui::Text("%s", label.c_str());
+    float rows[4][4];
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            rows[i][j] = (*M)[j][i];
+        }
+    }
+    bool res = false;
+    res |= ImGui::InputFloat4("##Row1", rows[0]);
+    res |= ImGui::InputFloat4("##Row2", rows[1]);
+    res |= ImGui::InputFloat4("##Row3", rows[2]);
+    res |= ImGui::InputFloat4("##Row4", rows[3]);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            (*M)[j][i] = rows[i][j];
+        }
+    }
+    return res;
+}

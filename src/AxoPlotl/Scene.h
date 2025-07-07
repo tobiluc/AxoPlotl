@@ -1,12 +1,13 @@
 #pragma once
 
-#include "AxoPlotl/geometry/AxPlGeometryObject.h"
-#include "AxoPlotl/geometry/presets.h"
+#include "AxoPlotl/geometry/GeometryObject.h"
+#include "AxoPlotl/geometry/Surface.h"
 #include "commons/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"
 #include "rendering/Renderer.h"
+#include <nlohmann/json.hpp>
 
 namespace AxoPlotl
 
@@ -17,7 +18,7 @@ class Scene
 protected:
     std::vector<std::unique_ptr<AxPlGeometryObject>> objects_; // TODO: When closing application, Crash: Error prob. cause of missing cleanup?
 
-    Renderer renderer_;
+    Renderer gizmoRenderer_;
     Camera camera_;
     Color clearColor_ = Color::WHITE;
 
@@ -40,17 +41,32 @@ public:
 
     inline void addTetrahedralMesh(const std::string& filename) {
         objects_.push_back(std::make_unique<TetrahedralMeshObject>(filename));
-        objects_.back()->addToRenderer(renderer_);
+        objects_.back()->addToRenderer();
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceObject>(name, func, color));
-        objects_.back()->addToRenderer(renderer_);
+        objects_.back()->addToRenderer();
     }
 
-    // inline void addImplicitSurface(const std::function<float(float,float,float)>& func, Color color = Color::RED) {
-    //     objects_.push_back(std::make_unique<ImplicitSurfaceObject>(func, color));
-    // }
+    inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
+        objects_.push_back(std::make_unique<ImplicitSurfaceObject>(name, func, color));
+        objects_.back()->addToRenderer();
+    }
+
+    void zoomToObject(int id);
+
+    inline bool saveScene(const std::string& filename) {
+        return IO::serialize(filename, *this);
+    }
+
+    inline bool loadScene(const std::string& filename) {
+        return false; // TODO
+        //return IO::deserialize(filename, *this);
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Scene,
+    camera_)
 };
 
 class TestScene : public Scene

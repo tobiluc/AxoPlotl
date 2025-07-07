@@ -1,6 +1,5 @@
 #include "PointsRenderBatch.h"
 #include "../commons/Shader.h"
-#include "../utils/Time.h"
 
 namespace AxoPlotl::Rendering
 {
@@ -46,7 +45,6 @@ void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
 void PointsRenderBatch::render()
 {
     Shader::VERTICES_SHADER.use();
-    Shader::VERTICES_SHADER.setFloat("point_size", pointSize_);
 
     vbo.bind();
     while (!updated.empty())

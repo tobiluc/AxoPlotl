@@ -1,12 +1,11 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include "AxoPlotl/commons/Mesh.h"
-#include "GLBuffers.h"
+//#include "AxoPlotl/commons/Mesh.h"
+//#include "GLBuffers.h"
 #include "LinesRenderBatch.h"
 #include "PointsRenderBatch.h"
 #include "TrianglesRenderBatch.h"
-#include <sys/types.h>
 
 namespace AxoPlotl::Rendering
 {
@@ -58,6 +57,7 @@ public:
             light({Color(0.7,0.7,0.7), Color(0.2,0.2,0.2), Color(0.1,0.1,0.1)}),
             cellScale(0.9f),
             outlineWidth(2.0f),
+            pointSize(5.0f),
             lineWidth(2.0f),
             outlineColor(Color(0,0,0)),
             useColorOverride(false),
@@ -69,7 +69,7 @@ public:
         Light light;
         float cellScale;
         float outlineWidth;
-        //float pointSize;
+        float pointSize;
         float lineWidth;
         Color outlineColor;
         bool useColorOverride = false;
@@ -137,7 +137,7 @@ public:
 
     void render(const RenderMatrices& matrices);
 
-    void renderPicking(const glm::mat4x4& mvp);
+    void renderPicking(const glm::mat4x4& mvp, uint object_index);
 
     void remove(const GeometryLocation& where);
 
@@ -154,9 +154,6 @@ public:
     void addLine(const Line& l, GeometryLocation& loc);
 
     void addTriangle(const Triangle& t, GeometryLocation& loc);
-
-    /// Shows three vectors originating at a common point p as a red, green and blue line
-    // GeometryLocation addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 
     void addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc);
 

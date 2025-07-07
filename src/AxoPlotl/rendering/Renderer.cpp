@@ -11,6 +11,8 @@ Renderer::Renderer()
 
 void Renderer::render(const RenderMatrices& matrices)
 {
+    if (!settings.visible) {return;}
+
     // Get Width and Height of Viewport
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -21,6 +23,7 @@ void Renderer::render(const RenderMatrices& matrices)
     // Points Primitives
     //===========================
     Shader::VERTICES_SHADER.use();
+    Shader::VERTICES_SHADER.setFloat("point_size", settings.pointSize);
     Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", matrices.model_view_projection_matrix);
 
     for (uint i = 0; i < points.size(); ++i)
@@ -72,11 +75,13 @@ void Renderer::render(const RenderMatrices& matrices)
     glUseProgram(0);
 }
 
-void Renderer::renderPicking(const glm::mat4x4& mvp)
+void Renderer::renderPicking(const glm::mat4x4& mvp, uint object_index)
 {
+    if (!settings.visible) {return;}
+
     for (uint i = 0; i < triangles.size(); ++i)
     {
-        triangles[i]->renderPicking(mvp, 3*i+2);
+        triangles[i]->renderPicking(mvp, object_index);
     }
 
     glUseProgram(0);
@@ -199,19 +204,6 @@ void Renderer::addTriangle(const Triangle& t, GeometryLocation& loc)
 {
     addTriangles({t}, loc);
 }
-
-// Renderer::GeometryLocation Renderer::addFrame(const glm::vec3& p, const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
-// {
-//     std::array<float, 3> col0 = {1, 0, 0};
-//     std::array<float, 3> col1 = {0, 1, 0};
-//     std::array<float, 3> col2 = {0, 0, 1};
-
-//     return addLines({
-//         Line(Point(p, col0), Point(p + v0, col0)),
-//         Line(Point(p, col1), Point(p + v1, col1)),
-//         Line(Point(p, col2), Point(p + v2, col2))
-//     });
-// }
 
 void Renderer::addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc)
 {

@@ -2,6 +2,7 @@
 
 #include "AxoPlotl/rendering/GLBuffers.h"
 #include "AxoPlotl/utils/Typedefs.h"
+
 namespace AxoPlotl::Rendering
 {
 
@@ -55,6 +56,10 @@ struct Line
 
     Line(const Point& v0, const Point& v1) :
         vertices{v0, v1}
+    {}
+
+    Line(const Vec3f& p0, const Vec3f& p1, Color color) :
+        Line(Point(p0,color),Point(p1,color))
     {}
 
     inline void buffer(VBO& vbo, uint idx) const

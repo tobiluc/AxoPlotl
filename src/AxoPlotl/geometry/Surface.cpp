@@ -1,4 +1,4 @@
-#include "presets.h"
+#include "Surface.h"
 #include "AxoPlotl/algorithms/marching_cubes.h"
 
 namespace AxoPlotl
@@ -94,7 +94,7 @@ void createTriangles(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, con
     mc.generate(isf.f, mesh);
 }
 
-ExplicitSurfaceFunction ExplictSurfaceFunctionBuilder::sphere(const Vec3f& center, float radius)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(const Vec3f& center, float radius)
 {
     return ExplicitSurfaceFunction{
         .f = [center,radius](float phi, float theta)
@@ -109,7 +109,7 @@ ExplicitSurfaceFunction ExplictSurfaceFunctionBuilder::sphere(const Vec3f& cente
     };
 }
 
-ExplicitSurfaceFunction ExplictSurfaceFunctionBuilder::torus(const Vec3f& center, Vec3f axis, const float r, const float R)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::torus(const Vec3f& center, Vec3f axis, const float r, const float R)
 {
     axis = glm::normalize(axis);
     const Vec3f e1 = glm::normalize(cross(abs(axis[2]) < 0.99f ? Vec3f(0,0,1) : Vec3f(1,0,0), axis));
@@ -125,7 +125,25 @@ ExplicitSurfaceFunction ExplictSurfaceFunctionBuilder::torus(const Vec3f& center
     };
 }
 
-ExplicitSurfaceFunction ExplictSurfaceFunctionBuilder::sphericalHarmonic(const std::function<float(Vec3f)>& f, const Vec3f& offset, float scale)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::moebiusStrip(float R)
+{
+    return ExplicitSurfaceFunction{
+        .f = [R](float u, float v)
+        {
+            float u2 = u * 0.5;
+            float v2 = v * 0.5;
+
+            float t = R + v2*cos(u2);
+            return Vec3f(
+                t*cos(u),
+                t*sin(u),
+                v2*sin(u2)
+            );
+        }, .uMin=0,.uMax=2.0*M_PI,.vMin=-1.0f,.vMax=1.0f
+    };
+}
+
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphericalHarmonic(const std::function<float(Vec3f)>& f, const Vec3f& offset, float scale)
 {
     std::function<Vec3f(float,float)> func = [offset,scale,f](float phi, float theta)
     {
@@ -142,17 +160,73 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::heart()
 {
     return ImplicitSurfaceFunction{
         .f = [](Vec3f p) {
-            // x += 7; y += 7; z += 7;
-            // return (x-2)*(x-2)*(x+2)*(x+2)
-            //      + (y-2)*(y-2)*(y+2)*(y+2)
-            //      + (z-2)*(z-2)*(z+2)*(z+2)
-            //      + 3*(x*x*y*y + x*x*z*z + y*y*z*z)
-            //        + 6*x*y*z - 10*(x*x+y*y+z*z) + 22;
-            float x = p.x/5;
-            float y = p.y/5;
-            float z = p.z/5;
-            float t = (2*x*x + 2*y*y + z*z - 1);
-            return t*t*t - 0.1f*x*x*z*z*z - y*y*z*z*z;
+            float x = p.x;
+            float y = p.y;
+            float z = p.z;
+            float t = x*x + (9.f/4.f)*z*z + y*y - 1;
+            return t*t*t - x*x*y*y*y - (9.f/80.f)*y*y*y*z*z;
+        },
+        .xMin = -2.f, .xMax = 2.f,
+        .yMin = -2.f, .yMax = 2.f,
+        .zMin = -2.f, .zMax = 2.f
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::sphere(const Vec3f& center, float radius)
+{
+    return ImplicitSurfaceFunction{
+        .f = [center,radius](Vec3f p) {
+            float x = p.x - center.x;
+            float y = p.y - center.y;
+            float z = p.z - center.z;
+            return x*x + y*y + z*z - radius*radius;
+        },
+        .xMin = center.x - radius, .xMax = center.x + radius,
+        .yMin = center.y - radius, .yMax = center.y + radius,
+        .zMin = center.z - radius, .zMax = center.z + radius
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::torus(const float r, const float R)
+{
+    return ImplicitSurfaceFunction{
+        .f = [r,R](Vec3f p) {
+            float x = p.x;
+            float y = p.y;
+            float z = p.z;
+            float t = (R - sqrt(x*x+z*z));
+            return t*t + y*y - r*r;
+        },
+        .xMin = -r-R, .xMax = r+R,
+        .yMin = -r-R, .yMax = r+R,
+        .zMin = -r-R, .zMax = r+R
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::gyroid()
+{
+    return ImplicitSurfaceFunction{
+        .f = [](Vec3f p) {
+            float x = p.x, y = p.y, z = p.z;
+            return sin(x)*cos(y)
+                   + sin(y)*cos(z) + sin(z)*cos(x);
+        },
+        .xMin = -10.f, .xMax = 10.f,
+        .yMin = -10.f, .yMax = 10.f,
+        .zMin = -10.f, .zMax = 10.f
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::test()
+{
+    return ImplicitSurfaceFunction{
+        .f = [](Vec3f p) {
+            float x = p.x, y = p.y, z = p.z;
+            return (x-2)*(x-2)*(x+2)*(x+2)
+                 + (y-2)*(y-2)*(y+2)*(y+2)
+                 + (z-2)*(z-2)*(z+2)*(z+2)
+                 + 3*(x*x*y*y + x*x*z*z + y*y*z*z)
+                   + 6*x*y*z - 10*(x*x+y*y+z*z) + 22;
         },
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,

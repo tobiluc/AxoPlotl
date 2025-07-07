@@ -41,12 +41,14 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
 
 void createTriangles(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
 
-class ExplictSurfaceFunctionBuilder
+class ExplicitSurfaceFunctionBuilder
 {
 public:
     static ExplicitSurfaceFunction sphere(const Vec3f& center = Vec3f(0,0,0), float radius = 1.0f);
 
     static ExplicitSurfaceFunction torus(const Vec3f& center = Vec3f(0,0,0), Vec3f axis = Vec3f(0,1,0), const float r = 1, const float R = 2);
+
+    static ExplicitSurfaceFunction moebiusStrip(float R = 1);
 
     /// f:Unit Sphere -> R
     static ExplicitSurfaceFunction sphericalHarmonic(const std::function<float(Vec3f)>& f, const Vec3f& offset = Vec3f(0,0,0), float scale = 1.0f);
@@ -55,7 +57,15 @@ public:
 class ImplicitSurfaceFunctionBuilder
 {
 public:
+    static ImplicitSurfaceFunction sphere(const Vec3f& center = Vec3f(0,0,0), float radius = 1.0f);
+
+    static ImplicitSurfaceFunction torus(const float r = 1, const float R = 2);
+
+    static ImplicitSurfaceFunction gyroid();
+
     static ImplicitSurfaceFunction heart();
+
+    static ImplicitSurfaceFunction test();
 };
 
 }

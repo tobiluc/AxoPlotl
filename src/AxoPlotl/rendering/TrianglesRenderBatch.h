@@ -17,7 +17,7 @@ public:
 
     void render();
 
-    void renderPicking(const glm::mat4x4& mvp, const uint batch_idx);
+    void renderPicking(const glm::mat4x4& mvp, const uint object_index);
 };
 
 }

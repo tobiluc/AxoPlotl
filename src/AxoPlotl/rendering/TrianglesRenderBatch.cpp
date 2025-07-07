@@ -91,12 +91,12 @@ void TrianglesRenderBatch::render()
     vao.unbind();
 }
 
-void TrianglesRenderBatch::renderPicking(const glm::mat4x4& mvp, const uint batch_idx)
+void TrianglesRenderBatch::renderPicking(const glm::mat4x4& mvp, const uint object_index)
 {
     Shader::PICKING_SHADER.use();
 
     Shader::PICKING_SHADER.setMat4x4f("model_view_projection_matrix", mvp);
-    Shader::PICKING_SHADER.setUInt("mesh_index", batch_idx+1);
+    Shader::PICKING_SHADER.setUInt("object_index", object_index);
 
     vbo.bind();
     vao_picking.bind();

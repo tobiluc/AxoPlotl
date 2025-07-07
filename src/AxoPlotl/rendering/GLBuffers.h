@@ -1,12 +1,11 @@
-#ifndef GLBUFFERS_H
-#define GLBUFFERS_H
+#pragma once
 
 #include <glad/glad.h>
 #include <cassert>
 #include <cstddef>
 #include <sys/types.h>
 #include <vector>
-#include <GLFW/glfw3.h>
+//#include <GLFW/glfw3.h>
 
 namespace AxoPlotl::Rendering
 {
@@ -349,5 +348,3 @@ private:
 };
 
 }
-
-#endif // GLBUFFERS_H

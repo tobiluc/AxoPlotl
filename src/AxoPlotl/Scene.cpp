@@ -24,7 +24,8 @@ void Scene::init()
 void Scene::render(GLFWwindow *window)
 {
     // Cache matrices for rendering
-    Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera_.getViewMatrix(), camera_.getProjectionMatrix());
+    //Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera_.getViewMatrix(), camera_.getProjectionMatrix());
+    glm::mat4 view_matrix = camera_.getViewMatrix();
 
     // Picking
     if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED)
@@ -49,7 +50,7 @@ void Scene::render(GLFWwindow *window)
         pickingTexture_.bind();
 
         // Clear Texture
-        GLuint clearColor[3] = {0,0,0};
+        GLuint clearColor[3] = {UINT32_MAX,UINT32_MAX,UINT32_MAX};
         glClearBufferuiv(GL_COLOR, 0, clearColor);
         glClear(GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
@@ -57,17 +58,20 @@ void Scene::render(GLFWwindow *window)
 
         // Change Projection Matrix for Framebuffer (ratio might differ from viewport)
         const auto& projection_matrix = camera_.getProjectionMatrix(framebuffer_ratio);
-        const glm::mat4x4 model_view_projection_matrix = projection_matrix * matrices.model_view_matrix;
+        //const glm::mat4x4 model_view_projection_matrix = projection_matrix * matrices.model_view_matrix;
 
         // Render to Picking Texture
-        renderer_.renderPicking(model_view_projection_matrix);
+        for (uint i = 0; i < objects_.size(); ++i) {
+            objects_[i]->renderPicking(view_matrix, projection_matrix);
+        }
+        //renderer_.renderPicking(model_view_projection_matrix);
 
         // Read Pixel from Picking Texture
         int x = AxoPlotl::MouseHandler::POSITION[0] * xscale / framebuffer_width * pickingTexture_.getWidth();
         int y = AxoPlotl::MouseHandler::POSITION[1] * yscale / framebuffer_height * pickingTexture_.getHeight();
         picked_ = pickingTexture_.readPixel(x, y);
 
-        std::cout << "Picked: Batch: " << picked_.batch_index << ", Buffer: " << picked_.buffer_index << ", Primitive: " << picked_.primitive_id << std::endl;
+        std::cout << "Picked: Object: " << picked_.object_index << ", Buffer: " << picked_.buffer << ", Primitive: " << picked_.primitive_id << std::endl;
 
         // Unbind Texture
         pickingTexture_.unbind();
@@ -92,7 +96,11 @@ void Scene::render(GLFWwindow *window)
     Rendering::ImGuiNewFrame();
 
     // Render
-    renderer_.render(matrices);
+    glm::mat4 projection_matrix = camera_.getProjectionMatrix();
+    for (uint i = 0; i < objects_.size(); ++i) {
+        objects_[i]->render(view_matrix, projection_matrix);
+    }
+    gizmoRenderer_.render(Rendering::Renderer::RenderMatrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
     renderUI();
@@ -110,6 +118,12 @@ void Scene::render(GLFWwindow *window)
     camera_.update(window);
     glfwPollEvents();
 
+    // Remove deleted objects
+    objects_.erase(
+        std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<AxPlGeometryObject>& obj) {
+            return obj->isDeleted();
+    }), objects_.end());
+
 }
 
 void Scene::renderUI()
@@ -118,6 +132,16 @@ void Scene::renderUI()
     // Menu Bar
     //-------------
     if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("File")) {
+            if (ImGui::MenuItem("Save Scene")) {
+                saveScene("/Users/tobiaskohler/Projects/MeshViewer/res/scene.json");
+            }
+            if (ImGui::MenuItem("Load Scene")) {
+                loadScene("/Users/tobiaskohler/Projects/MeshViewer/res/scene.json");
+            }
+            ImGui::EndMenu(); // !File
+        }
+
         if (ImGui::BeginMenu("Add")) {
 
             if (ImGui::BeginMenu("Simple")) {
@@ -157,11 +181,15 @@ void Scene::renderUI()
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Sphere")) {
-                    addExplicitSurface("Sphere", ExplictSurfaceFunctionBuilder::sphere(), Color::random());
+                    addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), Color::random());
                 }
 
                 if (ImGui::MenuItem("Torus")) {
-                    addExplicitSurface("Torus", ExplictSurfaceFunctionBuilder::torus(), Color::random());
+                    addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), Color::random());
+                }
+
+                if (ImGui::MenuItem("Moebius Strip")) {
+                    addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), Color::random());
                 }
 
                 ImGui::EndMenu(); // !Explicit 2D Surface
@@ -175,7 +203,23 @@ void Scene::renderUI()
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Sphere")) {
+                    addImplicitSurface("Sphere", ImplicitSurfaceFunctionBuilder::sphere());
+                }
 
+                if (ImGui::MenuItem("Torus")) {
+                    addImplicitSurface("Torus", ImplicitSurfaceFunctionBuilder::torus());
+                }
+
+                if (ImGui::MenuItem("Gyroid")) {
+                    addImplicitSurface("Gyroid", ImplicitSurfaceFunctionBuilder::gyroid());
+                }
+
+                if (ImGui::MenuItem("Heart")) {
+                    addImplicitSurface("Heart", ImplicitSurfaceFunctionBuilder::heart());
+                }
+
+                if (ImGui::MenuItem("Test")) {
+                    addImplicitSurface("Test", ImplicitSurfaceFunctionBuilder::test());
                 }
 
                 ImGui::EndMenu(); // !Explicit 2D Surface
@@ -206,9 +250,6 @@ void Scene::renderUI()
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
 
             addTetrahedralMesh(filepath);
-            //AxoPlotl::TetrahedralMesh mesh;
-            //AxoPlotl::readMesh(filepath, mesh);
-            //renderer_.addTetMesh(mesh);
         }
         ImGuiFileDialog::Instance()->Close();
     }
@@ -221,44 +262,25 @@ void Scene::renderUI()
     ImGui::Text("%s", ("FPS " + std::to_string(Time::FRAMES_PER_SECOND)).c_str());
     ImGui::Text("%s", ("MEM " + std::to_string(getMemoryUsageMB()) + " MB").c_str());
 
+    ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings.visible);
+
     ImGui::NewLine();
 
     //---------------------------
     // Right Click on Geometry
     //---------------------------
-    if (picked_.batch_index != 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+    if (picked_.object_index != 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
     {
-        ImGui::OpenPopup(("mesh_popup_" + std::to_string(picked_.batch_index)).c_str());
+        ImGui::OpenPopup(("mesh_popup_" + std::to_string(picked_.object_index)).c_str());
     }
-    if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(picked_.batch_index)).c_str()))
+    if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(picked_.object_index)).c_str()))
     {
         // Get Render Batch
-        int i = picked_.batch_index - 1;
+        int i = picked_.object_index - 1;
 
         // Modify Render Settings of Batch
         std::string str = "TEMP";
         ImGui::Text("%s", str.c_str());
-
-        auto& settings = renderer_.settings;
-
-        // Mesh Visibility
-        ImGui::Checkbox("Show Cells", &settings.showCells);
-        ImGui::Checkbox("Show Faces", &settings.showFaces);
-        ImGui::Checkbox("Show Edges", &settings.showEdges);
-        ImGui::Checkbox("Show Vertices", &settings.showVertices);
-
-        // Material
-        ImGui::NewLine();
-        //ImGui::SliderFloat("Vertex Size", &settings.pointSize, 1.f, 16.0f);
-        ImGui::SliderFloat("Edge Width", &settings.lineWidth, 1.f, 16.0f);
-        ImGui::SliderFloat("Cell Scale", &settings.cellScale, 0.0f, 1.0f);
-        ImGui::SliderFloat("Polygon Outline Width", &settings.outlineWidth, 0.0f, 12.0f);
-        ImGui::ColorEdit3("Polygon Outline Color", &settings.outlineColor[0]);
-        ImGui::Checkbox("Use Override Color", &settings.useColorOverride);
-        ImGui::ColorEdit3("Override Color", &settings.colorOverride[0]);
-        ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
-        ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
-        ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
 
         ImGui::EndPopup();
     }
@@ -290,6 +312,12 @@ void Scene::renderUI()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
+void Scene::zoomToObject(int id)
+{
+    // TODO: Get object bounding box and make camera point
+    // towards the box center while positioned at a reasonable distance
+}
+
 void TestScene::init()
 {
     Scene::init();
@@ -306,19 +334,24 @@ void TestScene::init()
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
-    Rendering::Renderer::GeometryLocation loc;
+    Rendering::Renderer::GeometryLocation gizmoLoc;
+
+    // Coordinate Frame
+    gizmoRenderer_.addLines({
+        Rendering::Line(Vec3f(0,0,0), Vec3f(5,0,0), Color::RED),
+        Rendering::Line(Vec3f(0,0,0), Vec3f(0,5,0), Color::GREEN),
+        Rendering::Line(Vec3f(0,0,0), Vec3f(0,0,5), Color::BLUE)
+    }, gizmoLoc);
+    gizmoRenderer_.settings.lineWidth = 5.0f;
 
     // Triangle
-    Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
-    Rendering::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
-    Rendering::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
-    renderer_.addPoint(p0, loc);
-    renderer_.addPoint(p1, loc);
-    renderer_.addPoint(p2, loc);
-    renderer_.addTriangle(Rendering::Triangle(p0, p1, p2), loc);
-
-    // Frame
-    //renderer_.addFrame(glm::vec3(0,0,0), glm::vec3(50,0,0), glm::vec3(0,50,0), glm::vec3(0,0,50));
+    // Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
+    // Rendering::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
+    // Rendering::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
+    // renderer_.addPoint(p0, loc);
+    // renderer_.addPoint(p1, loc);
+    // renderer_.addPoint(p2, loc);
+    // renderer_.addTriangle(Rendering::Triangle(p0, p1, p2), loc);
 
     // Circle
     // std::vector<glm::vec3> circle;
@@ -335,67 +368,10 @@ void TestScene::init()
     // renderer_.addConvexPolygon(true, circle, Color(1,1,0));
     // renderer_.addConvexPolygon(false, circle, Color(0,1,1));
 
-    // Sphere
-    // renderer_.addSphere(Vec3f(50, 0, 0), 10, Color(1,0,0));
-    // TriangleMesh mesh;
-    // createTriangles(ExplictSurfaceFunctionBuilder::sphere(), mesh);
-    // std::vector<Rendering::Triangle> tris;
-    // for (uint i = 0; i < mesh.triangles.size(); ++i) {
-    //     tris.emplace_back(
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][0]],Color::BLUE),
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][1]],Color::BLUE),
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][2]],Color::BLUE)
-    //         );
-    // }
-    // renderer_.addTriangles(tris, loc);
-
     // Spherical Harmonic
     // renderer_.addSphericalHarmonic([&](Vec3f p) {
     //     return pow(p.x,4) +  pow(p.y,4) +  pow(p.z,4);
     // }, 10);
-
-    // Implicit Sphere
-    // {
-    // auto func = ImplicitSurfaceFunctionBuilder::heart();
-    // TriangleMesh mesh;
-    // createTriangles(func, mesh, 32);
-    // std::vector<Rendering::Triangle> tris;
-    // for (int i = 0; i < mesh.triangles.size(); ++i) {
-    //     tris.emplace_back(
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][0]], Color::GREEN),
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][1]], Color::GREEN),
-    //         Rendering::Point(mesh.vertices[mesh.triangles[i][2]], Color::GREEN)
-    //         );
-    // }
-    // std::cout << tris.size() << " Triangles" << std::endl;
-    // renderer_.addTriangles(tris, loc);
-    // }
-
-    // Torus
-    // renderer_.addTorus(Vec3f(100, 0, 0), Vec3f(0,1,0), 4, 10, Color::BLUE);
-
-    // Tet
-    // renderer_.addTetrahedron(Vec3f(10,10,10), Vec3f(20,10,10), Vec3f(10,10,0), Vec3f(10,20,10), Color(0,0,1));
-
-    // Parametric Curve
-    // renderer_.addParametricCurve([](float t) {return 100.f*Vec3f(2*cos(t)*cos(t),2*cos(t)*sin(t),sin(t));}, 0, 2*M_PI, Color(1,0,0));
-
-    // Parametric Surface
-    // renderer_.addParametricSurface([](float s, float t) {return Vec3f(s,30+s*s+t*t,t);}, Vec2f(-3,-3), Vec2f(3,3),
-                                   // Color(0,1,0));
-
-    // Terrain
-    // renderer_.addParametricSurface([&](float s, float t) {
-    //     return Vec3f(10*s,-100+SimplexNoise::noise(s, t),10*t);
-    // }, Vec2f(-10,-10), Vec2f(10,10), Color::WHITE, 128);
-
-
-    //-----------------------
-    // Init Input Field
-    //-----------------------
-    // inputs_.clear();
-    // inputs_.push_back(AxPlInput(rootScope));
-    // inputs_.push_back(AxPlInput(rootScope));
 }
 
 }

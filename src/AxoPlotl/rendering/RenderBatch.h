@@ -1,10 +1,10 @@
 #ifndef RENDERBATCH_H
 #define RENDERBATCH_H
 
-#include <sys/types.h>
+//#include <sys/types.h>
 #include <set>
 #include "GLBuffers.h"
-#include "../utils/Typedefs.h"
+//#include "../utils/Typedefs.h"
 
 namespace AxoPlotl::Rendering
 {

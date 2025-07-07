@@ -19,6 +19,8 @@
 #include <OpenVolumeMesh/Core/GeometryKernel.hh>
 #include <OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh>
 
+#include <nlohmann/json.hpp>
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -57,6 +59,8 @@ inline std::ostream& operator<<(std::ostream& os, const Vec3f& v) {
     return os << v.x << " " << v.y << " " << v.z;
 }
 
+
+
 namespace OVM = OpenVolumeMesh;
 using VertexHandle = OVM::VertexHandle;
 using EdgeHandle = OVM::EdgeHandle;
@@ -70,6 +74,52 @@ using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::Hexahedra
 
 struct Light {Color ambient, diffuse, specular;};
 
+namespace IO
+{
 
-
+template<typename T>
+bool deserialize(const std::string& filename, T& obj) {
+    std::ifstream file(filename);
+    if (!file) {return false;}
+    try {
+        nlohmann::json j;
+        file >> j;
+        obj = j.get<T>();
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false;
+    }
 }
+
+template<typename T>
+bool serialize(const std::string& filename, const T& obj) {
+    std::ofstream file(filename);
+    if (!file) {return false;}
+
+    try {
+        file << nlohmann::json(obj).dump(4);
+        return true;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return false;
+    }
+}
+}
+
+
+} // !namespace AxoPlotl
+
+namespace nlohmann {
+
+inline void to_json(json& j, const AxoPlotl::Vec3f& v) {
+    j = json{{"x", v.x}, {"y", v.y}, {"z", v.z}};
+}
+
+inline void from_json(const json& j, AxoPlotl::Vec3f& v) {
+    j.at("x").get_to(v.x);
+    j.at("y").get_to(v.y);
+    j.at("z").get_to(v.z);
+}
+
+} // !namespace nlohmann

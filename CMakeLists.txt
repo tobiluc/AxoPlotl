@@ -72,19 +72,20 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/parsing/Scope.h
     src/AxoPlotl/parsing/Scope.cpp
     src/AxoPlotl/parsing/tree.cpp
-    src/AxoPlotl/geometry/AxPlGeometryObject.h
-    src/AxoPlotl/geometry/AxPlGeometryObject.cpp
+    src/AxoPlotl/geometry/GeometryObject.h
+    src/AxoPlotl/geometry/GeometryObject.cpp
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
     src/AxoPlotl/Scene.h
     src/AxoPlotl/Scene.cpp
-    src/AxoPlotl/geometry/presets.h
-    src/AxoPlotl/geometry/presets.cpp
+    src/AxoPlotl/geometry/Surface.h
+    src/AxoPlotl/geometry/Surface.cpp
     src/AxoPlotl/utils/Memory.h
     src/AxoPlotl/utils/Memory.cpp
     src/AxoPlotl/commons/Mesh.h
     src/AxoPlotl/rendering/Primitives.h
     src/AxoPlotl/rendering/Primitives.cpp
+
 
 )
 
@@ -187,6 +188,17 @@ if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
 endif()
 
 #=========================
+# NLohmann Json
+#=========================
+if (NOT TARGET nlohmann_json::nlohmann_json)
+    FetchContent_Declare(
+        json
+        URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+    )
+    FetchContent_MakeAvailable(json)
+endif()
+
+#=========================
 # Link
 #=========================
 target_link_libraries(${PROJECT_NAME}
@@ -197,6 +209,7 @@ glm
 OpenVolumeMesh::OpenVolumeMesh
 ImGui
 ImGuiFileDialog
+nlohmann_json::nlohmann_json
 )
 target_link_libraries(ImGuiFileDialog ImGui)
 
