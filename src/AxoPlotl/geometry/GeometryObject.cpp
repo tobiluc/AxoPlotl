@@ -1,4 +1,7 @@
 #include "GeometryObject.h"
+#include "AxoPlotl/parsing/Scope.h"
+#include "AxoPlotl/parsing/parsing.h"
+#include "AxoPlotl/parsing/tokens.h"
 #include "AxoPlotl/rendering/ImGuiRenderer.h"
 #include "imgui.h"
 
@@ -103,6 +106,15 @@ void TetrahedralMeshObject::updateRenderUI()
 {
 }
 
+void HexahedralMeshObject::addToRenderer()
+{
+    renderer_.addHexMesh(mesh_, renderLoc_);
+}
+
+void HexahedralMeshObject::updateRenderUI()
+{
+}
+
 void ExplicitSurfaceObject::addToRenderer()
 {
     TriangleMesh mesh;
@@ -159,9 +171,52 @@ void ImplicitSurfaceObject::updateRenderUI()
     // Text
     //-------------------
     ImGui::NewLine();
-    if (ImGui::InputText("Input", input_buffer_, sizeof(input_buffer_)))
+    ImGui::Text("f(x,y,z) = ");
+    ImGui::SameLine();
+    if (ImGui::InputText(" = 0", input_buffer_, sizeof(input_buffer_)))
     {
         // Text Changed
+    }
+
+    //-------------------
+    // Range Options
+    //-------------------
+    ImGui::InputFloat2("x Range", &f_.xMin);
+    ImGui::InputFloat2("y Range", &f_.yMin);
+    ImGui::InputFloat2("z Range", &f_.zMin);
+    ImGui::SliderInt("Resolution", &resolution_, 2, 64);
+
+    //-------------------
+    // Update
+    //-------------------
+    if (ImGui::Button("Confirm")) {
+        // Parse Input Text
+        auto tokens = Parsing::tokenize(input_buffer_);
+        for (auto& token : tokens) std::cout << token << std::endl;
+
+        // Tranform AST into a function of x, y, z
+        auto root = Parsing::Parser(tokens).parse();
+        root->print();
+        std::cout << std::endl;
+        std::function<float(Vec3f)> func = [&root](const Vec3f& v) {
+            Scope scope;
+            scope.setVariable("x", std::make_shared<Parsing::ScalarNode>(v.x));
+            scope.setVariable("y", std::make_shared<Parsing::ScalarNode>(v.y));
+            scope.setVariable("z", std::make_shared<Parsing::ScalarNode>(v.z));
+            auto value = root->evaluate(scope);
+            if (!value) {std::cerr << "Value is NULL" << std::endl;}
+            auto scalar = dynamic_cast<Parsing::ScalarValue*>(value.get());
+            if (scalar) {return (float)(scalar->value);}
+            std::cerr << "Value is not a Scalar" << std::endl;
+            return 0.0f;
+        };
+
+        // Update renderer
+        this->f_.f = func;
+        renderer_.remove(renderLoc_);
+        this->addToRenderer();
+
+        //std::cout << "f(1,2,3) = " << func(1, 2, 3) << std::endl;
     }
 }
 

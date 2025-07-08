@@ -16,7 +16,9 @@ public:
     // Camera Options
     bool isOrthographic = false;
 
-    Camera(glm::vec3 position, glm::vec3 forward);
+    Camera(glm::vec3 position, glm::vec3 forward) {set(position, forward);}
+
+    void set(glm::vec3 position, glm::vec3 forward);
 
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 getViewMatrix() const;
@@ -56,7 +58,7 @@ private:
         float fov; // field of view in radians
 
         NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveProjection,
-            position, forward, up, right, yaw, pitch, fov)
+                                       position, forward, up, right, yaw, pitch, fov)
 
     } perspective;
 

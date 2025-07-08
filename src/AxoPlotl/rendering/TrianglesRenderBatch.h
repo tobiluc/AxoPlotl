@@ -15,6 +15,8 @@ public:
 
     void initFromMesh(TetrahedralMesh& mesh);
 
+    void initFromMesh(HexahedralMesh& mesh);
+
     void render();
 
     void renderPicking(const glm::mat4x4& mvp, const uint object_index);

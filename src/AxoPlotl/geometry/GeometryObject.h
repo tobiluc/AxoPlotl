@@ -98,6 +98,31 @@ public:
     void updateRenderUI() override;
 };
 
+class HexahedralMeshObject : public AxPlGeometryObject
+{
+private:
+    std::string filepath_;
+    HexahedralMesh mesh_;
+
+public:
+    HexahedralMeshObject(const std::string& _filepath, const glm::mat4& _transform = glm::mat4(1.0)) :
+        AxPlGeometryObject("Hex Mesh", std::filesystem::path(_filepath).filename(), _transform),
+        filepath_(_filepath)
+    {
+        IO::readMesh(filepath_, mesh_);
+    }
+
+    HexahedralMeshObject(const HexahedralMesh& _mesh, const glm::mat4& _transform = glm::mat4(1.0)) :
+        AxPlGeometryObject("Hex Mesh", std::filesystem::path("NONAME").filename(), _transform),
+        filepath_(""), mesh_(_mesh)
+    {;
+    }
+
+    void addToRenderer() override;
+
+    void updateRenderUI() override;
+};
+
 class ExplicitSurfaceObject : public AxPlGeometryObject
 {
 private:
@@ -122,7 +147,7 @@ class ImplicitSurfaceObject : public AxPlGeometryObject
 private:
     ImplicitSurfaceFunction f_;
     Color color_;
-    uint resolution_ = 32;
+    int resolution_ = 32;
     char input_buffer_[256];
 
 public:

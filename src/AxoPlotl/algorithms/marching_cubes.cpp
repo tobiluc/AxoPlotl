@@ -384,10 +384,10 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                     int i2 = triangleTable[cubeIndex][i + 2];
 
                     int base = mesh.vertices.size();
-                    mesh.vertices.push_back(vertList[i0]);
-                    mesh.vertices.push_back(vertList[i1]);
-                    mesh.vertices.push_back(vertList[i2]);
-                    mesh.triangles.push_back({base+0, base+1, base+2});
+                    mesh.addVertex(vertList[i0]);
+                    mesh.addVertex(vertList[i1]);
+                    mesh.addVertex(vertList[i2]);
+                    mesh.addTriangle(base+0, base+1, base+2);
                 }
             }
         }

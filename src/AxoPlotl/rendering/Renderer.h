@@ -61,7 +61,8 @@ public:
             lineWidth(2.0f),
             outlineColor(Color(0,0,0)),
             useColorOverride(false),
-            colorOverride(Color(1,1,1))
+            colorOverride(Color(1,1,1)),
+            wireframe(false)
         {}
 
         bool visible;
@@ -74,6 +75,7 @@ public:
         Color outlineColor;
         bool useColorOverride = false;
         Color colorOverride;
+        bool wireframe = false;
     };
 
     struct RenderMatrices
@@ -156,6 +158,8 @@ public:
     void addTriangle(const Triangle& t, GeometryLocation& loc);
 
     void addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc);
+
+    void addHexMesh(HexahedralMesh& mesh, GeometryLocation& loc);
 
     // GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
 

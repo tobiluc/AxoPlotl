@@ -16,6 +16,7 @@ struct ASTNode
 {
     virtual ~ASTNode() = default;
     virtual const std::shared_ptr<Value> evaluate(Scope& context) const = 0;
+
     virtual void print(uint depth = 0) const = 0;
 };
 

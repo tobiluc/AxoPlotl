@@ -71,6 +71,44 @@ void TrianglesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     assert(free.size() == 0 && num_elements() == max_num_elements());
 }
 
+void TrianglesRenderBatch::initFromMesh(HexahedralMesh& mesh)
+{
+    uint nTriangles = 2*mesh.n_faces();
+    const uint nVertices = 3*nTriangles;
+    uint nIndices = nVertices;
+
+    vao.generateNew();
+    vbo.generateNew(nVertices);
+    ibo.generateNew(nIndices);
+
+    removeAll(nTriangles);
+
+    // create the vertex data
+    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)
+    {
+        auto fh = *f_it;
+        auto hfh = fh.halfface_handle(0);
+        if (!mesh.incident_cell(hfh).is_valid()) {hfh = hfh.opposite_handle();}
+
+        auto vhs = mesh.get_halfface_vertices(fh.halfface_handle(0));
+
+        Color col = Color::GREEN;
+
+        // Vertex Positions
+        const auto& p0 = mesh.vertex(vhs[0]);
+        const auto& p1 = mesh.vertex(vhs[1]);
+        const auto& p2 = mesh.vertex(vhs[2]);
+        const auto& p3 = mesh.vertex(vhs[3]);
+
+        add(Triangle(Point(p0, col), Point(p1, col), Point(p2, col)));
+        add(Triangle(Point(p0, col), Point(p2, col), Point(p3, col)));
+    }
+
+    // Generate picking buffers
+    vao_picking.generateNew();
+    vbo.defineAttributes({0,3});
+}
+
 void TrianglesRenderBatch::render()
 {
     Shader::FACES_SHADER.use();

@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include "Scene.h"
 #include "AxoPlotl/algorithms/marching_cubes.h"
+#include "AxoPlotl/geometry/Octree.h"
 #include "AxoPlotl/utils/FileAccessor.h"
 #include "AxoPlotl/utils/Memory.h"
 #include "ImGuiFileDialog.h"
@@ -263,6 +264,10 @@ void Scene::renderUI()
     ImGui::Text("%s", ("MEM " + std::to_string(getMemoryUsageMB()) + " MB").c_str());
 
     ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings.visible);
+    ImGui::Checkbox("Wireframe", &gizmoRenderer_.settings.wireframe);
+    if (ImGui::Button("Reset Camera")) {
+        camera_.set(Vec3f(0,0,1), Vec3f(0,0,-1));
+    }
 
     ImGui::NewLine();
 
@@ -343,6 +348,25 @@ void TestScene::init()
         Rendering::Line(Vec3f(0,0,0), Vec3f(0,0,5), Color::BLUE)
     }, gizmoLoc);
     gizmoRenderer_.settings.lineWidth = 5.0f;
+
+    // Octree Test
+    Octree tree(AABB{0,1,0,1,0,1});
+    tree.refineNode(0);
+    tree.refineNode(8);
+    for (u32 i = 0; i < tree.numNodes(); ++i) {
+        auto c = tree.getNodeBounds(i).center();
+        std::cout << i << ": " << c[0] << " " << c[1] << " " << c[2] << std::endl;
+    }
+    HexahedralMesh mesh;
+    for (u32 i = 0; i < tree.numNodes(); ++i) {
+        auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
+        std::vector<OVM::VH> vhs;
+        for (u32 j = 0; j < 8; ++j) {
+            vhs.push_back(mesh.add_vertex(c[j]));
+        }
+        mesh.add_cell(vhs);
+    }
+    gizmoRenderer_.addHexMesh(mesh, gizmoLoc);
 
     // Triangle
     // Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});

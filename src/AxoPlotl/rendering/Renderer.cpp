@@ -67,10 +67,12 @@ void Renderer::render(const RenderMatrices& matrices)
     Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings.outlineWidth);
     Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings.outlineColor);
 
+    glPolygonMode( GL_FRONT_AND_BACK, settings.wireframe? GL_LINE : GL_FILL );
     for (uint i = 0; i < triangles.size(); ++i)
     {
         triangles[i]->render();
     }
+    if (settings.wireframe) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
 
     glUseProgram(0);
 }
@@ -220,6 +222,21 @@ void Renderer::addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc)
     loc.add(BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()});
     loc.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
 
+}
+
+void Renderer::addHexMesh(HexahedralMesh& mesh, GeometryLocation& loc)
+{
+    //uint points_batch_index = findEmptyPointsBatch();
+    //uint lines_batch_index = findEmptyLinesBatch();
+    uint triangles_batch_index = findEmptyTrianglesBatch();
+
+    //points[points_batch_index]->initFromMesh(mesh);
+    //lines[lines_batch_index]->initFromMesh(mesh);
+    triangles[triangles_batch_index]->initFromMesh(mesh);
+
+    //loc.add(BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()});
+    //loc.add(BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()});
+    loc.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
 }
 
 // Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)

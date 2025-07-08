@@ -86,6 +86,10 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/rendering/Primitives.h
     src/AxoPlotl/rendering/Primitives.cpp
 
+    src/AxoPlotl/geometry/Octree.h
+
+    src/AxoPlotl/geometry/Octree.cpp
+
 
 )
 
@@ -240,6 +244,7 @@ target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
     OpenVolumeMesh::OpenVolumeMesh
     ImGui
     ImGuiFileDialog
+    nlohmann_json::nlohmann_json
 )
 target_include_directories(${PROJECT_NAME}-Tests PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

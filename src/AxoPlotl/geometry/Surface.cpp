@@ -44,7 +44,7 @@ void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh &mesh, con
         s = esf.uMin + i * (esf.uMax - esf.uMin) / resolution;
         for (int j = 0; j <= resolution; ++j) {
             t = esf.vMin + j * (esf.vMax - esf.vMin) / resolution;
-            mesh.vertices.push_back(esf(s, t));
+            mesh.addVertex(esf(s, t));
         }
     }
 
@@ -54,13 +54,13 @@ void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh &mesh, con
             int row1 = i * (resolution + 1);
             int row2 = (i + 1) * (resolution + 1);
 
-            mesh.triangles.emplace_back(
+            mesh.addTriangle(
                 vo + row1 + j + 0,
                 vo + row2 + j + 0,
                 vo + row2 + j + 1
             );
 
-            mesh.triangles.emplace_back(
+            mesh.addTriangle(
                 vo + row1 + j + 0,
                 vo + row2 + j + 1,
                 vo + row1 + j + 1
@@ -82,7 +82,7 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
 
     // Add Lines
     for (uint i = 0; i < resolution-1; ++i) {
-        mesh.lines.emplace_back(vo + i + 0, vo + i + 1);
+        mesh.addLine(vo + i + 0, vo + i + 1);
     }
 }
 
