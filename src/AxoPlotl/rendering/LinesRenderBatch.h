@@ -1,6 +1,7 @@
 #ifndef LINESRENDERBATCH_H
 #define LINESRENDERBATCH_H
 
+#include "AxoPlotl/geometry/ovm.h"
 #include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 

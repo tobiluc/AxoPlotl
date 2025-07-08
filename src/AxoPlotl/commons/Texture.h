@@ -1,7 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "../utils/stb_image.h"
+#include "AxoPlotl/commons/stb_image.h"
 
 /*
 namespace MV

@@ -39,19 +39,34 @@ public:
     /// Render the scene and UI
     void render(GLFWwindow* window);
 
+    inline void addMesh(const std::string& filename) {
+        objects_.push_back(std::make_unique<MeshObject>(filename));
+        objects_.back()->addToRenderer(this);
+    }
+
     inline void addTetrahedralMesh(const std::string& filename) {
         objects_.push_back(std::make_unique<TetrahedralMeshObject>(filename));
-        objects_.back()->addToRenderer();
+        objects_.back()->addToRenderer(this);
+    }
+
+    inline void addHexahedralMesh(const std::string& filename) {
+        objects_.push_back(std::make_unique<HexahedralMeshObject>(filename));
+        objects_.back()->addToRenderer(this);
+    }
+
+    inline void addHexahedralMesh(const HexahedralMesh& mesh) {
+        objects_.push_back(std::make_unique<HexahedralMeshObject>(mesh));
+        objects_.back()->addToRenderer(this);
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceObject>(name, func, color));
-        objects_.back()->addToRenderer();
+        objects_.back()->addToRenderer(this);
     }
 
     inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
         objects_.push_back(std::make_unique<ImplicitSurfaceObject>(name, func, color));
-        objects_.back()->addToRenderer();
+        objects_.back()->addToRenderer(this);
     }
 
     void zoomToObject(int id);

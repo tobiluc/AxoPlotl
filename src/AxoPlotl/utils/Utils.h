@@ -93,32 +93,9 @@ namespace AxoPlotl
         D += (1. - delta) * (I - D);
     }
 
-
-    inline std::string toLower(const std::string& s)
-    {
-        std::string r = s;
-        std::transform(r.begin(), r.end(), r.begin(),[](unsigned char c){return std::tolower(c);});
-        return r;
-    }
-
-    inline std::pair<std::string,std::string> splitFilenameExtension(const std::string& filename)
-    {
-        auto i = filename.find_last_of(".");
-        return std::make_pair(filename.substr(0,i), filename.substr(i));
-    }
-
-    inline Vec3f lerp(const Vec3f& a, const Vec3f& b, float t) {
+    template<typename Vec3T>
+    inline Vec3T lerp3d(const Vec3T& a, const Vec3T& b, float t) {
         return a + (b - a) * t;
     }
-
-    inline std::string getWorkingDirectory()
-    {
-        const size_t size = 1024;
-        char buffer[size];
-        if (getcwd(buffer, size) != NULL) return buffer;
-        return "ERROR";
-    }
-
-    int mesh_n_boundary_faces(TetrahedralMesh& mesh);
     
 } // namespace MV

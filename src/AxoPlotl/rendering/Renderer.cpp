@@ -1,6 +1,6 @@
 #include "Renderer.h"
-#include "../utils/Utils.h"
 #include "../commons/Shader.h"
+#include "AxoPlotl/geometry/glm.h"
 
 namespace AxoPlotl::Rendering
 {
@@ -89,20 +89,20 @@ void Renderer::renderPicking(const glm::mat4x4& mvp, uint object_index)
     glUseProgram(0);
 }
 
-void Renderer::remove(const GeometryLocation& where)
+void Renderer::clear(const BatchIndices& where)
 {
-    for (const auto& loc : where.locations)
+    for (const auto& loc : where)
     {
-        switch (loc.type)
+        switch (loc.first)
         {
         case GL_POINTS:
-            points[loc.batch_index]->remove(loc.element_indices);
+            points[loc.second]->clear();
             break;
         case GL_LINES:
-            lines[loc.batch_index]->remove(loc.element_indices);
+            lines[loc.second]->clear();
             break;
         case GL_TRIANGLES:
-            triangles[loc.batch_index]->remove(loc.element_indices);
+            triangles[loc.second]->clear();
             break;
         default:
             break;
@@ -164,50 +164,50 @@ uint Renderer::findEmptyTrianglesBatch()
     return triangles.size()-1;
 }
 
-void Renderer::addPoints(const std::vector<Point>& ps, GeometryLocation& loc)
+void Renderer::addPoints(const std::vector<Point>& ps, BatchIndices& loc)
 {
     uint batch_index = findPointsBatchIndexWithRoom(ps.size());
-    std::vector<uint> element_indices = points[batch_index]->add(ps);
-    loc.add(GeometryLocation(BatchLocation{.type = GL_POINTS, .batch_index = batch_index, .element_indices = element_indices}));
+    points[batch_index]->add(ps);
+    loc.emplace_back(GL_POINTS, batch_index);
 }
 
-void Renderer::addLines(const std::vector<Line>& ls, GeometryLocation& loc)
+void Renderer::addLines(const std::vector<Line>& ls, BatchIndices& loc)
 {
     uint batch_index = findLinesBatchIndexWithRoom(ls.size());
-    std::vector<uint> element_indices = lines[batch_index]->add(ls);
-    loc.add(GeometryLocation(BatchLocation{.type = GL_LINES, .batch_index = batch_index, .element_indices = element_indices}));
+    lines[batch_index]->add(ls);
+    loc.emplace_back(GL_LINES, batch_index);
 }
 
-void Renderer::addTriangles(const std::vector<Triangle>& ts, GeometryLocation& loc)
+void Renderer::addTriangles(const std::vector<Triangle>& ts, BatchIndices& loc)
 {
     uint batch_index = findTrianglesBatchIndexWithRoom(ts.size());
-    std::vector<uint> element_indices = triangles[batch_index]->add(ts);
-    loc.add(GeometryLocation(BatchLocation{.type = GL_TRIANGLES, .batch_index = batch_index, .element_indices = element_indices}));
+    triangles[batch_index]->add(ts);
+    loc.emplace_back(GL_TRIANGLES, batch_index);
 }
 
-void Renderer::addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts, GeometryLocation& loc)
+void Renderer::addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts, BatchIndices& loc)
 {
     addPoints(ps, loc);
     addLines(ls, loc);
     addTriangles(ts, loc);
 }
 
-void Renderer::addPoint(const Point& p, GeometryLocation& loc)
+void Renderer::addPoint(const Point& p, BatchIndices& loc)
 {
     return addPoints({p}, loc);
 }
 
-void Renderer::addLine(const Line& l, GeometryLocation& loc)
+void Renderer::addLine(const Line& l, BatchIndices& loc)
 {
     addLines({l}, loc);
 }
 
-void Renderer::addTriangle(const Triangle& t, GeometryLocation& loc)
+void Renderer::addTriangle(const Triangle& t, BatchIndices& loc)
 {
     addTriangles({t}, loc);
 }
 
-void Renderer::addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc)
+void Renderer::addTetMesh(TetrahedralMesh& mesh, BatchIndices& loc)
 {
     // Create a new set of batches for the mesh
     uint points_batch_index = findEmptyPointsBatch();
@@ -218,13 +218,12 @@ void Renderer::addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc)
     lines[lines_batch_index]->initFromMesh(mesh);
     triangles[triangles_batch_index]->initFromMesh(mesh);
 
-    loc.add(BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()});
-    loc.add(BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()});
-    loc.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
-
+    loc.emplace_back(GL_POINTS, points_batch_index);
+    loc.emplace_back(GL_LINES, lines_batch_index);
+    loc.emplace_back(GL_TRIANGLES, triangles_batch_index);
 }
 
-void Renderer::addHexMesh(HexahedralMesh& mesh, GeometryLocation& loc)
+void Renderer::addHexMesh(HexahedralMesh& mesh, BatchIndices& loc)
 {
     //uint points_batch_index = findEmptyPointsBatch();
     //uint lines_batch_index = findEmptyLinesBatch();
@@ -234,9 +233,64 @@ void Renderer::addHexMesh(HexahedralMesh& mesh, GeometryLocation& loc)
     //lines[lines_batch_index]->initFromMesh(mesh);
     triangles[triangles_batch_index]->initFromMesh(mesh);
 
+    loc.emplace_back(GL_TRIANGLES, triangles_batch_index);
     //loc.add(BatchLocation{.type = GL_POINTS, .batch_index = points_batch_index, .element_indices = points[points_batch_index]->allElementIndices()});
     //loc.add(BatchLocation{.type = GL_LINES, .batch_index = lines_batch_index, .element_indices = lines[lines_batch_index]->allElementIndices()});
-    loc.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
+    //loc.add(BatchLocation{.type = GL_TRIANGLES, .batch_index = triangles_batch_index, .element_indices = triangles[triangles_batch_index]->allElementIndices()});
+}
+
+inline std::ostream& operator<<(std::ostream& os, const AxoPlotl::Vec3f& v) {
+    return os << v.x << " " << v.y << " " << v.z;
+}
+
+void Renderer::addMesh(Mesh& mesh, BatchIndices& loc)
+{
+    // Add Points
+    // uint points_batch_index = findEmptyPointsBatch();
+    // points[points_batch_index]->clear(mesh.numVertices());
+    // for (int i = 0 ;i < mesh.numVertices(); ++i) {
+    //     points[points_batch_index]->add(Point(mesh.vertex(i), Color::RED));
+    // }
+    // loc.emplace_back(GL_POINTS, points_batch_index);
+    // return;
+
+    uint triangles_batch_index = findEmptyTrianglesBatch();
+
+    // Count number of triangles
+    size_t n_tris = 0;
+    for (int i = 0; i < mesh.numCells(); ++i) {
+        const auto& cell = mesh.cell(i);
+        if (cell.dim == 2) {
+            n_tris += cell.vertices.size()-2;
+        }
+    }
+    triangles[triangles_batch_index]->reset(n_tris);
+    std::vector<Triangle> tris;
+    tris.reserve(n_tris);
+
+    for (int i = 0; i < mesh.numCells(); ++i) {
+        const auto& cell = mesh.cell(i);
+
+        if (cell.dim == 2) {
+            for (int j = 1; j < cell.vertices.size()-1; ++j) {
+                int v0 = cell.vertices[0];
+                int v1 = cell.vertices[j];
+                int v2 = cell.vertices[j+1];
+
+                if (v0 < mesh.numVertices() && v1 < mesh.numVertices() && v2 < mesh.numVertices()) {
+
+                    tris.emplace_back(
+                        mesh.vertex(v0), mesh.vertex(v1), mesh.vertex(v2),
+                        Color::WHITE
+                        );
+                } else {
+                    std::cerr << "Triangle " << v0 << ", " << v1 << ", " << v2 << std::endl;
+                }
+            }
+        }
+    }
+    triangles[triangles_batch_index]->add(tris);
+    loc.emplace_back(GL_TRIANGLES, triangles_batch_index);
 }
 
 // Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)

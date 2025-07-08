@@ -1,5 +1,6 @@
 #include "Surface.h"
 #include "AxoPlotl/algorithms/marching_cubes.h"
+#include "AxoPlotl/IO/FileUtils.h"
 
 namespace AxoPlotl
 {
@@ -86,12 +87,23 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
     }
 }
 
-void createTriangles(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, const uint resolution)
+void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, const uint resolution)
 {
     Algo::MarchingCubes mc;
-    mc.setBounds(isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax);
+    AABB b{isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax};
+    mc.setBounds(b);
     mc.setResolution(resolution, resolution, resolution);
     mc.generate(isf.f, mesh);
+}
+
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree,
+                        const uint resolution, const uint maxDepth)
+{
+    Algo::MarchingCubes mc;
+    AABB b{isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax};
+    mc.setBounds(b);
+    mc.setResolution(resolution, resolution, resolution);
+    mc.generateWithOctree(isf.f, mesh, tree, maxDepth);
 }
 
 ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(const Vec3f& center, float radius)
@@ -168,7 +180,21 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::heart()
         },
         .xMin = -2.f, .xMax = 2.f,
         .yMin = -2.f, .yMax = 2.f,
-        .zMin = -2.f, .zMax = 2.f
+        .zMin = -2.f, .zMax = 2.f,
+        .str = "(x*x + (9.0/4.0)*z*z + y*y - 1)^3 - x*x*y*y*y - (9.0/80.0)*y*y*y*z*z"
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::dummy()
+{
+    return ImplicitSurfaceFunction{
+        .f = [](Vec3f p) {
+            return p.y;
+        },
+        .xMin = -5, .xMax = 5,
+        .yMin = -5, .yMax = 5,
+        .zMin = -5, .zMax = 5,
+        .str = "y"
     };
 }
 
@@ -183,7 +209,8 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::sphere(const Vec3f& cent
         },
         .xMin = center.x - radius, .xMax = center.x + radius,
         .yMin = center.y - radius, .yMax = center.y + radius,
-        .zMin = center.z - radius, .zMax = center.z + radius
+        .zMin = center.z - radius, .zMax = center.z + radius,
+        .str = IO::string_format("(x-%d)^2 + (y-%d)^2 + (z-%d)^2 - %d^2", center.x, center.y, center.z, radius)
     };
 }
 
@@ -199,7 +226,8 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::torus(const float r, con
         },
         .xMin = -r-R, .xMax = r+R,
         .yMin = -r-R, .yMax = r+R,
-        .zMin = -r-R, .zMax = r+R
+        .zMin = -r-R, .zMax = r+R,
+        .str = IO::string_format("")
     };
 }
 
@@ -213,7 +241,8 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::gyroid()
         },
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,
-        .zMin = -10.f, .zMax = 10.f
+        .zMin = -10.f, .zMax = 10.f,
+        .str = IO::string_format("")
     };
 }
 
@@ -230,7 +259,8 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::test()
         },
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,
-        .zMin = -10.f, .zMax = 10.f
+        .zMin = -10.f, .zMax = 10.f,
+        .str = IO::string_format("(x-2)*(x-2)*(x+2)*(x+2) + (y-2)*(y-2)*(y+2)*(y+2) + (z-2)*(z-2)*(z+2)*(z+2) + 3*(x*x*y*y + x*x*z*z + y*y*z*z) + 6*x*y*z - 10*(x*x+y*y+z*z) + 22")
     };
 }
 

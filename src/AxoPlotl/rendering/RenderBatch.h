@@ -72,41 +72,63 @@ public:
         return idxs;
     }
 
-    inline void remove(uint idx)
-    {
-        assert(free.contains(idx));
+    // inline void remove(uint idx)
+    // {
+    //     assert(free.contains(idx));
 
-        // Set Vertex Buffer to Zero
-        uint n = ibo.NUM_INDICES_PER_ELEMENT();
-        for (uint i = 0; i < n; ++i)
-        {
-            vbo.setZero(n*idx+i);
-        }
+    //     // Set Vertex Buffer to Zero
+    //     uint n = ibo.NUM_INDICES_PER_ELEMENT();
+    //     for (uint i = 0; i < n; ++i)
+    //     {
+    //         vbo.setZero(n*idx+i);
+    //     }
 
-        // Declare as updated and mark as free
-        updated.insert(idx);
-        free.insert(idx);
+    //     // Declare as updated and mark as free
+    //     updated.insert(idx);
+    //     free.insert(idx);
 
-        assert(free.size() + num_elements() == max_num_elements());
-    }
+    //     assert(free.size() + num_elements() == max_num_elements());
+    // }
 
-    inline void remove(const std::vector<uint>& idxs)
-    {
-        for (uint idx : idxs)
-        {
-            remove(idx);
-        }
-    }
+    // inline void remove(const std::vector<uint>& idxs)
+    // {
+    //     for (uint idx : idxs)
+    //     {
+    //         remove(idx);
+    //     }
+    // }
 
-    inline void removeAll(size_t new_max_num_elements)
+    /// Mark all as free, set vertex buffer to zero
+    inline void clear()
     {
         updated.clear();
         free.clear();
-        for (uint i = 0; i < new_max_num_elements; ++i)
+
+        // Set Vertex Buffer to Zero
+        vbo.setZero();
+
+        // Mark all as free
+        for (uint i = 0; i < max_num_elements(); ++i)
         {
             free.insert(i);
             updated.insert(i);
         }
+    }
+
+    /// Regeneate buffers and resize
+    inline void reset(size_t num_elements)
+    {
+        vao.generateNew();
+        vbo.generateNew(ibo.NUM_INDICES_PER_ELEMENT() * num_elements);
+        ibo.generateNew(ibo.NUM_INDICES_PER_ELEMENT() * num_elements);
+
+        clear();
+
+        vao.unbind();
+
+        // Generate picking buffers
+        vao_picking.generateNew();
+        vbo.defineAttributes({0,3});
     }
 
     inline void deleteBuffers()

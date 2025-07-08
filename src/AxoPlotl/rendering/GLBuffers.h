@@ -169,6 +169,10 @@ public:
         }
     }
 
+    inline void setZero() {
+        for (uint i = 0; i < data.size(); ++i) {data[i] = 0;}
+    }
+
     inline T& operator[] (size_t index)
     {
         return data[index];

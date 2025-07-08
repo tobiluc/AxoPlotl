@@ -107,9 +107,10 @@ inline void decode(OctreeNodeCode code, u32& x, u32& y, u32& z, u32& depth) {
 struct OctreeNode {
     OctreeNodeCode code;
     bool refined;
+    bool active = true;
     std::array<u32, NUM_NODE_CHILDREN> children = {}; // UINT32_MAX means no child
 
-    OctreeNode(OctreeNodeCode code) : code(code), refined(false) {
+    OctreeNode(OctreeNodeCode code) : code(code), refined(false), active(true) {
         children.fill(UINT32_MAX);
     }
 
@@ -144,6 +145,26 @@ public:
                 }
             }
         }
+    }
+
+    Octree() : Octree(AABB{0,1,0,1,0,1}) {}
+
+    inline bool isRefined(u32 idx) const {
+        return nodes[idx].refined;
+    }
+
+    inline bool isActive(u32 idx) const {
+        return nodes[idx].active;
+    }
+
+    inline void deactivate(u32 idx) {
+        nodes[idx].active = false;
+    }
+
+    inline u32 getDepth(u32 idx) const {
+        u32 x, y, z, d;
+        decode(nodes[idx].code, x, y, z, d);
+        return d;
     }
 
     inline bool containsNode(OctreeNodeCode code) const {

@@ -1,4 +1,6 @@
 #include "marching_cubes.h"
+#include "AxoPlotl/geometry/Octree.h"
+#include "AxoPlotl/geometry/glm.h"
 
 namespace AxoPlotl::Algo
 {
@@ -310,12 +312,68 @@ const int MarchingCubes::cubeEdges[12][2] = {
     {0,4}, {1,5}, {2,6}, {3,7}
 };
 
+int MarchingCubes::generate(const std::function<float (Vec3f)> &f, AABB b, TriangleMesh &mesh)
+{
+    // Evaluate function at node corners
+    Vec3f p[8];
+    float val[8];
+    auto size = b.size();
+    for (u32 i = 0; i < 8; ++i) {
+        int dxi = cubeVertices[i].x;
+        int dyi = cubeVertices[i].y;
+        int dzi = cubeVertices[i].z;
+        p[i] = {
+            b.x0 + dxi * size[0],
+            b.y0 + dyi * size[1],
+            b.z0 + dzi * size[2]
+        };
+        val[i] = f(p[i]);
+    }
+
+    // Build cube index
+    int cubeIndex = 0;
+    for (int i = 0; i < 8; ++i) {
+        if (val[i] <= 0) cubeIndex |= (1 << i);
+    }
+
+    // Get the points per cube edge
+    int edges = edgeTable[cubeIndex];
+    if (edges == 0) {return 0;}
+
+    // Interpolate positions
+    Vec3f vertList[12];
+    for (int e = 0; e < 12; ++e) {
+        if (edges & (1 << e)) {
+            int a = cubeEdges[e][0];
+            int b = cubeEdges[e][1];
+            float t = val[a] / (val[a] - val[b]);
+            vertList[e] = p[a] + (p[b] - p[a]) * t;
+        }
+    }
+
+    // Construct the triangles
+    for (int i = 0; triangleTable[cubeIndex][i] != -1; i += 3) {
+        int i0 = triangleTable[cubeIndex][i + 0];
+        int i1 = triangleTable[cubeIndex][i + 1];
+        int i2 = triangleTable[cubeIndex][i + 2];
+
+        int base = mesh.vertices.size();
+        mesh.addVertex(vertList[i0]);
+        mesh.addVertex(vertList[i1]);
+        mesh.addVertex(vertList[i2]);
+        mesh.addTriangle(base+0, base+1, base+2);
+    }
+
+    return edges;
+}
+
 void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh &mesh)
 {
     // Compute cube sizes
-    float dx = (x1 - x0) / (nx - 1);
-    float dy = (y1 - y0) / (ny - 1);
-    float dz = (z1 - z0) / (nz - 1);
+    auto boundsSize = bounds.size();
+    float dx = boundsSize[0] / (nx - 1);
+    float dy = boundsSize[1] / (ny - 1);
+    float dz = boundsSize[2] / (nz - 1);
 
     // From 3d index to 1d index
     auto index = [&](int ix, int iy, int iz) {
@@ -328,9 +386,9 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
         for (int iy = 0; iy < ny; ++iy) {
             for (int ix = 0; ix < nx; ++ix) {
 
-                float x = x0 + ix * dx;
-                float y = y0 + iy * dy;
-                float z = z0 + iz * dz;
+                float x = bounds.x0 + ix * dx;
+                float y = bounds.y0 + iy * dy;
+                float z = bounds.z0 + iz * dz;
 
                 field[index(ix, iy, iz)] = f(Vec3f(x, y, z));
             }
@@ -350,9 +408,9 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                     int dy_i = cubeVertices[i].y;
                     int dz_i = cubeVertices[i].z;
                     p[i] = {
-                        x0 + (ix + dx_i) * dx,
-                        y0 + (iy + dy_i) * dy,
-                        z0 + (iz + dz_i) * dz
+                        bounds.x0 + (ix + dx_i) * dx,
+                        bounds.y0 + (iy + dy_i) * dy,
+                        bounds.z0 + (iz + dz_i) * dz
                     };
                     val[i] = field[index(ix + dx_i, iy + dy_i, iz + dz_i)];
                 }
@@ -360,13 +418,14 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                 // Build cube index
                 int cubeIndex = 0;
                 for (int i = 0; i < 8; ++i) {
-                    if (val[i] < 0) cubeIndex |= (1 << i);
+                    if (val[i] <= 0) cubeIndex |= (1 << i);
                 }
 
                 // Get the points per cube edge
                 int edges = edgeTable[cubeIndex];
                 if (edges == 0) {continue;}
 
+                // Interpolate positions
                 Vec3f vertList[12];
                 for (int e = 0; e < 12; ++e) {
                     if (edges & (1 << e)) {
@@ -393,6 +452,43 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
         }
     }
 
+}
+
+void MarchingCubes::generateWithOctree(const std::function<float (Vec3f)> &f, TriangleMesh &mesh,
+                                       Octree& tree, uint maxDepth)
+{
+    // Init. Octree
+    tree = Octree(bounds, std::max(nx,std::max(ny,nz)), maxDepth);
+
+    // Refine the tree
+    for (u32 idx = 0; idx < tree.numNodes(); ++idx) {
+        if (tree.getDepth(idx) < maxDepth) {
+
+            // Evaluate function at node corners
+            AABB b = tree.getNodeBounds(idx);
+            auto corners = b.corners<Vec3f>();
+            bool pos = false, neg = false;
+            for (u32 c = 0; c < 8; ++c) {
+                float val = f(corners[c]);
+                pos |= (val > 0);
+                neg |= (val < 0);
+            }
+            if (pos && neg) {
+                // Refine Node - this appends a new node at the end so it is considered in the same loop
+                tree.refineNode(idx);
+                tree.deactivate(idx);
+            }
+        }
+    }
+
+    // Now, generate on each leaf node (unrefined)
+    for (u32 idx = 0; idx < tree.numNodes(); ++idx) {
+        if (!tree.isRefined(idx)) {
+            if (!generate(f, tree.getNodeBounds(idx), mesh)) {
+                tree.deactivate(idx); // no geometry
+            }
+        }
+    }
 }
 
 } // !namespace AxPl::Algo

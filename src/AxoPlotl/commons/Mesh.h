@@ -1,6 +1,9 @@
 #pragma once
 
-#include "AxoPlotl/utils/Typedefs.h"
+#include "AxoPlotl/geometry/glm.h"
+#include <iostream>
+#include <vector>
+
 namespace AxoPlotl
 {
 
@@ -49,5 +52,49 @@ typedef struct
     std::vector<Vec3f> vertices;
     std::vector<std::array<int,8>> hexahedra;
 } HexMesh;
+
+class Mesh
+{
+public:
+    struct Cell {
+        u_int8_t dim; // 0 point, 1 line, 2 polygon
+        std::vector<int> vertices;
+    };
+
+private:
+    std::vector<Vec3f> vertices_;
+    std::vector<Cell> cells_;
+
+public:
+    Mesh() {}
+
+    template<typename Vec3T>
+    int addVertex(const Vec3T& p) {
+        vertices_.emplace_back(p[0], p[1], p[2]);
+        return vertices_.size()-1;
+    }
+
+    int addCell(u_int8_t dim, const std::vector<int>& vertices) {
+        cells_.push_back(Cell{.dim=dim, .vertices=vertices});
+        return cells_.size()-1;
+    }
+
+    size_t numVertices() const {
+        return vertices_.size();
+    }
+
+    size_t numCells() const {
+        return cells_.size();
+    }
+
+    const Vec3f& vertex(int idx) const {
+        return vertices_[idx];
+    }
+
+    const Cell& cell(int idx) const {
+        return cells_[idx];
+    }
+
+};
 
 }

@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/commons/PickingTexture.h
     src/AxoPlotl/commons/PickingTexture.cpp
     src/AxoPlotl/commons/Shader.h
-    src/AxoPlotl/commons/shader.cpp
+    src/AxoPlotl/commons/Shader.cpp
     src/AxoPlotl/commons/Texture.h
     src/AxoPlotl/commons/Texture.cpp
 
@@ -40,8 +40,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/rendering/PointsRenderBatch.h
     src/AxoPlotl/rendering/PointsRenderBatch.cpp
 
-    src/AxoPlotl/utils/FileAccessor.h
-    src/AxoPlotl/utils/FileAccessor.cpp
+
+
     src/AxoPlotl/utils/Time.h
     src/AxoPlotl/utils/Time.cpp
     src/AxoPlotl/utils/KeyHandler.h
@@ -49,7 +49,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/MouseHandler.cpp
     src/AxoPlotl/algorithms/simplex_noise.h
     src/AxoPlotl/algorithms/simplex_noise.cpp
-    src/AxoPlotl/utils/stb_image.h
+    src/AxoPlotl/commons/stb_image.h
     src/AxoPlotl/utils/Typedefs.h
     src/AxoPlotl/utils/Utils.h
     src/AxoPlotl/utils/Utils.cpp
@@ -60,8 +60,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/rendering/RenderBatch.h
     src/AxoPlotl/rendering/RenderBatch.cpp
 
-    src/AxoPlotl/utils/Color.h
-    src/AxoPlotl/utils/Color.cpp
+    src/AxoPlotl/commons/Color.h
+    src/AxoPlotl/commons/Color.cpp
     src/AxoPlotl/parsing/tokens.h
     src/AxoPlotl/parsing/tokens.cpp
     src/AxoPlotl/parsing/tree.h
@@ -89,6 +89,14 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/Octree.h
 
     src/AxoPlotl/geometry/Octree.cpp
+    src/AxoPlotl/IO/OBJFileAccessor.h
+    src/AxoPlotl/IO/OVMFileAccessor.h
+    src/AxoPlotl/IO/OVMFileAccessor.cpp
+    src/AxoPlotl/IO/FileUtils.h
+    src/AxoPlotl/IO/JSONFileAccessor.h
+    src/AxoPlotl/geometry/glm.h
+    src/AxoPlotl/geometry/ovm.h
+    src/AxoPlotl/IO/OBJFileAccessor.cpp
 
 
 )

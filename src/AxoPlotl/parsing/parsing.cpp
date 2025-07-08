@@ -143,14 +143,22 @@ std::unique_ptr<ASTNode> Parser::parseFactor()
 
 std::unique_ptr<ASTNode> Parser::parseExponent()
 {
-    auto exp = parseUnary();
-    while (peekIs(0, Token::Type::POW))
-    {
-        const auto& token = advance();
-        auto unary = parseUnary();
-        exp = std::make_unique<BinaryOpNode>(token.TYPE, std::move(unary), std::move(exp));
+    auto left = parseUnary();
+    if (peekIs(0, Token::Type::POW)) {
+        const auto& token = advance(); // consume '^'
+        auto right = parseExponent();  // right-associative
+        return std::make_unique<BinaryOpNode>(token.TYPE, std::move(left), std::move(right));
     }
-    return exp;
+    return left;
+
+    // auto exp = parseUnary();
+    // while (peekIs(0, Token::Type::POW))
+    // {
+    //     const auto& token = advance();
+    //     auto unary = parseUnary();
+    //     exp = std::make_unique<BinaryOpNode>(token.TYPE, std::move(exp), std::move(unary));
+    // }
+    // return exp;
 }
 
 std::unique_ptr<ASTNode> Parser::parseUnary()

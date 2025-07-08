@@ -10,7 +10,7 @@ PointsRenderBatch::PointsRenderBatch(size_t max_num_points)
     vbo.generateNew(max_num_points);
     ibo.generateNew(max_num_points);
 
-    removeAll(max_num_points);
+    clear();
 
     vao.unbind();
 }
@@ -28,7 +28,7 @@ void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     vbo.generateNew(max_num_points);
     ibo.generateNew(max_num_points);
 
-    removeAll(max_num_points);
+    clear();
 
     auto prop = mesh.template request_vertex_property<int>("AlgoHex::FeatureVertices");
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it)

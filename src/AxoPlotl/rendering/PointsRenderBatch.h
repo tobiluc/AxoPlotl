@@ -1,6 +1,7 @@
 #ifndef POINTSRENDERBATCH_H
 #define POINTSRENDERBATCH_H
 
+#include "AxoPlotl/geometry/ovm.h"
 #include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 

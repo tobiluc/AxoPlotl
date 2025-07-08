@@ -1,6 +1,8 @@
 #pragma once
 
 #include "../utils/Utils.h"
+#include "AxoPlotl/geometry/Octree.h"
+#include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/commons/Mesh.h"
 
 namespace AxoPlotl
@@ -25,6 +27,7 @@ struct ImplicitSurfaceFunction
 {
     std::function<float(Vec3f)> f;
     float xMin, xMax, yMin, yMax, zMin, zMax;
+    std::string str;
 
     inline float operator()(const Vec3f& p) const {return f(p);}
 
@@ -39,7 +42,11 @@ void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, con
 
 void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint resolution = 32);
 
-void createTriangles(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
+/// Marching Cubes
+void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
+
+/// Adaptive MC (using octree)
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree, const uint resolution = 8, const uint maxDepth = 4);
 
 class ExplicitSurfaceFunctionBuilder
 {
@@ -57,6 +64,8 @@ public:
 class ImplicitSurfaceFunctionBuilder
 {
 public:
+    static ImplicitSurfaceFunction dummy();
+
     static ImplicitSurfaceFunction sphere(const Vec3f& center = Vec3f(0,0,0), float radius = 1.0f);
 
     static ImplicitSurfaceFunction torus(const float r = 1, const float R = 2);

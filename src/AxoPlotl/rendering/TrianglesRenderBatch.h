@@ -1,6 +1,7 @@
 #ifndef TRIANGLESRENDERBATCH_H
 #define TRIANGLESRENDERBATCH_H
 
+#include "AxoPlotl/geometry/ovm.h"
 #include "AxoPlotl/rendering/Primitives.h"
 #include "RenderBatch.h"
 

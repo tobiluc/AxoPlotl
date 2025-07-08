@@ -1,13 +1,13 @@
 #include <glad/glad.h>
 #include "Scene.h"
-#include "AxoPlotl/algorithms/marching_cubes.h"
+#include "AxoPlotl/IO/OBJFileAccessor.h"
 #include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/utils/FileAccessor.h"
+#include "AxoPlotl/IO/OVMFileAccessor.h"
 #include "AxoPlotl/utils/Memory.h"
 #include "ImGuiFileDialog.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
-#include "utils/Color.h"
+#include "commons/Color.h"
 #include "utils/Time.h"
 #include "utils/MouseHandler.h"
 #include <imgui.h>
@@ -199,7 +199,7 @@ void Scene::renderUI()
             if (ImGui::BeginMenu("Implicit 2D Surface")) {
 
                 if (ImGui::MenuItem("Custom")) {
-
+                    addImplicitSurface("Custom", ImplicitSurfaceFunctionBuilder::dummy());
                 }
                 ImGui::Separator();
 
@@ -232,7 +232,7 @@ void Scene::renderUI()
 
                     IGFD::FileDialogConfig config;
                     config.path = "..";
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ovm,.ovmb", config);
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ovm,.ovmb,.obj", config);
                 }
 
                 ImGui::EndMenu(); // !Mesh
@@ -250,7 +250,12 @@ void Scene::renderUI()
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
 
-            addTetrahedralMesh(filepath);
+            auto format = IO::getFileFormatFromName(filepath);
+            if (format == IO::FileFormat::OVMB || format == IO::FileFormat::OVMA) {
+                addTetrahedralMesh(filepath);
+            } else if (format == IO::FileFormat::OBJ) {
+                addMesh(filepath);
+            }
         }
         ImGuiFileDialog::Instance()->Close();
     }
@@ -264,7 +269,6 @@ void Scene::renderUI()
     ImGui::Text("%s", ("MEM " + std::to_string(getMemoryUsageMB()) + " MB").c_str());
 
     ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings.visible);
-    ImGui::Checkbox("Wireframe", &gizmoRenderer_.settings.wireframe);
     if (ImGui::Button("Reset Camera")) {
         camera_.set(Vec3f(0,0,1), Vec3f(0,0,-1));
     }
@@ -302,7 +306,7 @@ void Scene::renderUI()
     ImGui::Separator();
 
     for (uint i = 0; i < objects_.size(); ++i) {
-        objects_[i]->renderUI();
+        objects_[i]->renderUI(this);
         ImGui::Separator();
     }
 
@@ -339,7 +343,7 @@ void TestScene::init()
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
-    Rendering::Renderer::GeometryLocation gizmoLoc;
+    Rendering::Renderer::BatchIndices gizmoLoc;
 
     // Coordinate Frame
     gizmoRenderer_.addLines({
@@ -366,7 +370,7 @@ void TestScene::init()
         }
         mesh.add_cell(vhs);
     }
-    gizmoRenderer_.addHexMesh(mesh, gizmoLoc);
+    addHexahedralMesh(mesh);
 
     // Triangle
     // Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});

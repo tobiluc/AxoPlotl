@@ -85,6 +85,8 @@ public:
     }
 };
 
-}
+struct Light {Color ambient, diffuse, specular;};
+
+} // namespace AxoPlotl
 
 #endif // COLOR_H

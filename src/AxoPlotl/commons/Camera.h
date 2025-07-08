@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "AxoPlotl/utils/Typedefs.h"
+#include "AxoPlotl/IO/JSONFileAccessor.h"
 
 namespace AxoPlotl
 {

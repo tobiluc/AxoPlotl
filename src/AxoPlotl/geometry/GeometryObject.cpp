@@ -4,16 +4,15 @@
 #include "AxoPlotl/parsing/tokens.h"
 #include "AxoPlotl/rendering/ImGuiRenderer.h"
 #include "imgui.h"
+#include "AxoPlotl/Scene.h"
 
 namespace AxoPlotl
 {
 
 int AxPlGeometryObject::id_counter_ = 0;
 
-void AxPlGeometryObject::startRenderUI()
+void AxPlGeometryObject::renderUIHeader()
 {
-    ImGui::PushID(id_);
-
     //---------------------
     // Draw colored circle
     //---------------------
@@ -32,20 +31,30 @@ void AxPlGeometryObject::startRenderUI()
     // Name
     //---------------------
     if (ImGui::Selectable(("[" + type_name_ + "] " + name_).c_str())) {
-        std::cout << name_ << " clicked!" << std::endl;
+        // Open Popup with Settings
+        ImGui::OpenPopup(("object_popup_" + std::to_string(id_)).c_str());
     }
+
+    //---------------------
+    // Options
+    //---------------------
     ImGui::SameLine();
+    ImGui::Checkbox("Expand", &show_ui_body_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Visible", &renderer_.settings.visible);
 
     //---------------------
     // Rightclick Menu
     //---------------------
-    if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
-        ImGui::OpenPopup(("object_popup_" + std::to_string(id_)).c_str());
-    }
+    // if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+    //     ImGui::OpenPopup(("object_popup_" + std::to_string(id_)).c_str());
+    // }
 
     if (ImGui::BeginPopup(("object_popup_" + std::to_string(id_)).c_str())) {
 
-        ImGui::Text("%s (%d)", name_.c_str(), id_);
+        // Name
+        ImGui::Text("Settings (Object Id: %d)", id_);
+        ImGui::InputText("Name", name_, sizeof(name_));
         ImGui::Separator();
 
         // Transform
@@ -61,6 +70,7 @@ void AxPlGeometryObject::startRenderUI()
 
         // Material
         auto& settings = renderer_.settings;
+        ImGui::Checkbox("Wireframe", &settings.wireframe);
         ImGui::SliderFloat("Vertex Size", &settings.pointSize, 1.f, 16.0f);
         ImGui::SliderFloat("Edge Width", &settings.lineWidth, 1.f, 16.0f);
         ImGui::SliderFloat("Cell Scale", &settings.cellScale, 0.0f, 1.0f);
@@ -76,46 +86,41 @@ void AxPlGeometryObject::startRenderUI()
         // Delete
         if (ImGui::MenuItem("Delete")) {
             deleted_ = true;
-            renderer_.remove(renderLoc_);
+            renderer_.clear(renderLoc_);
         }
 
         ImGui::EndPopup(); // Close the popup
     }
 }
 
-void AxPlGeometryObject::endRenderUI()
-{
-    //---------------------
-    // Control Visibility
-    //---------------------
-    if (ImGui::Checkbox("##checkbox", &renderer_.settings.visible))
-    {
-        // TODO: Visibility changed
-        //std::cout << "Set Visibility of " << name_ << ": " << visible_ << std::endl;
-    }
-
-    ImGui::PopID();
-}
-
-void TetrahedralMeshObject::addToRenderer()
+void TetrahedralMeshObject::addToRenderer(Scene* scene)
 {
     renderer_.addTetMesh(mesh_, renderLoc_);
 }
 
-void TetrahedralMeshObject::updateRenderUI()
+void TetrahedralMeshObject::renderUIBody(Scene* scene)
 {
 }
 
-void HexahedralMeshObject::addToRenderer()
+void HexahedralMeshObject::addToRenderer(Scene* scene)
 {
     renderer_.addHexMesh(mesh_, renderLoc_);
 }
 
-void HexahedralMeshObject::updateRenderUI()
+void HexahedralMeshObject::renderUIBody(Scene* scene)
 {
 }
 
-void ExplicitSurfaceObject::addToRenderer()
+void MeshObject::addToRenderer(Scene* scene)
+{
+    renderer_.addMesh(mesh_, renderLoc_);
+}
+
+void MeshObject::renderUIBody(Scene* scene)
+{
+}
+
+void ExplicitSurfaceObject::addToRenderer(Scene* scene)
 {
     TriangleMesh mesh;
     createTriangles(f_, mesh, resolution_);
@@ -131,13 +136,15 @@ void ExplicitSurfaceObject::addToRenderer()
     renderer_.addTriangles(tris, renderLoc_);
 }
 
-void ExplicitSurfaceObject::updateRenderUI()
+void ExplicitSurfaceObject::renderUIBody(Scene* scene)
 {
     //-------------------
     // Text
     //-------------------
     ImGui::NewLine();
-    if (ImGui::InputText("Input", input_buffer_, sizeof(input_buffer_)))
+    ImGui::Text("f(u,v) = ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##InputText", input_buffer_, sizeof(input_buffer_)))
     {
         // Text Changed
     }
@@ -147,12 +154,58 @@ void ExplicitSurfaceObject::updateRenderUI()
     //-------------------
     ImGui::SliderFloat2("u Range", &f_.uMin, -10.0f, 10.0f);
     ImGui::SliderFloat2("v Range", &f_.vMin, -10.0f, 10.0f);
+
+    //-------------------
+    // Update
+    //-------------------
+    if (ImGui::Button("Confirm")) {
+        // Parse Input Text
+        auto tokens = Parsing::tokenize(input_buffer_);
+        for (auto& token : tokens) std::cout << token << std::endl;
+
+        // Tranform AST into a function of x, y, z
+        auto root = Parsing::Parser(tokens).parse();
+        root->print();
+        std::cout << std::endl;
+        std::function<Vec3f(float,float)> func = [&root](float u, float v) {
+            Scope scope;
+            scope.setVariable("u", std::make_shared<Parsing::ScalarNode>(u));
+            scope.setVariable("v", std::make_shared<Parsing::ScalarNode>(v));
+            auto value = root->evaluate(scope);
+            if (!value) {std::cerr << "Value is NULL" << std::endl;}
+            auto vec = dynamic_cast<Parsing::PointValue*>(value.get());
+            if (vec) {return vec->getValue<Vec3f>();}
+            std::cerr << "Value is not a Vector" << std::endl;
+            return Vec3f(0,0,0);
+        };
+
+        // Update renderer
+        this->f_.f = func;
+        renderer_.clear(renderLoc_);
+        this->addToRenderer(scene);
+    }
 }
 
-void ImplicitSurfaceObject::addToRenderer()
+void ImplicitSurfaceObject::addToRenderer(Scene *scene)
 {
     TriangleMesh mesh;
-    createTriangles(f_, mesh, resolution_);
+    Octree tree;
+    createTrianglesAMC(f_, mesh, tree, resolution_);
+
+    // Octree
+    // HexahedralMesh treemesh;
+    // for (u32 i = 0; i < tree.numNodes(); ++i) {
+    //     if (!tree.isActive(i)) {continue;}
+    //     auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
+    //     std::vector<OVM::VH> vhs;
+    //     for (u32 j = 0; j < 8; ++j) {
+    //         vhs.push_back(treemesh.add_vertex(c[j]));
+    //     }
+    //     treemesh.add_cell(vhs);
+    // }
+    // scene->addHexahedralMesh(treemesh);
+
+    // Triangles
     std::vector<Rendering::Triangle> tris;
     for (uint i = 0; i < mesh.triangles.size(); ++i) {
         tris.emplace_back(
@@ -165,7 +218,7 @@ void ImplicitSurfaceObject::addToRenderer()
     renderer_.addTriangles(tris, renderLoc_);
 }
 
-void ImplicitSurfaceObject::updateRenderUI()
+void ImplicitSurfaceObject::renderUIBody(Scene *scene)
 {
     //-------------------
     // Text
@@ -184,7 +237,7 @@ void ImplicitSurfaceObject::updateRenderUI()
     ImGui::InputFloat2("x Range", &f_.xMin);
     ImGui::InputFloat2("y Range", &f_.yMin);
     ImGui::InputFloat2("z Range", &f_.zMin);
-    ImGui::SliderInt("Resolution", &resolution_, 2, 64);
+    ImGui::SliderInt("Resolution", &resolution_, 2, 16);
 
     //-------------------
     // Update
@@ -213,8 +266,8 @@ void ImplicitSurfaceObject::updateRenderUI()
 
         // Update renderer
         this->f_.f = func;
-        renderer_.remove(renderLoc_);
-        this->addToRenderer();
+        renderer_.clear(renderLoc_);
+        this->addToRenderer(scene);
 
         //std::cout << "f(1,2,3) = " << func(1, 2, 3) << std::endl;
     }

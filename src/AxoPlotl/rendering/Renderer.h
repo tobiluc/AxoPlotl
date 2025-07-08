@@ -3,6 +3,9 @@
 
 //#include "AxoPlotl/commons/Mesh.h"
 //#include "GLBuffers.h"
+#include "AxoPlotl/commons/Color.h"
+#include "AxoPlotl/commons/Mesh.h"
+#include "AxoPlotl/geometry/glm.h"
 #include "LinesRenderBatch.h"
 #include "PointsRenderBatch.h"
 #include "TrianglesRenderBatch.h"
@@ -15,36 +18,37 @@ class Renderer
 public:
 
     // Describes a set of primitives within a batch
-    struct BatchLocation
-    {
-        const GLenum type; // GL_POINTS, GL_LINES or GL_TRIANGLES
-        const uint batch_index;
-        const std::vector<uint> element_indices;
-    };
+    using BatchIndices = std::vector<std::pair<GLenum, uint>>; // type, index
+    // struct BatchIndices
+    // {
+    //     const GLenum type; // GL_POINTS, GL_LINES or GL_TRIANGLES
+    //     const uint batch_index;
+    //     const std::vector<uint> element_indices;
+    // };
 
-    /*
-     * Locations of Grouped Geometry.
-     */
-    struct GeometryLocation
-    {
-        std::vector<BatchLocation> locations;
+    // /*
+    //  * Locations of Grouped Geometry.
+    //  */
+    // struct GeometryLocation
+    // {
+    //     std::vector<BatchLocation> locations;
 
-        GeometryLocation() {}
+    //     GeometryLocation() {}
 
-        GeometryLocation(const BatchLocation& loc) {
-            add(loc);
-        }
+    //     GeometryLocation(const BatchLocation& loc) {
+    //         add(loc);
+    //     }
 
-        inline void add(const BatchLocation& loc) {
-            this->locations.push_back(loc);
-        }
+    //     inline void add(const BatchLocation& loc) {
+    //         this->locations.push_back(loc);
+    //     }
 
-        inline void add(const GeometryLocation& where) {
-            for (const auto& loc : where.locations) {
-                this->locations.push_back(loc);
-            }
-        }
-    };
+    //     inline void add(const GeometryLocation& where) {
+    //         for (const auto& loc : where.locations) {
+    //             this->locations.push_back(loc);
+    //         }
+    //     }
+    // };
 
     struct RenderSettings
     {
@@ -141,25 +145,27 @@ public:
 
     void renderPicking(const glm::mat4x4& mvp, uint object_index);
 
-    void remove(const GeometryLocation& where);
+    void clear(const BatchIndices& where);
 
-    void addPoints(const std::vector<Point>& ps, GeometryLocation& loc);
+    void addPoints(const std::vector<Point>& ps, BatchIndices& loc);
 
-    void addLines(const std::vector<Line>& ls, GeometryLocation& loc);
+    void addLines(const std::vector<Line>& ls, BatchIndices& loc);
 
-    void addTriangles(const std::vector<Triangle>& ts, GeometryLocation& loc);
+    void addTriangles(const std::vector<Triangle>& ts, BatchIndices& loc);
 
-    void addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts, GeometryLocation& loc);
+    void addElements(const std::vector<Point>& ps, const std::vector<Line>& ls, const std::vector<Triangle>& ts, BatchIndices& loc);
 
-    void addPoint(const Point& p, GeometryLocation& loc);
+    void addPoint(const Point& p, BatchIndices& loc);
 
-    void addLine(const Line& l, GeometryLocation& loc);
+    void addLine(const Line& l, BatchIndices& loc);
 
-    void addTriangle(const Triangle& t, GeometryLocation& loc);
+    void addTriangle(const Triangle& t, BatchIndices& loc);
 
-    void addTetMesh(TetrahedralMesh& mesh, GeometryLocation& loc);
+    void addTetMesh(TetrahedralMesh& mesh, BatchIndices& loc);
 
-    void addHexMesh(HexahedralMesh& mesh, GeometryLocation& loc);
+    void addHexMesh(HexahedralMesh& mesh, BatchIndices& loc);
+
+    void addMesh(Mesh& mesh, BatchIndices& loc);
 
     // GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
 

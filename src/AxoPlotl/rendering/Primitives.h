@@ -1,7 +1,10 @@
 #pragma once
 
+#include "AxoPlotl/commons/Color.h"
+#include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/rendering/GLBuffers.h"
 #include "AxoPlotl/utils/Typedefs.h"
+#include <array>
 
 namespace AxoPlotl::Rendering
 {
@@ -79,7 +82,7 @@ struct Line
 
 struct Triangle
 {
-    using VBO = VBO<GL_FLOAT, float, 3, 4, 3, 1>; // position, color, normal, index
+    using VBO = VBO<GL_FLOAT, float, 3, 4, 3, 1>; // position, color, normal, buffer
     static constexpr GLenum MODE = GL_TRIANGLES;
 
     std::array<Point, 3> vertices;
