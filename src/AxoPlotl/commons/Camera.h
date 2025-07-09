@@ -17,9 +17,16 @@ public:
     // Camera Options
     bool isOrthographic = false;
 
-    Camera(glm::vec3 position, glm::vec3 forward) {set(position, forward);}
+    Camera(glm::vec3 position, glm::vec3 forward) {
+        setPosition(position);
+        setForward(forward);
+    }
 
-    void set(glm::vec3 position, glm::vec3 forward);
+    void setPosition(glm::vec3 position);
+
+    void setForward(glm::vec3 forward);
+
+    const glm::vec3& forward() const {return perspective.forward;}
 
     // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 getViewMatrix() const;

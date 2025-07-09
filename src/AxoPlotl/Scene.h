@@ -69,8 +69,6 @@ public:
         objects_.back()->addToRenderer(this);
     }
 
-    void zoomToObject(int id);
-
     inline bool saveScene(const std::string& filename) {
         return IO::serialize(filename, *this);
     }

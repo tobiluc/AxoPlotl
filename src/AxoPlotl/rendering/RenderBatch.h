@@ -99,7 +99,7 @@ public:
     // }
 
     /// Mark all as free, set vertex buffer to zero
-    inline void clear()
+    inline void clearVertexBuffer()
     {
         updated.clear();
         free.clear();
@@ -116,13 +116,13 @@ public:
     }
 
     /// Regeneate buffers and resize
-    inline void reset(size_t num_elements)
+    inline void regenerateBuffers(size_t num_elements)
     {
         vao.generateNew();
         vbo.generateNew(ibo.NUM_INDICES_PER_ELEMENT() * num_elements);
         ibo.generateNew(ibo.NUM_INDICES_PER_ELEMENT() * num_elements);
 
-        clear();
+        clearVertexBuffer();
 
         vao.unbind();
 

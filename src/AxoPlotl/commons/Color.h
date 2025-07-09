@@ -43,9 +43,10 @@ struct Color
     static const Color BLUE;
     static const Color GREEN;
     static const Color BLACK;
+    static const Color LIGHTGRAY;
     static const Color WHITE;
 
-    static const std::array<Color, 5> COLORS;
+    static const std::array<Color, 6> COLORS;
 
     static Color random();
 

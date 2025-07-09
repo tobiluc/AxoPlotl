@@ -11,23 +11,12 @@
 
 namespace AxoPlotl::IO
 {
-enum FileFormat : char16_t {INVALID, OBJ, MESH, OVMA, OVMB};
-
-inline FileFormat getFileFormatFromName(const std::string& filename)
-{
-    std::string ext = toLower(splitFilenameExtension(filename).second);
-    if (ext == ".ovm") return FileFormat::OVMA;
-    if (ext == ".ovmb") return FileFormat::OVMB;
-    if (ext == ".mesh") return FileFormat::MESH;
-    if (ext == ".obj") return FileFormat::OBJ;
-    return FileFormat::INVALID;
-}
 
 template<typename MeshT>
 bool readMesh(const std::string& filename, MeshT& mesh, FileFormat ext = FileFormat::INVALID)
 {
     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
-    if (ext == FileFormat::OVMA)
+    if (ext == FileFormat::OVM)
     {
         OVM::IO::FileManager fm;
         return fm.readFile(filename, mesh);

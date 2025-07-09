@@ -12,7 +12,7 @@ TrianglesRenderBatch::TrianglesRenderBatch(size_t max_num_triangles)
     vbo.generateNew(3 * max_num_triangles);
     ibo.generateNew(3 * max_num_triangles);
 
-    clear();
+    clearVertexBuffer();
 
     vao.unbind();
 
@@ -38,7 +38,7 @@ void TrianglesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     vbo.generateNew(nVertices);
     ibo.generateNew(nIndices);
 
-    clear();
+    clearVertexBuffer();
 
     // create the vertex data
     auto prop = mesh.request_face_property<int>("AlgoHex::FeatureFaces");
@@ -81,7 +81,7 @@ void TrianglesRenderBatch::initFromMesh(HexahedralMesh& mesh)
     vbo.generateNew(nVertices);
     ibo.generateNew(nIndices);
 
-    clear();
+    clearVertexBuffer();
 
     // create the vertex data
     for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it)

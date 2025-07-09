@@ -87,6 +87,14 @@ public:
         return cells_.size();
     }
 
+    const std::vector<Vec3f> vertices() const {
+        return vertices_;
+    }
+
+    const std::vector<Cell> cells() const {
+        return cells_;
+    }
+
     const Vec3f& vertex(int idx) const {
         return vertices_[idx];
     }

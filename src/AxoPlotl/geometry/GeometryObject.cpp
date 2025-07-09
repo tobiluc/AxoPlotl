@@ -11,7 +11,7 @@ namespace AxoPlotl
 
 int AxPlGeometryObject::id_counter_ = 0;
 
-void AxPlGeometryObject::renderUIHeader()
+void AxPlGeometryObject::renderUIHeader(Scene *scene)
 {
     //---------------------
     // Draw colored circle
@@ -38,6 +38,10 @@ void AxPlGeometryObject::renderUIHeader()
     //---------------------
     // Options
     //---------------------
+    // ImGui::SameLine();
+    // if (ImGui::Button("Zoom to")) {
+    //     scene->zoomToObject(id());
+    // }
     ImGui::SameLine();
     ImGui::Checkbox("Expand", &show_ui_body_);
     ImGui::SameLine();
@@ -95,6 +99,7 @@ void AxPlGeometryObject::renderUIHeader()
 
 void TetrahedralMeshObject::addToRenderer(Scene* scene)
 {
+    bbox_ = computeBoundingBox(mesh_);
     renderer_.addTetMesh(mesh_, renderLoc_);
 }
 
@@ -104,6 +109,7 @@ void TetrahedralMeshObject::renderUIBody(Scene* scene)
 
 void HexahedralMeshObject::addToRenderer(Scene* scene)
 {
+    bbox_ = computeBoundingBox(mesh_);
     renderer_.addHexMesh(mesh_, renderLoc_);
 }
 
@@ -113,6 +119,7 @@ void HexahedralMeshObject::renderUIBody(Scene* scene)
 
 void MeshObject::addToRenderer(Scene* scene)
 {
+    bbox_.compute(mesh_.vertices());
     renderer_.addMesh(mesh_, renderLoc_);
 }
 
@@ -133,6 +140,7 @@ void ExplicitSurfaceObject::addToRenderer(Scene* scene)
             ui_color_ // TODO: Display correct color
         );
     }
+    bbox_.compute(mesh.vertices);
     renderer_.addTriangles(tris, renderLoc_);
 }
 
@@ -142,41 +150,63 @@ void ExplicitSurfaceObject::renderUIBody(Scene* scene)
     // Text
     //-------------------
     ImGui::NewLine();
-    ImGui::Text("f(u,v) = ");
+    ImGui::Text("x(u,v) = ");
     ImGui::SameLine();
-    if (ImGui::InputText("##InputText", input_buffer_, sizeof(input_buffer_)))
-    {
-        // Text Changed
-    }
+    if (ImGui::InputText("##x", input_buffer_x_, sizeof(input_buffer_x_))) {} // x changed
+    ImGui::Text("y(u,v) = ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##y", input_buffer_y_, sizeof(input_buffer_y_))) {}// y changed
+    ImGui::Text("z(u,v) = ");
+    ImGui::SameLine();
+    if (ImGui::InputText("##z", input_buffer_z_, sizeof(input_buffer_z_))) {}// z changed
 
     //-------------------
     // Range Options
     //-------------------
-    ImGui::SliderFloat2("u Range", &f_.uMin, -10.0f, 10.0f);
-    ImGui::SliderFloat2("v Range", &f_.vMin, -10.0f, 10.0f);
+    ImGui::InputFloat2("u Range", &f_.uMin);
+    ImGui::InputFloat2("v Range", &f_.vMin);
+    ImGui::SliderInt("Resolution", &resolution_, 2, 64);
 
     //-------------------
     // Update
     //-------------------
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
-        auto tokens = Parsing::tokenize(input_buffer_);
-        for (auto& token : tokens) std::cout << token << std::endl;
+        auto tokens_x = Parsing::tokenize(input_buffer_x_);
+        auto tokens_y = Parsing::tokenize(input_buffer_y_);
+        auto tokens_z = Parsing::tokenize(input_buffer_z_);
 
-        // Tranform AST into a function of x, y, z
-        auto root = Parsing::Parser(tokens).parse();
-        root->print();
-        std::cout << std::endl;
-        std::function<Vec3f(float,float)> func = [&root](float u, float v) {
+        // Tranform ASTa into functiona of u, v
+        auto root_x = Parsing::Parser(tokens_x).parse();
+        auto root_y = Parsing::Parser(tokens_y).parse();
+        auto root_z = Parsing::Parser(tokens_z).parse();
+
+        std::function<Vec3f(float,float)> func = [&](float u, float v) {
             Scope scope;
             scope.setVariable("u", std::make_shared<Parsing::ScalarNode>(u));
             scope.setVariable("v", std::make_shared<Parsing::ScalarNode>(v));
-            auto value = root->evaluate(scope);
-            if (!value) {std::cerr << "Value is NULL" << std::endl;}
-            auto vec = dynamic_cast<Parsing::PointValue*>(value.get());
-            if (vec) {return vec->getValue<Vec3f>();}
-            std::cerr << "Value is not a Vector" << std::endl;
-            return Vec3f(0,0,0);
+
+            auto value_x = root_x->evaluate(scope);
+            auto value_y = root_y->evaluate(scope);
+            auto value_z = root_z->evaluate(scope);
+
+            return Vec3f(
+                std::visit([](auto&& v) {
+                    using T = std::decay_t<decltype(v)>;
+                    if constexpr (std::is_same_v<T, double>) {return v;}
+                    else {return 0.0;}
+                }, value_x.val),
+                std::visit([](auto&& v) {
+                    using T = std::decay_t<decltype(v)>;
+                    if constexpr (std::is_same_v<T, double>) {return v;}
+                    else {return 0.0;}
+                }, value_y.val),
+                std::visit([](auto&& v) {
+                    using T = std::decay_t<decltype(v)>;
+                    if constexpr (std::is_same_v<T, double>) {return v;}
+                    else {return 0.0;}
+                }, value_z.val)
+            );
         };
 
         // Update renderer
@@ -215,6 +245,7 @@ void ImplicitSurfaceObject::addToRenderer(Scene *scene)
             ui_color_ // TODO: Display correct color
             );
     }
+    bbox_.compute(mesh.vertices);
     renderer_.addTriangles(tris, renderLoc_);
 }
 
@@ -245,7 +276,7 @@ void ImplicitSurfaceObject::renderUIBody(Scene *scene)
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
         auto tokens = Parsing::tokenize(input_buffer_);
-        for (auto& token : tokens) std::cout << token << std::endl;
+        //for (auto& token : tokens) std::cout << token << std::endl;
 
         // Tranform AST into a function of x, y, z
         auto root = Parsing::Parser(tokens).parse();
@@ -257,11 +288,15 @@ void ImplicitSurfaceObject::renderUIBody(Scene *scene)
             scope.setVariable("y", std::make_shared<Parsing::ScalarNode>(v.y));
             scope.setVariable("z", std::make_shared<Parsing::ScalarNode>(v.z));
             auto value = root->evaluate(scope);
-            if (!value) {std::cerr << "Value is NULL" << std::endl;}
-            auto scalar = dynamic_cast<Parsing::ScalarValue*>(value.get());
-            if (scalar) {return (float)(scalar->value);}
-            std::cerr << "Value is not a Scalar" << std::endl;
-            return 0.0f;
+
+            return std::visit([](auto&& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, double>) return v;
+                else {
+                    std::cout << "Expected Scalar" << std::endl;
+                    return 0.0;
+                }
+            }, value.val);
         };
 
         // Update renderer

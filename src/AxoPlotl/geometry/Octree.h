@@ -36,17 +36,23 @@ struct AABB {
         return {x1-x0,y1-y0,z1-z0};
     }
 
+    inline double diagonal() const {
+        const auto s = size();
+        return std::sqrt(s[0]*s[0]+s[1]*s[1]+s[2]*s[2]);
+    }
+
     template<typename Vec3T>
     inline void compute(const std::vector<Vec3T>& pts) {
         x0 = y0 = z0 = +std::numeric_limits<double>::infinity();
         x1 = y1 = z1 = -std::numeric_limits<double>::infinity();
-        for (u32 i = 0; i < pts.size(); ++i) {
-            x0 = min(x0, pts[i][0]);
-            x1 = max(x1, pts[i][0]);
-            y0 = min(y0, pts[i][1]);
-            y1 = max(y1, pts[i][1]);
-            z0 = min(z0, pts[i][2]);
-            z1 = max(z1, pts[i][2]);
+        for (unsigned int i = 0; i < pts.size(); ++i) {
+            const Vec3T& p = pts[i];
+            if (p[0] < x0) x0 = p[0];
+            if (p[0] > x1) x1 = p[0];
+            if (p[1] < y0) y0 = p[1];
+            if (p[1] > y1) y1 = p[1];
+            if (p[2] < z0) z0 = p[2];
+            if (p[2] > z1) z1 = p[2];
         }
     }
 

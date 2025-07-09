@@ -11,7 +11,7 @@ LinesRenderBatch::LinesRenderBatch(size_t max_num_lines)
     vbo.generateNew(2 * max_num_lines);
     ibo.generateNew(2 * max_num_lines);
 
-    clear();
+    clearVertexBuffer();
 
     vao.unbind();
 }
@@ -30,7 +30,7 @@ void LinesRenderBatch::initFromMesh(TetrahedralMesh& mesh)
     vbo.generateNew(nVertices);
     ibo.generateNew(nIndices);
 
-    clear();
+    clearVertexBuffer();
 
     std::vector<GLuint> indices_features;
 

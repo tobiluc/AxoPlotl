@@ -29,6 +29,8 @@ std::unique_ptr<ASTNode> Parser::parseExpression()
 
 std::unique_ptr<ASTNode> Parser::parseAssignment()
 {
+    // TODO: Handle Function Assignment in the future
+
     if (peekIs(0, Token::Type::IDENTIFIER) && peekIs(1, Token::Type::ASSIGN))
     {
         // Variable Assignment
@@ -36,27 +38,6 @@ std::unique_ptr<ASTNode> Parser::parseAssignment()
         consume(Token::Type::ASSIGN);
         auto right = parseExpression();
         return std::make_unique<AssignNode>(left.LEXEME, std::move(right));
-    }
-    else if (peekIs(0, Token::Type::IDENTIFIER) && peekIs(1, Token::Type::LPAREN))
-    {
-        // Function Assignment
-        const auto& left = consume(Token::Type::IDENTIFIER);
-        consume(Token::Type::LPAREN);
-        std::vector<std::string> params;
-
-        params.push_back(consume(Token::Type::IDENTIFIER).LEXEME);
-        while (match(Token::Type::COMMA))
-        {
-            params.push_back(consume(Token::Type::IDENTIFIER).LEXEME);
-        }
-        consume(Token::Type::RPAREN);
-
-        // TODO: If no assign, then this is a call, not an assignment!
-
-        consume(Token::Type::ASSIGN);
-
-        auto right = parseExpression();
-        return std::make_unique<FunctionAssignNode>(left.LEXEME, params, std::move(right));
     }
     else
     {
@@ -245,6 +226,20 @@ std::unique_ptr<ASTNode> Parser::parseFunctionCall()
     // var args = (peek() == Token.Type.RPAREN)? new ArrayList<Expr>() : parseExprList();
     // consume(Token.Type.RPAREN);
     // return new FuncCallExpr(context, idToken.LEXEME, args.toArray(new Expr[]{}));
+
+    // Get Function Name
+    const auto& idToken = consume(Token::Type::IDENTIFIER);
+    consume(Token::Type::LPAREN);
+
+    // Get Function Arguments
+    std::vector<std::shared_ptr<ASTNode>> args;
+    args.push_back(parseExpression());
+    while (match(Token::Type::COMMA)) {
+        args.push_back(parseExpression());
+    }
+    consume(Token::Type::RPAREN);
+
+    return std::make_unique<FunctionCallNode>(idToken.LEXEME, std::move(args));
 }
 
 std::unique_ptr<ASTNode> Parser::parseList()

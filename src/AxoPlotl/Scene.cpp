@@ -219,6 +219,10 @@ void Scene::renderUI()
                     addImplicitSurface("Heart", ImplicitSurfaceFunctionBuilder::heart());
                 }
 
+                if (ImGui::MenuItem("Wineglass")) {
+                    addImplicitSurface("Wineglass", ImplicitSurfaceFunctionBuilder::wineglass());
+                }
+
                 if (ImGui::MenuItem("Test")) {
                     addImplicitSurface("Test", ImplicitSurfaceFunctionBuilder::test());
                 }
@@ -232,7 +236,8 @@ void Scene::renderUI()
 
                     IGFD::FileDialogConfig config;
                     config.path = "..";
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".ovm,.ovmb,.obj", config);
+                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
+                    "Mesh files (*.obj *.ovm *.ovmb *ply){.obj,.ovm,.ovmb,.ply}", config);
                 }
 
                 ImGui::EndMenu(); // !Mesh
@@ -251,9 +256,9 @@ void Scene::renderUI()
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
 
             auto format = IO::getFileFormatFromName(filepath);
-            if (format == IO::FileFormat::OVMB || format == IO::FileFormat::OVMA) {
+            if (format == IO::FileFormat::OVMB || format == IO::FileFormat::OVM) {
                 addTetrahedralMesh(filepath);
-            } else if (format == IO::FileFormat::OBJ) {
+            } else {
                 addMesh(filepath);
             }
         }
@@ -270,7 +275,8 @@ void Scene::renderUI()
 
     ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings.visible);
     if (ImGui::Button("Reset Camera")) {
-        camera_.set(Vec3f(0,0,1), Vec3f(0,0,-1));
+        camera_.setPosition(Vec3f(0,0,1));
+        camera_.setForward(Vec3f(0,0,-1));
     }
 
     ImGui::NewLine();
@@ -319,12 +325,6 @@ void Scene::renderUI()
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-}
-
-void Scene::zoomToObject(int id)
-{
-    // TODO: Get object bounding box and make camera point
-    // towards the box center while positioned at a reasonable distance
 }
 
 void TestScene::init()

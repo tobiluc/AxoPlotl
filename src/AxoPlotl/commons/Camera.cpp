@@ -6,8 +6,10 @@
 namespace AxoPlotl
 {
 
-void Camera::set(glm::vec3 position, glm::vec3 forward)
+void Camera::setPosition(glm::vec3 position)
 {
+    glm::vec3 forward = perspective.forward;
+
     perspective = PerspectiveProjection{
         .position = position,
         .forward = forward,
@@ -24,6 +26,12 @@ void Camera::set(glm::vec3 position, glm::vec3 forward)
     };
 
     updateCameraVectors();
+}
+
+void Camera::setForward(glm::vec3 forward)
+{
+    perspective.forward = forward;
+    setPosition(perspective.position);
 }
 
 void Camera::update(GLFWwindow* window)

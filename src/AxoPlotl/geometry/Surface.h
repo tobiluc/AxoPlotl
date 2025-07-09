@@ -11,7 +11,8 @@ namespace AxoPlotl
 struct ExplicitSurfaceFunction
 {
     std::function<Vec3f(float,float)> f;
-    float uMin, uMax, vMin, vMax;
+    float uMin=-1, uMax=1, vMin=-1, vMax=1;
+    std::string str_x = "u", str_y = "u^2 + v^2", str_z = "v";
 
     inline Vec3f operator()(float u, float v) const {return f(u,v);}
 };
@@ -51,7 +52,7 @@ void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, 
 class ExplicitSurfaceFunctionBuilder
 {
 public:
-    static ExplicitSurfaceFunction sphere(const Vec3f& center = Vec3f(0,0,0), float radius = 1.0f);
+    static ExplicitSurfaceFunction sphere(float radius = 1.0f);
 
     static ExplicitSurfaceFunction torus(const Vec3f& center = Vec3f(0,0,0), Vec3f axis = Vec3f(0,1,0), const float r = 1, const float R = 2);
 
@@ -73,6 +74,8 @@ public:
     static ImplicitSurfaceFunction gyroid();
 
     static ImplicitSurfaceFunction heart();
+
+    static ImplicitSurfaceFunction wineglass();
 
     static ImplicitSurfaceFunction test();
 };

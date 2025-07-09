@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AxoPlotl/IO/OBJFileAccessor.h"
+#include "AxoPlotl/IO/FileAccessor.h"
 #include "AxoPlotl/IO/OVMFileAccessor.h"
 #include "AxoPlotl/geometry/Surface.h"
 #include "AxoPlotl/rendering/Renderer.h"
@@ -34,9 +34,10 @@ protected:
     Rendering::Renderer renderer_;
     Rendering::Renderer::BatchIndices renderLoc_;
     glm::mat4 transform_; // model matrix
+    AABB bbox_;
 
     /// General UI
-    void renderUIHeader();
+    void renderUIHeader(Scene* scene);
 
     /// Instance specific UI
     virtual void renderUIBody(Scene* scene) = 0;
@@ -57,7 +58,7 @@ public:
 
     inline void renderUI(Scene* scene) {
         ImGui::PushID(id_);
-        renderUIHeader();
+        renderUIHeader(scene);
         if (show_ui_body_) {renderUIBody(scene);}
         ImGui::PopID();
     }
@@ -72,7 +73,11 @@ public:
         renderer_.renderPicking(matrices.model_view_projection_matrix, id_);
     }
 
+    inline int id() const {return id_;}
+
     inline bool isDeleted() const {return deleted_;}
+
+    inline const AABB& getBoundingBox() const {return bbox_;}
 };
 
 // class EmptyObject : public AxPlGeometryObject
@@ -142,8 +147,8 @@ public:
     MeshObject(const std::string& _filepath, const glm::mat4& _transform = glm::mat4(1.0)) :
         AxPlGeometryObject("Mesh", std::filesystem::path(_filepath).filename(), _transform),
         filepath_(_filepath)
-    {;
-        IO::loadMeshOBJ(_filepath, mesh_);
+    {
+        IO::loadMesh(_filepath, mesh_);
     }
 
     void addToRenderer(Scene* scene) override;
@@ -156,14 +161,23 @@ class ExplicitSurfaceObject : public AxPlGeometryObject
 private:
     ExplicitSurfaceFunction f_;
     ColorFunction2f color_;
-    uint resolution_ = 32;
-    char input_buffer_[1024];
+    int resolution_ = 16;
+    char input_buffer_x_[512];
+    char input_buffer_y_[512];
+    char input_buffer_z_[512];
 
 public:
     ExplicitSurfaceObject(const std::string& _name, const ExplicitSurfaceFunction& _f,
                           Color _color = Color::BLUE, const glm::mat4& _transform = glm::mat4(1.0)) :
         AxPlGeometryObject("Explicit Surface", _name, _transform),  f_(_f), color_(_color)
-    {}
+    {
+        std::strncpy(input_buffer_x_, f_.str_x.c_str(), sizeof(input_buffer_x_));
+        std::strncpy(input_buffer_y_, f_.str_y.c_str(), sizeof(input_buffer_y_));
+        std::strncpy(input_buffer_z_, f_.str_z.c_str(), sizeof(input_buffer_z_));
+        input_buffer_x_[sizeof(input_buffer_x_)-1] = '\0';
+        input_buffer_y_[sizeof(input_buffer_y_)-1] = '\0';
+        input_buffer_z_[sizeof(input_buffer_z_)-1] = '\0';
+    }
 
     void addToRenderer(Scene* scene) override;
 

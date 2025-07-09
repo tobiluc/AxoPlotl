@@ -30,6 +30,21 @@ inline std::pair<std::string,std::string> splitFilenameExtension(const std::stri
     return std::make_pair(filename.substr(0,i), filename.substr(i));
 }
 
+enum FileFormat : char16_t {
+    INVALID, OBJ, PLY, MESH, OVM, OVMB
+};
+
+inline FileFormat getFileFormatFromName(const std::string& filename)
+{
+    std::string ext = toLower(splitFilenameExtension(filename).second);
+    if (ext == ".ovm") return FileFormat::OVM;
+    if (ext == ".ovmb") return FileFormat::OVMB;
+    if (ext == ".mesh") return FileFormat::MESH;
+    if (ext == ".obj") return FileFormat::OBJ;
+    if (ext == ".ply") return FileFormat::PLY;
+    return FileFormat::INVALID;
+}
+
 inline std::string getWorkingDirectory()
 {
     const size_t size = 1024;

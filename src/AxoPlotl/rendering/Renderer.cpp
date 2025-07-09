@@ -96,13 +96,13 @@ void Renderer::clear(const BatchIndices& where)
         switch (loc.first)
         {
         case GL_POINTS:
-            points[loc.second]->clear();
+            points[loc.second]->clearVertexBuffer();
             break;
         case GL_LINES:
-            lines[loc.second]->clear();
+            lines[loc.second]->clearVertexBuffer();
             break;
         case GL_TRIANGLES:
-            triangles[loc.second]->clear();
+            triangles[loc.second]->clearVertexBuffer();
             break;
         default:
             break;
@@ -246,51 +246,60 @@ inline std::ostream& operator<<(std::ostream& os, const AxoPlotl::Vec3f& v) {
 void Renderer::addMesh(Mesh& mesh, BatchIndices& loc)
 {
     // Add Points
-    // uint points_batch_index = findEmptyPointsBatch();
-    // points[points_batch_index]->clear(mesh.numVertices());
-    // for (int i = 0 ;i < mesh.numVertices(); ++i) {
-    //     points[points_batch_index]->add(Point(mesh.vertex(i), Color::RED));
-    // }
-    // loc.emplace_back(GL_POINTS, points_batch_index);
-    // return;
-
-    uint triangles_batch_index = findEmptyTrianglesBatch();
-
-    // Count number of triangles
-    size_t n_tris = 0;
-    for (int i = 0; i < mesh.numCells(); ++i) {
-        const auto& cell = mesh.cell(i);
-        if (cell.dim == 2) {
-            n_tris += cell.vertices.size()-2;
+    if (mesh.numVertices() > 0)
+    {
+        uint points_batch_index = findEmptyPointsBatch();
+        points[points_batch_index]->regenerateBuffers(mesh.numVertices());
+        for (int i = 0 ;i < mesh.numVertices(); ++i) {
+            points[points_batch_index]->add(Point(mesh.vertex(i), Color::LIGHTGRAY));
         }
+        loc.emplace_back(GL_POINTS, points_batch_index);
     }
-    triangles[triangles_batch_index]->reset(n_tris);
-    std::vector<Triangle> tris;
-    tris.reserve(n_tris);
 
-    for (int i = 0; i < mesh.numCells(); ++i) {
-        const auto& cell = mesh.cell(i);
+    if (mesh.numCells() > 0)
+    {
+        uint triangles_batch_index = findEmptyTrianglesBatch();
 
-        if (cell.dim == 2) {
-            for (int j = 1; j < cell.vertices.size()-1; ++j) {
-                int v0 = cell.vertices[0];
-                int v1 = cell.vertices[j];
-                int v2 = cell.vertices[j+1];
+        // Count number of required triangles
+        size_t n_tris = 0;
+        for (int i = 0; i < mesh.numCells(); ++i) {
+            const auto& cell = mesh.cell(i);
+            if (cell.dim == 2) {
+                n_tris += cell.vertices.size()-2;
+            }
+        }
 
-                if (v0 < mesh.numVertices() && v1 < mesh.numVertices() && v2 < mesh.numVertices()) {
 
-                    tris.emplace_back(
-                        mesh.vertex(v0), mesh.vertex(v1), mesh.vertex(v2),
-                        Color::WHITE
-                        );
-                } else {
-                    std::cerr << "Triangle " << v0 << ", " << v1 << ", " << v2 << std::endl;
+        // Add Triangles
+        triangles[triangles_batch_index]->regenerateBuffers(n_tris);
+        std::vector<Triangle> tris;
+        tris.reserve(n_tris);
+
+        for (int i = 0; i < mesh.numCells(); ++i) {
+            const auto& cell = mesh.cell(i);
+
+            if (cell.dim == 2) {
+                for (int j = 1; j < cell.vertices.size()-1; ++j) {
+                    int v0 = cell.vertices[0];
+                    int v1 = cell.vertices[j];
+                    int v2 = cell.vertices[j+1];
+
+                    if (v0 < mesh.numVertices() && v1 < mesh.numVertices() && v2 < mesh.numVertices()) {
+
+                        tris.emplace_back(
+                            mesh.vertex(v0), mesh.vertex(v1), mesh.vertex(v2),
+                            Color::WHITE
+                            );
+                    } else {
+                        std::cerr << "Triangle " << v0 << ", " << v1 << ", " << v2 << std::endl;
+                    }
                 }
             }
         }
+        triangles[triangles_batch_index]->add(tris);
+        loc.emplace_back(GL_TRIANGLES, triangles_batch_index);
+
     }
-    triangles[triangles_batch_index]->add(tris);
-    loc.emplace_back(GL_TRIANGLES, triangles_batch_index);
 }
 
 // Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)

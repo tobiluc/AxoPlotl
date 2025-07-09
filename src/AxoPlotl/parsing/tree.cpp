@@ -16,9 +16,9 @@ inline void printDepthPrefix(uint depth)
 
 ScalarNode::ScalarNode(double val) : value(val) {}
 
-const std::shared_ptr<Value> ScalarNode::evaluate(Scope& context) const
+const EvalValue ScalarNode::evaluate(Scope& context) const
 {
-    return std::make_shared<ScalarValue>(value);
+    return value;
 }
 
 void ScalarNode::print(uint depth) const
@@ -32,18 +32,18 @@ void ScalarNode::print(uint depth) const
 //================
 
 PointNode::PointNode(double x, double y, double z) :
-    x(x), y(y), z(z)
+    p(x, y, z)
 {}
 
-const std::shared_ptr<Value> PointNode::evaluate(Scope& context) const
+const EvalValue PointNode::evaluate(Scope& context) const
 {
-    return std::make_shared<PointValue>(x, y, z);
+    return p;
 }
 
 void PointNode::print(uint depth) const
 {
     printDepthPrefix(depth);
-    std::cout << " Point: " << "(" << x << ", " << y << ", " << z << ")";
+    std::cout << " Point: " << "(" << p.x << ", " << p.y << ", " << p.z << ")";
 }
 
 //================
@@ -54,12 +54,13 @@ ListNode::ListNode(const std::vector<std::shared_ptr<ASTNode>>& children) :
     children(children)
 {}
 
-const std::shared_ptr<Value> ListNode::evaluate(Scope& context) const
+const EvalValue ListNode::evaluate(Scope& context) const
 {
-    std::vector<std::shared_ptr<Value>> values;
+    EvalValueList values;
+    //std::vector<std::shared_ptr<EvalValue>> values;
     values.reserve(children.size());
-    for (auto& child : children) values.push_back(child->evaluate(context));
-    return std::make_shared<ListValue>(values);
+    for (auto& child : children) {values.push_back(child->evaluate(context));}
+    return values;
 }
 
 void ListNode::print(uint depth) const
@@ -81,7 +82,7 @@ VariableNode::VariableNode(const std::string& name) :
     name(name)
 {}
 
-const std::shared_ptr<Value> VariableNode::evaluate(Scope& context) const
+const EvalValue VariableNode::evaluate(Scope& context) const
 {
     return context.getVariable(name)->evaluate(context);
 }
@@ -102,86 +103,49 @@ BinaryOpNode::BinaryOpNode(Token::Type op, std::shared_ptr<ASTNode> left, std::s
     right(right)
 {}
 
-const std::shared_ptr<Value> BinaryOpNode::evaluate(Scope& context) const
+const EvalValue BinaryOpNode::evaluate(Scope& context) const
 {
     auto leftValue = left->evaluate(context);
     auto rightValue = right->evaluate(context);
 
-    // Scalar Operations
-    auto leftScalar = dynamic_cast<ScalarValue*>(leftValue.get());
-    auto rightScalar = dynamic_cast<ScalarValue*>(rightValue.get());
-    if (leftScalar && rightScalar)
-    {
-        double lval = leftScalar->getValue();
-        double rval = rightScalar->getValue();
-        switch (op)
-        {
-        case Token::Type::PLUS:
-            return std::make_shared<ScalarValue>(lval + rval);
-        case Token::Type::MINUS:
-            return std::make_shared<ScalarValue>(lval - rval);
-        case Token::Type::TIMES:
-            return std::make_shared<ScalarValue>(lval * rval);
-        case Token::Type::DIV:
-            if (rval == 0) throw std::runtime_error("Division by zero!");
-            return std::make_shared<ScalarValue>(lval / rval);
-        case Token::Type::POW:
-            return std::make_shared<ScalarValue>(std::pow(lval, rval));
-        default:
-            throw std::runtime_error("Unknown operator for scalars");
-        }
-    }
+    return std::visit([this](auto&& a, auto&& b) -> EvalValue {
+        using A = std::decay_t<decltype(a)>;
+        using B = std::decay_t<decltype(b)>;
 
-    // Vector Operations
-    auto leftVec = dynamic_cast<PointValue*>(leftValue.get());
-    auto rightVec = dynamic_cast<PointValue*>(rightValue.get());
-    if (leftVec && rightVec)
-    {
-        auto lval = leftVec->getValue<std::array<double, 3>>();
-        auto rval = rightVec->getValue<std::array<double, 3>>();
-        switch (op)
-        {
-        case Token::Type::PLUS:
-            return std::make_shared<PointValue>(
-                lval[0] + rval[0],
-                lval[1] + rval[1],
-                lval[2] + rval[2]
-                );
-        case Token::Type::MINUS:
-            return std::make_shared<PointValue>(
-                lval[0] - rval[0],
-                lval[1] - rval[1],
-                lval[2] - rval[2]
-                );
-        case Token::Type::TIMES:
-            return std::make_shared<PointValue>(
-                lval[0] * rval[0],
-                lval[1] * rval[1],
-                lval[2] * rval[2]
-                );
-        case Token::Type::DIV:
-            if (!rval[0] || !rval[1] || !rval[2]) throw std::runtime_error("Division by zero!");
-            return std::make_shared<PointValue>(
-                lval[0] / rval[0],
-                lval[1] / rval[1],
-                lval[2] / rval[2]
-                );
-        // case Token::Type::PERCENT:
-        //     return std::make_shared<PointValue>(
-        //         lval[1] * rval[2] - lval[2] * rval[1],
-        //         lval[2] * rval[0] - lval[0] * rval[2],
-        //         lval[0] * rval[1] - lval[1] * rval[0]
-        //     );
-        default:
-            throw std::runtime_error("Unknown operator for vectors");
+        // Scalar-Scalar
+        if constexpr (std::is_same_v<A, double> && std::is_same_v<B, double>) {
+            switch (op) {
+            case Token::Type::PLUS:  return EvalValue(a + b);
+            case Token::Type::MINUS: return EvalValue(a - b);
+            case Token::Type::TIMES: return EvalValue(a * b);
+            case Token::Type::POW:   return EvalValue(std::pow(a, b));
+            case Token::Type::DIV: return EvalValue(a / b);
+            default:
+                std::cerr << "Unknown binary operator for scalars" << std::endl;
+                return 0.0;
+            }
         }
-    }
 
-    std::cerr << "Incompatible types for binary operator:\n";
-    leftValue->print();
-    std::cout << std::endl;
-    rightValue->print();
-    return std::make_shared<NullValue>();
+        // Vector-Vector
+        else if constexpr (std::is_same_v<A, Vec3d> && std::is_same_v<B, Vec3d>) {
+            switch (op) {
+            case Token::Type::PLUS:  return EvalValue(a + b);
+            case Token::Type::MINUS: return EvalValue(a - b);
+            case Token::Type::TIMES: return EvalValue(a * b);
+            case Token::Type::DIV: return EvalValue(a / b);
+            default:
+                std::cerr << "Unknown binary operator for vectors" << std::endl;
+                return 0.0;
+            }
+        }
+
+        // Handle unsupported combinations
+        else {
+            std::cerr << "Incompatible types for binary operator" << std::endl;
+            return 0.0;
+        }
+
+    }, leftValue.val, rightValue.val);
 }
 
 void BinaryOpNode::print(uint depth) const
@@ -202,51 +166,39 @@ UnaryOpNode::UnaryOpNode(Token::Type op, std::shared_ptr<ASTNode> child) :
     child(child)
 {}
 
-const std::shared_ptr<Value> UnaryOpNode::evaluate(Scope& context) const
+const EvalValue UnaryOpNode::evaluate(Scope& context) const
 {
     auto value = child->evaluate(context);
 
-    // Scalar Operations
-    auto scalar = dynamic_cast<ScalarValue*>(value.get());
-    if (scalar)
-    {
-        double val = scalar->getValue();
-        switch (op)
-        {
-        case Token::Type::PLUS:
-            return std::make_shared<ScalarValue>(val);
-        case Token::Type::MINUS:
-            return std::make_shared<ScalarValue>(-val);
-        default:
-            throw std::runtime_error("Unknown unary operator for scalars");
-        }
-    }
+    return std::visit([this](auto&& v) -> EvalValue {
+        using T = std::decay_t<decltype(v)>;
 
-    // Vector Operations
-    auto vec = dynamic_cast<PointValue*>(value.get());
-    if (vec)
-    {
-        auto val = vec->getValue<std::array<double, 3>>();
-        switch (op)
-        {
-        case Token::Type::PLUS:
-            return std::make_shared<PointValue>(
-                val[0],
-                val[1],
-                val[2]
-                );
-        case Token::Type::MINUS:
-            return std::make_shared<PointValue>(
-                -val[0],
-                -val[1],
-                -val[2]
-                );
-        default:
-            throw std::runtime_error("Unknown unary operator for vectors");
+        // Scalar Operations
+        if constexpr (std::is_same_v<T, double>) {
+            switch (op) {
+            case Token::Type::PLUS:  return EvalValue(v);
+            case Token::Type::MINUS: return EvalValue(-v);
+            default:
+                std::cerr << "Unknown unary operator for scalar" << std::endl;
+                return 0.0;
+            }
         }
-    }
+        // Vector Operations
+        else if constexpr (std::is_same_v<T, Vec3d>) {
+            switch (op) {
+            case Token::Type::PLUS:  return EvalValue(v); // No change
+            case Token::Type::MINUS: return EvalValue(Vec3d(-v.x, -v.y, -v.z));
+            default:
+                std::cerr << "Unknown unary operator for vector" << std::endl;
+                return 0.0;
+            }
+        }
+        else {
+            std::cerr << "Unary operator not supported for this type" << std::endl;
+            return 0.0;
+        }
 
-    throw std::runtime_error("Incompatible types for operator");
+    }, value.val);
 }
 
 void UnaryOpNode::print(uint depth) const
@@ -265,7 +217,7 @@ AssignNode::AssignNode(const std::string& name, std::shared_ptr<ASTNode> right) 
     right(right)
 {}
 
-const std::shared_ptr<Value> AssignNode::evaluate(Scope& context) const
+const EvalValue AssignNode::evaluate(Scope& context) const
 {
     context.setVariable(name, right);
     return right->evaluate(context);
@@ -282,24 +234,24 @@ void AssignNode::print(uint depth) const
 // Function Definition Node
 //===========================
 
-FunctionAssignNode::FunctionAssignNode(const std::string& name, const std::vector<std::string>& params, std::shared_ptr<ASTNode> func) :
-    name(name), params(params), func(func)
-{}
+// FunctionAssignNode::FunctionAssignNode(const std::string& name, const std::vector<std::string>& params, std::shared_ptr<ASTNode> func) :
+//     name(name), params(params), func(func)
+// {}
 
-const std::shared_ptr<Value> FunctionAssignNode::evaluate(Scope& context) const
-{
-    context.setFunction(name, {params, func});
-    return func->evaluate(context);
-}
+// const EvalValue FunctionAssignNode::evaluate(Scope& context) const
+// {
+//     context.setFunction(name, {params, func});
+//     return func->evaluate(context);
+// }
 
-void FunctionAssignNode::print(uint depth) const
-{
-    printDepthPrefix(depth);
-    std::cout << " FuncDef \"" << name << "(";
-    for (uint i = 0; i < params.size(); ++i) {std::cout << params[i]; if (i < params.size()-1) std::cout << ", ";}
-    std::cout << ")\" = " << std::endl;
-    func->print(depth + 1);
-}
+// void FunctionAssignNode::print(uint depth) const
+// {
+//     printDepthPrefix(depth);
+//     std::cout << " FuncDef \"" << name << "(";
+//     for (uint i = 0; i < params.size(); ++i) {std::cout << params[i]; if (i < params.size()-1) std::cout << ", ";}
+//     std::cout << ")\" = " << std::endl;
+//     func->print(depth + 1);
+// }
 
 //===========================
 // Function Call Node
@@ -309,34 +261,41 @@ FunctionCallNode::FunctionCallNode(const std::string& name, const std::vector<st
     name(name), args(args)
 {}
 
-const std::shared_ptr<Value> FunctionCallNode::evaluate(Scope& context) const
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
+const EvalValue FunctionCallNode::evaluate(Scope& context) const
 {
-    if (!context.hasFunction(name))
-    {
-        std::cerr << "Calling undefined Function" << std::endl;
-        return std::make_shared<NullValue>();
+    std::vector<EvalValue> argsValues;
+    for (const auto& arg : args) {
+        argsValues.push_back(arg->evaluate(context));
+    }
+    uint nargs = argsValues.size();
+
+    std::unordered_map<std::string, std::function<double(double)>> functions1d1d;
+    functions1d1d["sin"] = [](double x) {return std::sin(x);};
+    functions1d1d["cos"] = [](double x) {return std::cos(x);};
+    functions1d1d["log"] = [](double x) {return std::log(x);};
+    functions1d1d["ln"] = functions1d1d["log"];
+    functions1d1d["exp"] = [](double x) {return std::exp(x);};
+
+    // TODO: Move the logic of different functions to Scope.cpp
+    // to define custom functions at runtime
+    // TODO: Supportfunctions with arbitrary return type and args/arg count
+
+    if (!functions1d1d.contains(name)) {
+        // Unknown function
+        return 0.0;
     }
 
-    // TODO: Set params = args in SubContext, then evaluate function
-    const auto& params = context.getFunction(name).first;
-
-    if (params.size() != args.size())
-    {
-        std::cerr << "Calling Function with wrong number of arguments" << std::endl;
-        return std::make_shared<NullValue>();
-    }
-
-    auto func = context.getFunction(name).second;
-    for (uint i = 0; i < params.size(); ++i)
-    {
-        context.setVariable(params[i], args[i]);
-    }
-    return func->evaluate(context);
+    return functions1d1d.at(name)(argsValues.at(0).value<double>());
 }
 
 void FunctionCallNode::print(uint depth) const
 {
-
+    printDepthPrefix(depth);
+    std::cout << " Function \"" << name << "\"" << std::endl;
+    for (const auto& arg : args) {arg->print(depth+1);}
 };
 
 //==================
@@ -346,9 +305,9 @@ void FunctionCallNode::print(uint depth) const
 EmptyNode::EmptyNode()
 {}
 
-const std::shared_ptr<Value> EmptyNode::evaluate(Scope& context) const
+const EvalValue EmptyNode::evaluate(Scope& context) const
 {
-    return std::make_shared<NullValue>();
+    return 0.0;
 }
 
 void EmptyNode::print(uint depth) const

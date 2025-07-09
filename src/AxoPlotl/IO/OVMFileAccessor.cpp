@@ -54,7 +54,7 @@ void writeTetMesh(const std::string& filename, const TetrahedralMesh& mesh, File
 {
     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
 
-    if (ext == FileFormat::OVMA)
+    if (ext == FileFormat::OVM)
     {
         OVM::IO::FileManager fm;
         std::ofstream off(filename.c_str(), std::ios::out);

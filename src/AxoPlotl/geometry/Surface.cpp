@@ -106,18 +106,21 @@ void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, 
     mc.generateWithOctree(isf.f, mesh, tree, maxDepth);
 }
 
-ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(const Vec3f& center, float radius)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(float radius)
 {
     return ExplicitSurfaceFunction{
-        .f = [center,radius](float phi, float theta)
+        .f = [radius](float phi, float theta)
         {
-            Vec3f res = center + Vec3f(
+            Vec3f res = Vec3f(
                 radius * sin(phi) * cos(theta),
                 radius * cos(phi),
                 radius * sin(phi) * sin(theta)
             );
             return res;
-        }, .uMin=0,.uMax=M_PI,.vMin=0,.vMax=2.0*M_PI
+        }, .uMin=0,.uMax=M_PI,.vMin=0,.vMax=2.0*M_PI,
+        .str_x = IO::string_format("%f * sin(u)*cos(v)", radius),
+        .str_y = IO::string_format("%f * cos(u)", radius),
+        .str_z = IO::string_format("%f * sin(u)*sin(v)", radius)
     };
 }
 
@@ -151,7 +154,10 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::moebiusStrip(float R)
                 t*sin(u),
                 v2*sin(u2)
             );
-        }, .uMin=0,.uMax=2.0*M_PI,.vMin=-1.0f,.vMax=1.0f
+        }, .uMin=0,.uMax=2.0*M_PI,.vMin=-1.0f,.vMax=1.0f,
+        .str_x = IO::string_format("(%f + 0.5*v*cos(0.5*u)) * cos(u)", R),
+        .str_y = IO::string_format("(%f + 0.5*v*cos(0.5*u)) * sin(u)", R),
+        .str_z = IO::string_format("0.5*v * sin(0.5*u)"),
     };
 }
 
@@ -210,7 +216,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::sphere(const Vec3f& cent
         .xMin = center.x - radius, .xMax = center.x + radius,
         .yMin = center.y - radius, .yMax = center.y + radius,
         .zMin = center.z - radius, .zMax = center.z + radius,
-        .str = IO::string_format("(x-%d)^2 + (y-%d)^2 + (z-%d)^2 - %d^2", center.x, center.y, center.z, radius)
+        .str = IO::string_format("(x-%f)^2 + (y-%f)^2 + (z-%f)^2 - %f^2", center.x, center.y, center.z, radius)
     };
 }
 
@@ -227,7 +233,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::torus(const float r, con
         .xMin = -r-R, .xMax = r+R,
         .yMin = -r-R, .yMax = r+R,
         .zMin = -r-R, .zMax = r+R,
-        .str = IO::string_format("")
+        .str = IO::string_format("(%f - (x*x+z*z)^0.5)^2 + y^2 - %f^2", R, r)
     };
 }
 
@@ -242,7 +248,21 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::gyroid()
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,
         .zMin = -10.f, .zMax = 10.f,
-        .str = IO::string_format("")
+        .str = IO::string_format("sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)")
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::wineglass()
+{
+    return ImplicitSurfaceFunction{
+        .f = [](Vec3f p) {
+            float t = (std::log(p.y + 3.2f));
+            return p.x*p.x + p.z*p.z - t*t - 0.02f;
+        },
+        .xMin = -2, .xMax = 2,
+        .yMin = -3.0f, .yMax = 3,
+        .zMin = -2, .zMax = 2,
+        .str = IO::string_format("x^2 + z^2 - (ln(y + 3.2))^2 - 0.02")
     };
 }
 
