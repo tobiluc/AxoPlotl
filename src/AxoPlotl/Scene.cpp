@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "Scene.h"
+#include "AxoPlotl/IO/FileAccessor.h"
 #include "AxoPlotl/IO/OBJFileAccessor.h"
 #include "AxoPlotl/geometry/Octree.h"
 #include "AxoPlotl/IO/OVMFileAccessor.h"
@@ -121,7 +122,7 @@ void Scene::render(GLFWwindow *window)
 
     // Remove deleted objects
     objects_.erase(
-        std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<AxPlGeometryObject>& obj) {
+        std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<GeometryNode>& obj) {
             return obj->isDeleted();
     }), objects_.end());
 
@@ -155,12 +156,8 @@ void Scene::renderUI()
 
                 }
 
-                if (ImGui::MenuItem("Triangle")) {
-
-                }
-
                 if (ImGui::MenuItem("Convex Polygon")) {
-
+                    addConvexPolygon({Vec3f(0,0,0), Vec3f(1,0,0), Vec3f(0,1,0)}, "Triangle");
                 }
 
                 if (ImGui::MenuItem("Tetrahedron")) {
@@ -171,13 +168,23 @@ void Scene::renderUI()
             }
 
             if (ImGui::BeginMenu("Explicit 1D Curve")) {
+
+                if (ImGui::MenuItem("Custom")) {
+                    addExplicitCurve("Custom", ExplicitCurveFunctionBuilder::dummy(), Color::random());
+                }
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("Butterfly")) {
+                    addExplicitCurve("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), Color::random());
+                }
+
                 ImGui::EndMenu(); // !Explicit 1D Curve
             }
 
             if (ImGui::BeginMenu("Explicit 2D Surface")) {
 
                 if (ImGui::MenuItem("Custom")) {
-
+                    addExplicitSurface("Custom", ExplicitSurfaceFunctionBuilder::dummy(), Color::random());
                 }
                 ImGui::Separator();
 
@@ -230,6 +237,17 @@ void Scene::renderUI()
                 ImGui::EndMenu(); // !Explicit 2D Surface
             }
 
+            if (ImGui::BeginMenu("Others")) {
+
+                if (ImGui::MenuItem("Vector Field")) {
+                    addVectorField([](const Vec3f& p) {
+                        return p.x*p.x*p.y*p.z - sin(p.x*p.y);
+                    }, "Vector Field");
+                }
+
+                ImGui::EndMenu();
+            }
+
             if (ImGui::BeginMenu("Mesh")) {
 
                 if (ImGui::MenuItem("Load from File")) {
@@ -254,12 +272,13 @@ void Scene::renderUI()
     if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
-
-            auto format = IO::getFileFormatFromName(filepath);
-            if (format == IO::FileFormat::OVMB || format == IO::FileFormat::OVM) {
-                addTetrahedralMesh(filepath);
+            Mesh mesh;
+            if (IO::loadMesh(filepath, mesh)) {
+                addMesh(mesh, std::filesystem::path(filepath).filename());
             } else {
-                addMesh(filepath);
+                ImGui::BeginPopup("##Error");
+                ImGui::Text("Could not load the mesh");
+                ImGui::EndPopup();
             }
         }
         ImGuiFileDialog::Instance()->Close();
@@ -354,23 +373,23 @@ void TestScene::init()
     gizmoRenderer_.settings.lineWidth = 5.0f;
 
     // Octree Test
-    Octree tree(AABB{0,1,0,1,0,1});
-    tree.refineNode(0);
-    tree.refineNode(8);
-    for (u32 i = 0; i < tree.numNodes(); ++i) {
-        auto c = tree.getNodeBounds(i).center();
-        std::cout << i << ": " << c[0] << " " << c[1] << " " << c[2] << std::endl;
-    }
-    HexahedralMesh mesh;
-    for (u32 i = 0; i < tree.numNodes(); ++i) {
-        auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
-        std::vector<OVM::VH> vhs;
-        for (u32 j = 0; j < 8; ++j) {
-            vhs.push_back(mesh.add_vertex(c[j]));
-        }
-        mesh.add_cell(vhs);
-    }
-    addHexahedralMesh(mesh);
+    // Octree tree(AABB{0,1,0,1,0,1});
+    // tree.refineNode(0);
+    // tree.refineNode(8);
+    // for (u32 i = 0; i < tree.numNodes(); ++i) {
+    //     auto c = tree.getNodeBounds(i).center();
+    //     std::cout << i << ": " << c[0] << " " << c[1] << " " << c[2] << std::endl;
+    // }
+    // HexahedralMesh mesh;
+    // for (u32 i = 0; i < tree.numNodes(); ++i) {
+    //     auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
+    //     std::vector<OVM::VH> vhs;
+    //     for (u32 j = 0; j < 8; ++j) {
+    //         vhs.push_back(mesh.add_vertex(c[j]));
+    //     }
+    //     mesh.add_cell(vhs);
+    // }
+    // addHexahedralMesh(mesh);
 
     // Triangle
     // Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});

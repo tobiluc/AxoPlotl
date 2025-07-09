@@ -55,7 +55,7 @@ std::vector<Token> tokenize(const char* text)
         // Single-Character Tokens
         switch (*p)
         {
-        case '=': tokens.push_back({Token::Type::ASSIGN, "="}); break;
+        //case '=': tokens.push_back({Token::Type::ASSIGN, "="}); break;
         case ',': tokens.push_back({Token::Type::COMMA, ","}); break;
         case '(': tokens.push_back({Token::Type::LPAREN, "("}); break;
         case ')': tokens.push_back({Token::Type::RPAREN, ")"}); break;

@@ -88,6 +88,14 @@ public:
 
 struct Light {Color ambient, diffuse, specular;};
 
+inline Color getColorOnSphere(float x, float y, float z) {
+    return Color(
+        0.5 * (x + 1),
+        0.5 * (y + 1),
+        0.5 * (z + 1)
+        );
+}
+
 } // namespace AxoPlotl
 
 #endif // COLOR_H

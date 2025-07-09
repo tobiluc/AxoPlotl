@@ -72,8 +72,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/parsing/Scope.h
     src/AxoPlotl/parsing/Scope.cpp
     src/AxoPlotl/parsing/tree.cpp
-    src/AxoPlotl/geometry/GeometryObject.h
-    src/AxoPlotl/geometry/GeometryObject.cpp
+
+
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
     src/AxoPlotl/Scene.h
@@ -101,6 +101,16 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/PLYFileAccessor.cpp
     src/AxoPlotl/IO/FileAccessor.h
     src/AxoPlotl/IO/FileAccessor.cpp
+    src/AxoPlotl/geometry/nodes/GeometryNode.h
+    src/AxoPlotl/geometry/nodes/GeometryNode.cpp
+    src/AxoPlotl/geometry/nodes/MeshNode.h
+    src/AxoPlotl/geometry/nodes/MeshNode.cpp
+    src/AxoPlotl/geometry/nodes/ExplicitCurveNode.h
+    src/AxoPlotl/geometry/nodes/ExplicitCurveNode.cpp
+    src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
+    src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
+    src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
+    src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
 
 
 )

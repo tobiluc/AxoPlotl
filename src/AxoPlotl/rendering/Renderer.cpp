@@ -302,35 +302,35 @@ void Renderer::addMesh(Mesh& mesh, BatchIndices& loc)
     }
 }
 
-// Renderer::GeometryLocation Renderer::addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color)
-// {
-//     const uint n = points.size();
-//     if (n < 3) return {};
+void Renderer::addConvexPolygon(const std::vector<glm::vec3>& points, const Color& color, const bool fill, BatchIndices& loc)
+{
+    const uint n = points.size();
+    if (n < 3) return;
 
-//     if (fill)
-//     {
-//         std::vector<Triangle> ts;
-//         for (uint i = 1; i < n-1; ++i)
-//         {
-//             Point p0(points[0], color);
-//             Point p1(points[i], color);
-//             Point p2(points[i+1], color);
-//             ts.emplace_back(p0, p1, p2);
-//         }
-//         return addTriangles(ts);
-//     }
-//     else
-//     {
-//         std::vector<Line> ls;
-//         for (uint i = 0; i < n; ++i)
-//         {
-//             Point p0(points[i], color);
-//             Point p1(points[(i+1)%n], color);
-//             ls.emplace_back(p0, p1);
-//         }
-//         return addLines(ls);
-//     }
-// }
+    if (fill)
+    {
+        std::vector<Triangle> ts;
+        for (uint i = 1; i < n-1; ++i)
+        {
+            Point p0(points[0], color);
+            Point p1(points[i], color);
+            Point p2(points[i+1], color);
+            ts.emplace_back(p0, p1, p2);
+        }
+        addTriangles(ts, loc);
+    }
+    else
+    {
+        std::vector<Line> ls;
+        for (uint i = 0; i < n; ++i)
+        {
+            Point p0(points[i], color);
+            Point p1(points[(i+1)%n], color);
+            ls.emplace_back(p0, p1);
+        }
+        addLines(ls, loc);
+    }
+}
 
 // Renderer::GeometryLocation Renderer::addSphere(const Vec3f& c, const float r, const Color& color, const uint precision)
 // {

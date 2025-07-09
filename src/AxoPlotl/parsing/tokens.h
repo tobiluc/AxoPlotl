@@ -16,7 +16,6 @@ struct Token
     {
         UNKNOWN, END,
         INT, FLOAT, IDENTIFIER,
-        ASSIGN,
         COMMA, LPAREN, RPAREN, LBOXBRACKET, RBOXBRACKET,
         PLUS, MINUS, TIMES, DIV, POW, INDEX,
         LOR, LAND, NOT,

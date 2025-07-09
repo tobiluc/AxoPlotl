@@ -244,8 +244,6 @@ public:
         count.resize(indices.size() / n);
         std::fill(count.begin(), count.end(), n);
 
-
-
         return id;
     }
 
@@ -260,6 +258,11 @@ public:
     inline void bufferData(const std::vector<GLuint>& indices)
     {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, nIndices * sizeof(GLuint), &indices[0], GL_STATIC_DRAW);
+    }
+
+    inline void bufferSubData(GLuint offset, const std::vector<GLuint>& indices)
+    {
+        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, indices.size()*sizeof(GLuint), &indices[0]);
     }
 
     inline void deleteBuffer()

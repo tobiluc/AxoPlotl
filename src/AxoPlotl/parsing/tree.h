@@ -34,6 +34,7 @@ struct Vec3d {
 struct EvalValue;
 using EvalValueList = std::vector<EvalValue>;
 using EvalType = std::variant<double, Vec3d, EvalValueList>;
+using EvalFunction = std::function<EvalValue(Scope&)>;
 
 struct EvalValue {
     EvalType val;
@@ -67,7 +68,10 @@ struct EvalValue {
 struct ASTNode
 {
     virtual ~ASTNode() = default;
+
     virtual const EvalValue evaluate(Scope& context) const = 0;
+
+    virtual EvalFunction compile() const = 0;
 
     virtual void print(uint depth = 0) const = 0;
 };
@@ -80,6 +84,8 @@ struct ScalarNode : public ASTNode
 
     const EvalValue evaluate(Scope& context) const override;
 
+    EvalFunction compile() const override;
+
     void print(uint depth) const override;
 };
 
@@ -90,6 +96,8 @@ struct PointNode : public ASTNode
     explicit PointNode(double x, double y, double z);
 
     const EvalValue evaluate(Scope& context) const override;
+
+    EvalFunction compile() const override;
 
     void print(uint depth) const override;
 };
@@ -102,6 +110,8 @@ struct ListNode : public ASTNode
 
     const EvalValue evaluate(Scope& context) const override;
 
+    EvalFunction compile() const override;
+
     void print(uint depth) const override;
 };
 
@@ -112,6 +122,8 @@ struct VariableNode : public ASTNode
     explicit VariableNode(const std::string& name);
 
     const EvalValue evaluate(Scope& context) const override;
+
+    EvalFunction compile() const override;
 
     void print(uint depth) const override;
 };
@@ -126,6 +138,8 @@ struct BinaryOpNode : public ASTNode
 
     const EvalValue evaluate(Scope& context) const override;
 
+    EvalFunction compile() const override;
+
     void print(uint depth) const override;
 };
 
@@ -138,20 +152,22 @@ struct UnaryOpNode : public ASTNode
 
     const EvalValue evaluate(Scope& context) const override;
 
-    void print(uint depth) const override;
-};
-
-struct AssignNode : public ASTNode
-{
-    std::string name;
-    std::shared_ptr<ASTNode> right;
-
-    explicit AssignNode(const std::string& name, std::shared_ptr<ASTNode> right);
-
-    const EvalValue evaluate(Scope& context) const override;
+    EvalFunction compile() const override;
 
     void print(uint depth) const override;
 };
+
+// struct AssignNode : public ASTNode
+// {
+//     std::string name;
+//     std::shared_ptr<ASTNode> right;
+
+//     explicit AssignNode(const std::string& name, std::shared_ptr<ASTNode> right);
+
+//     const EvalValue evaluate(Scope& context) const override;
+
+//     void print(uint depth) const override;
+// };
 
 // struct FunctionAssignNode : public ASTNode
 // {
@@ -175,6 +191,8 @@ struct FunctionCallNode : public ASTNode
 
     const EvalValue evaluate(Scope& context) const override;
 
+    EvalFunction compile() const override;
+
     void print(uint depth) const override;
 };
 
@@ -183,6 +201,8 @@ struct EmptyNode : public ASTNode
     explicit EmptyNode();
 
     const EvalValue evaluate(Scope& context) const override;
+
+    EvalFunction compile() const override;
 
     void print(uint depth) const override;
 };

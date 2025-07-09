@@ -333,7 +333,7 @@ int MarchingCubes::generate(const std::function<float (Vec3f)> &f, AABB b, Trian
     // Build cube index
     int cubeIndex = 0;
     for (int i = 0; i < 8; ++i) {
-        if (val[i] <= 0) cubeIndex |= (1 << i);
+        if (val[i] < 0) cubeIndex |= (1 << i);
     }
 
     // Get the points per cube edge
@@ -418,7 +418,7 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                 // Build cube index
                 int cubeIndex = 0;
                 for (int i = 0; i < 8; ++i) {
-                    if (val[i] <= 0) cubeIndex |= (1 << i);
+                    if (val[i] < 0) cubeIndex |= (1 << i);
                 }
 
                 // Get the points per cube edge
@@ -454,11 +454,22 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
 
 }
 
+struct Vec3fHash {
+    inline std::size_t operator()(const Vec3f& v) const {
+        std::size_t h1 = std::hash<float>{}(v.x);
+        std::size_t h2 = std::hash<float>{}(v.y);
+        std::size_t h3 = std::hash<float>{}(v.z);
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
+    }
+};
+
 void MarchingCubes::generateWithOctree(const std::function<float (Vec3f)> &f, TriangleMesh &mesh,
                                        Octree& tree, uint maxDepth)
 {
     // Init. Octree
     tree = Octree(bounds, std::max(nx,std::max(ny,nz)), maxDepth);
+
+    std::unordered_map<Vec3f,float,Vec3fHash> cachedVals;
 
     // Refine the tree
     for (u32 idx = 0; idx < tree.numNodes(); ++idx) {
@@ -469,7 +480,9 @@ void MarchingCubes::generateWithOctree(const std::function<float (Vec3f)> &f, Tr
             auto corners = b.corners<Vec3f>();
             bool pos = false, neg = false;
             for (u32 c = 0; c < 8; ++c) {
-                float val = f(corners[c]);
+                float val = 0.0f;
+                if (cachedVals.contains(corners[c])) {val = cachedVals.at(corners[c]);}
+                else {val = f(corners[c]);}
                 pos |= (val > 0);
                 neg |= (val < 0);
             }

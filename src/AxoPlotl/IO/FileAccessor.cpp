@@ -9,8 +9,8 @@ bool AxoPlotl::IO::loadMesh(const std::string& filename, Mesh& mesh)
     switch(f) {
     case OBJ: return loadMeshOBJ(filename, mesh);
     case PLY: return loadMeshPLY(filename, mesh);
-    case OVM:
-    case OVMB:
+    case OVM: // TODO
+    case OVMB: // TODO
     default: return false;
     }
 }

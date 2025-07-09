@@ -29,20 +29,17 @@ std::unique_ptr<ASTNode> Parser::parseExpression()
 
 std::unique_ptr<ASTNode> Parser::parseAssignment()
 {
-    // TODO: Handle Function Assignment in the future
+    // TODO: Handle Assignment in the future
 
-    if (peekIs(0, Token::Type::IDENTIFIER) && peekIs(1, Token::Type::ASSIGN))
-    {
-        // Variable Assignment
-        const auto& left = consume(Token::Type::IDENTIFIER);
-        consume(Token::Type::ASSIGN);
-        auto right = parseExpression();
-        return std::make_unique<AssignNode>(left.LEXEME, std::move(right));
-    }
-    else
-    {
-        return parseLogicOr();
-    }
+    // if (peekIs(0, Token::Type::IDENTIFIER) && peekIs(1, Token::Type::ASSIGN))
+    // {
+    //     // Variable Assignment
+    //     const auto& left = consume(Token::Type::IDENTIFIER);
+    //     consume(Token::Type::ASSIGN);
+    //     auto right = parseExpression();
+    //     return std::make_unique<AssignNode>(left.LEXEME, std::move(right));
+    // }
+    return parseLogicOr();
 }
 
 std::unique_ptr<ASTNode> Parser::parseLogicOr()

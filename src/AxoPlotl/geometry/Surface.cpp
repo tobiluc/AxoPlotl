@@ -75,7 +75,7 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
     // Add Vertices
     int vo = mesh.vertices.size();
     for (uint i = 0; i < resolution; ++i) {
-        float t = ecf.uMin + (i+1) * (ecf.uMax - ecf.uMin) / resolution;
+        float t = ecf.tMin + (i+1) * (ecf.tMax - ecf.tMin) / resolution;
         Vec3f f = ecf.f(t);
 
         mesh.vertices.push_back(f);
@@ -106,6 +106,50 @@ void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, 
     mc.generateWithOctree(isf.f, mesh, tree, maxDepth);
 }
 
+ExplicitCurveFunction ExplicitCurveFunctionBuilder::dummy()
+{
+    return ExplicitCurveFunction{
+        .f = [](float t)
+        {
+            return Vec3f(std::cos(t), t, std::sin(t));
+        }, .tMin=0,.tMax=4*M_PI,
+            .str_x = "cos(t)",
+            .str_y = "t",
+            .str_z = "sin(t)"
+    };
+}
+
+ExplicitCurveFunction ExplicitCurveFunctionBuilder::butterfly()
+{
+    return ExplicitCurveFunction{
+        .f = [](float t)
+        {
+            float a = exp(cos(t)) - 2*cos(4*t) - pow(sin(t/12), 5);
+            return Vec3f(
+                sin(t)*a,
+                cos(t)*a,
+                0
+            );
+        }, .tMin=0,.tMax=12*M_PI,
+            .str_x = "sin(t)*(exp(cos(t)) - 2*cos(4*t) - sin(t/12)^5)",
+            .str_y = "cos(t)*(exp(cos(t)) - 2*cos(4*t) - sin(t/12)^5)",
+            .str_z = "0"
+    };
+}
+
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::dummy()
+{
+    return ExplicitSurfaceFunction{
+        .f = [](float u, float v)
+        {
+            return Vec3f(u, u*u+v*v, v);
+        }, .uMin=-1,.uMax=1,.vMin=-1,.vMax=1,
+        .str_x = "u",
+        .str_y = "u^2 + v^2",
+        .str_z = "v"
+    };
+}
+
 ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(float radius)
 {
     return ExplicitSurfaceFunction{
@@ -124,19 +168,20 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(float radius)
     };
 }
 
-ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::torus(const Vec3f& center, Vec3f axis, const float r, const float R)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::torus(const float r, const float R)
 {
-    axis = glm::normalize(axis);
-    const Vec3f e1 = glm::normalize(cross(abs(axis[2]) < 0.99f ? Vec3f(0,0,1) : Vec3f(1,0,0), axis));
-    const Vec3f e2 = cross(axis, e1);
-
     return ExplicitSurfaceFunction{
-        .f = [center,R,r,e1,e2,axis](float u, float v)
+        .f = [R,r](float u, float v)
         {
-            return center
-                   + (R + r * cos(v)) * (cos(u) * e1 + sin(u) * e2)
-                   + r * sin(v) * axis;
-        }, .uMin=0,.uMax=2.0*M_PI,.vMin=0,.vMax=2.0*M_PI
+            return Vec3f(
+                (R + r*sin(u))*cos(v),
+                (R + r*sin(u))*sin(v),
+                r*cos(u)
+            );
+        }, .uMin=0,.uMax=2.0*M_PI,.vMin=0,.vMax=2.0*M_PI,
+        .str_x = IO::string_format("(%f + %f*sin(u))*cos(v)", R, r),
+        .str_y = IO::string_format("(%f + %f*sin(u))*sin(v)", R, r),
+        .str_z = IO::string_format("%f*cos(u)", r)
     };
 }
 

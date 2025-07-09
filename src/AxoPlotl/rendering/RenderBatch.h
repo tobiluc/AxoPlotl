@@ -97,6 +97,10 @@ public:
     //         remove(idx);
     //     }
     // }
+    // inline void setPrimitiveIndices(uint idx, const std::vector<int>& indices) {
+    //     ibo.bind();
+    //     ibo.bufferSubData(ibo.NUM_INDICES_PER_ELEMENT()*idx, indices);
+    // }
 
     /// Mark all as free, set vertex buffer to zero
     inline void clearVertexBuffer()

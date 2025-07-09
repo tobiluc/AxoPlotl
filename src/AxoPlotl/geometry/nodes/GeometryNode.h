@@ -1,0 +1,68 @@
+#pragma once
+
+#include "AxoPlotl/rendering/Renderer.h"
+#include <imgui.h>
+
+namespace AxoPlotl
+{
+
+// Forward declarations
+class Scene;
+
+class GeometryNode
+{
+protected:
+    int id_;
+    static int id_counter_;
+    std::string type_name_ = "AxPlObject";
+    char name_[64] = "BASE";
+    Color ui_color_;
+    bool deleted_ = false;
+    bool show_ui_body_ = false;
+    Rendering::Renderer renderer_;
+    Rendering::Renderer::BatchIndices renderLoc_;
+    glm::mat4 transform_; // model matrix
+
+    /// General UI
+    void renderUIHeader(Scene* scene);
+
+    /// Instance specific UI
+    virtual void renderUIBody(Scene* scene) = 0;
+
+public:
+    GeometryNode(const std::string& _type_name, const std::string& _name, glm::mat4x4 _transform) :
+        id_(++id_counter_), type_name_(_type_name), ui_color_(Color::random()),
+        transform_(_transform)
+    {
+        std::strncpy(name_, _name.c_str(), sizeof(name_) - 1);
+        name_[sizeof(name_) - 1] = '\0';
+    }
+
+    virtual ~GeometryNode() = default;
+
+    /// Must be called before rendering
+    virtual void addToRenderer(Scene* scene) = 0;
+
+    inline void renderUI(Scene* scene) {
+        ImGui::PushID(id_);
+        renderUIHeader(scene);
+        if (show_ui_body_) {renderUIBody(scene);}
+        ImGui::PopID();
+    }
+
+    inline void render(const glm::mat4& view, const glm::mat4& projection) {
+        Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
+        renderer_.render(matrices);
+    }
+
+    inline void renderPicking(const glm::mat4& view, const glm::mat4& projection) {
+        Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
+        renderer_.renderPicking(matrices.model_view_projection_matrix, id_);
+    }
+
+    inline int id() const {return id_;}
+
+    inline bool isDeleted() const {return deleted_;}
+};
+
+}

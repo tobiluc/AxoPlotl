@@ -17,12 +17,15 @@ struct ExplicitSurfaceFunction
     inline Vec3f operator()(float u, float v) const {return f(u,v);}
 };
 
-typedef struct
+struct ExplicitCurveFunction
 {
     std::function<Vec3f(float)> f;
-    float uMin, uMax;
+    float tMin, tMax;
+    std::string str_x = "cos(t)", str_y = "t", str_z = "sin(t)";
 
-} ExplicitCurveFunction;
+    inline Vec3f operator()(float t) const {return f(t);}
+
+};
 
 struct ImplicitSurfaceFunction
 {
@@ -47,14 +50,25 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
 void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
 
 /// Adaptive MC (using octree)
-void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree, const uint resolution = 8, const uint maxDepth = 4);
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree,
+            const uint resolution = 8, const uint maxDepth = 4);
+
+class ExplicitCurveFunctionBuilder
+{
+public:
+    static ExplicitCurveFunction dummy();
+
+    static ExplicitCurveFunction butterfly();
+};
 
 class ExplicitSurfaceFunctionBuilder
 {
 public:
+    static ExplicitSurfaceFunction dummy();
+
     static ExplicitSurfaceFunction sphere(float radius = 1.0f);
 
-    static ExplicitSurfaceFunction torus(const Vec3f& center = Vec3f(0,0,0), Vec3f axis = Vec3f(0,1,0), const float r = 1, const float R = 2);
+    static ExplicitSurfaceFunction torus(const float r = 1, const float R = 2);
 
     static ExplicitSurfaceFunction moebiusStrip(float R = 1);
 

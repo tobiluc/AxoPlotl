@@ -21,6 +21,12 @@ const EvalValue ScalarNode::evaluate(Scope& context) const
     return value;
 }
 
+EvalFunction ScalarNode::compile() const
+{
+    double value = this->value;
+    return [value](Scope& context) {return value;};
+}
+
 void ScalarNode::print(uint depth) const
 {
     printDepthPrefix(depth);
@@ -38,6 +44,12 @@ PointNode::PointNode(double x, double y, double z) :
 const EvalValue PointNode::evaluate(Scope& context) const
 {
     return p;
+}
+
+EvalFunction PointNode::compile() const
+{
+    Vec3d value = this->p;
+    return [value](Scope& context) {return value;};
 }
 
 void PointNode::print(uint depth) const
@@ -63,6 +75,20 @@ const EvalValue ListNode::evaluate(Scope& context) const
     return values;
 }
 
+EvalFunction ListNode::compile() const
+{
+    std::vector<EvalFunction> childrenFuncs;
+    for (const auto& child : children) {
+        childrenFuncs.push_back(child->compile());
+    }
+
+    return [childrenFuncs](Scope& context) {
+        std::vector<EvalValue> vals;
+        for (const auto& f : childrenFuncs) {vals.push_back(f(context));}
+        return vals;
+    };
+}
+
 void ListNode::print(uint depth) const
 {
     printDepthPrefix(depth);
@@ -85,6 +111,14 @@ VariableNode::VariableNode(const std::string& name) :
 const EvalValue VariableNode::evaluate(Scope& context) const
 {
     return context.getVariable(name)->evaluate(context);
+}
+
+EvalFunction VariableNode::compile() const
+{
+    std::string name = this->name;
+    return [name](Scope& context) {
+        return context.getVariable(name)->evaluate(context);
+    };
 }
 
 void VariableNode::print(uint depth) const
@@ -148,6 +182,42 @@ const EvalValue BinaryOpNode::evaluate(Scope& context) const
     }, leftValue.val, rightValue.val);
 }
 
+EvalFunction BinaryOpNode::compile() const
+{
+    auto leftFunc = left->compile();
+    auto rightFunc = right->compile();
+
+    // TODO: Work with Non-Scalar Types
+
+    switch (op)
+    {
+    case Token::Type::PLUS:
+        return [leftFunc, rightFunc](Scope& ctx) {
+            return leftFunc(ctx).value<double>() + rightFunc(ctx).value<double>();
+        };
+    case Token::Type::MINUS:
+        return [leftFunc, rightFunc](Scope& ctx) {
+            return leftFunc(ctx).value<double>() - rightFunc(ctx).value<double>();
+        };
+    case Token::Type::TIMES:
+        return [leftFunc, rightFunc](Scope& ctx) {
+            return leftFunc(ctx).value<double>() * rightFunc(ctx).value<double>();
+        };
+    case Token::Type::DIV:
+        return [leftFunc, rightFunc](Scope& ctx) {
+            double rval = rightFunc(ctx).value<double>();
+            if (rval == 0.0) throw std::runtime_error("Division by zero");
+            return leftFunc(ctx).value<double>() / rval;
+        };
+    case Token::Type::POW:
+        return [leftFunc, rightFunc](Scope& ctx) {
+            return std::pow(leftFunc(ctx).value<double>(), rightFunc(ctx).value<double>());
+        };
+    default:
+        throw std::runtime_error("Unknown binary operator");
+    }
+}
+
 void BinaryOpNode::print(uint depth) const
 {
     printDepthPrefix(depth);
@@ -201,6 +271,29 @@ const EvalValue UnaryOpNode::evaluate(Scope& context) const
     }, value.val);
 }
 
+EvalFunction UnaryOpNode::compile() const
+{
+    auto func = child->compile();
+
+    // TODO: Non-Scalar Types
+
+    switch (op)
+    {
+    case Token::Type::PLUS:
+        return [func](Scope& ctx) {
+            auto val = func(ctx);
+            return val;
+        };
+    case Token::Type::MINUS:
+        return [func](Scope& ctx) {
+            auto val = func(ctx);
+            return -val.value<double>();
+        };
+    default:
+        return [](Scope& ctx) {return 0.0f;};
+    }
+}
+
 void UnaryOpNode::print(uint depth) const
 {
     printDepthPrefix(depth);
@@ -212,23 +305,23 @@ void UnaryOpNode::print(uint depth) const
 // Assign Node
 //==================
 
-AssignNode::AssignNode(const std::string& name, std::shared_ptr<ASTNode> right) :
-    name(name),
-    right(right)
-{}
+// AssignNode::AssignNode(const std::string& name, std::shared_ptr<ASTNode> right) :
+//     name(name),
+//     right(right)
+// {}
 
-const EvalValue AssignNode::evaluate(Scope& context) const
-{
-    context.setVariable(name, right);
-    return right->evaluate(context);
-}
+// const EvalValue AssignNode::evaluate(Scope& context) const
+// {
+//     context.setVariable(name, right);
+//     return right->evaluate(context);
+// }
 
-void AssignNode::print(uint depth) const
-{
-    printDepthPrefix(depth);
-    std::cout << " Assign \"" << name << "\" = " << std::endl;
-    right->print(depth+1);
-}
+// void AssignNode::print(uint depth) const
+// {
+//     printDepthPrefix(depth);
+//     std::cout << " Assign \"" << name << "\" = " << std::endl;
+//     right->print(depth+1);
+// }
 
 //===========================
 // Function Definition Node
@@ -278,6 +371,7 @@ const EvalValue FunctionCallNode::evaluate(Scope& context) const
     functions1d1d["log"] = [](double x) {return std::log(x);};
     functions1d1d["ln"] = functions1d1d["log"];
     functions1d1d["exp"] = [](double x) {return std::exp(x);};
+    functions1d1d["sqrt"] = [](double x) {return std::sqrt(x);};
 
     // TODO: Move the logic of different functions to Scope.cpp
     // to define custom functions at runtime
@@ -289,6 +383,35 @@ const EvalValue FunctionCallNode::evaluate(Scope& context) const
     }
 
     return functions1d1d.at(name)(argsValues.at(0).value<double>());
+}
+
+EvalFunction FunctionCallNode::compile() const
+{
+    std::vector<EvalFunction> argFuncs;
+    for (const auto& arg : args) {
+        argFuncs.push_back(arg->compile());
+    }
+
+    // TODO: Make this work for n-ary functions with different return types
+
+    std::unordered_map<std::string, std::function<double(double)>> functions1d1d;
+    functions1d1d["sin"] = [](double x) {return std::sin(x);};
+    functions1d1d["cos"] = [](double x) {return std::cos(x);};
+    functions1d1d["log"] = [](double x) {return std::log(x);};
+    functions1d1d["ln"] = functions1d1d["log"];
+    functions1d1d["exp"] = [](double x) {return std::exp(x);};
+
+
+    if (!functions1d1d.contains(name)) {
+        return [](Scope& context) {return 0.0f;};
+    }
+
+    auto func = functions1d1d[name];
+    auto arg = argFuncs[0];
+    return [arg,func](Scope& context) {
+        auto tmp = arg(context);
+        return func(tmp.value<double>());
+    };
 }
 
 void FunctionCallNode::print(uint depth) const
@@ -308,6 +431,11 @@ EmptyNode::EmptyNode()
 const EvalValue EmptyNode::evaluate(Scope& context) const
 {
     return 0.0;
+}
+
+EvalFunction EmptyNode::compile() const
+{
+    return [](Scope& context) {return 0.0f;};
 }
 
 void EmptyNode::print(uint depth) const

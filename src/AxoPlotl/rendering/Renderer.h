@@ -167,7 +167,7 @@ public:
 
     void addMesh(Mesh& mesh, BatchIndices& loc);
 
-    // GeometryLocation addConvexPolygon(const bool fill, const std::vector<glm::vec3>& points, const Color& color);
+    void addConvexPolygon(const std::vector<glm::vec3>& points, const Color& color, const bool fill, BatchIndices& loc);
 
     // GeometryLocation addSphere(const Vec3f& c, const float r, const Color& color, const uint precision = 16);
 
