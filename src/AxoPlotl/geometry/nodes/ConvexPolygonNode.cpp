@@ -13,7 +13,7 @@ void ConvexPolygonNode::addToRenderer(Scene* scene)
     for (const auto& v : vertices_) {vhs.push_back(mesh.add_vertex(toVec3<OVM::Vec3d>(v)));}
     mesh.add_face(vhs);
 
-    mesh_renderer_.initFromMesh(mesh);
+    mesh_renderer_.init(mesh);
 }
 
 void ConvexPolygonNode::renderUIBody(Scene* scene)

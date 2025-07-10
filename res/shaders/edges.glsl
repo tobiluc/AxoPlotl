@@ -6,12 +6,19 @@ layout (location = 1) in vec4 v_color;
  
 uniform mat4 model_view_projection_matrix;
 uniform float time;
+uniform bool use_global_color;
+uniform vec4 global_color;
 
 out vec4 v2g_color;
 
 void main() {
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
-	v2g_color = v_color;
+	
+	if (use_global_color) {
+		v2g_color = global_color;
+	} else {
+		v2g_color = v_color;
+	}
 } 
 
 #shader geometry

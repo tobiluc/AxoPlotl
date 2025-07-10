@@ -8,6 +8,11 @@ namespace AxoPlotl::Rendering
 MeshRenderer::MeshRenderer()
 {}
 
+MeshRenderer::~MeshRenderer()
+{
+    deleteBuffers();
+}
+
 void MeshRenderer::deleteBuffers()
 {
     if (vbo_point_attrib_) {glDeleteBuffers(1, &vbo_point_attrib_);}
@@ -24,66 +29,11 @@ void MeshRenderer::deleteBuffers()
     if (ibo_triangles_) {glDeleteBuffers(1, &ibo_triangles_);}
 }
 
-void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
+void MeshRenderer::init(const RenderData& data)
 {
-    deleteBuffers();
-
-    std::vector<VertexPointAttrib> pointAttribs;
-    std::vector<VertexLineAttrib> lineAttribs;
-    std::vector<VertexTriangleAttrib> triangleAttribs;
-    std::vector<GLuint> pointIndices;
-    std::vector<GLuint> lineIndices;
-    std::vector<GLuint> triangleIndices;
-
-    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
-
-        // Compute smooth normal
-        Vec3f n(0,0,0);
-        for (auto vf_it = mesh.vf_iter(*v_it); vf_it.is_valid(); ++vf_it) {
-            n += toVec3<Vec3f>(mesh.normal(vf_it->halfface_handle(0)));
-        }
-        n = glm::normalize(n);
-
-        pointAttribs.push_back(VertexPointAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Color::BLACK
-        });
-
-        lineAttribs.push_back(VertexLineAttrib{
-           .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-           .color = Color::LIGHTGRAY
-        });
-
-        triangleAttribs.push_back(VertexTriangleAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Color::WHITE,
-            .normal = n,
-            .buffer = 0.0f
-        });
-
-    }
-
-    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
-        pointIndices.push_back(v_it->uidx());
-    }
-
-    for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
-        lineIndices.push_back(mesh.from_vertex_handle(e_it->halfedge_handle(0)).uidx());
-        lineIndices.push_back(mesh.to_vertex_handle(e_it->halfedge_handle(0)).uidx());
-    }
-
-    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
-        const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
-        for (uint j = 1; j < vhs.size()-1; ++j) {
-            triangleIndices.push_back(vhs[0].uidx());
-            triangleIndices.push_back(vhs[j].uidx());
-            triangleIndices.push_back(vhs[j+1].uidx());
-        }
-    }
-
-    n_points_ = pointIndices.size();
-    n_lines_     = lineIndices.size() / 2;
-    n_triangles_ = triangleIndices.size() / 3;
+    n_points_ = data.pointIndices.size();
+    n_lines_     = data.lineIndices.size() / 2;
+    n_triangles_ = data.triangleIndices.size() / 3;
 
     //--------------------------
     // Triangles
@@ -97,10 +47,10 @@ void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
     glBindVertexArray(vao_triangles_);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, triangleAttribs.size() * sizeof(VertexTriangleAttrib), triangleAttribs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangleIndices.size() * sizeof(GLuint), triangleIndices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_STATIC_DRAW);
 
     // Enable only attribs used in shader
 
@@ -123,6 +73,33 @@ void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
     glBindVertexArray(0);
 
     //--------------------------
+    // Triangles (Picking)
+    //--------------------------
+
+    glGenVertexArrays(1, &vao_triangles_picking_);
+
+    // Upload data
+    glBindVertexArray(vao_triangles_picking_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_STATIC_DRAW);
+
+    // Enable only attribs used in shader
+
+    // -- Attrib 0: Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, position));
+    glEnableVertexAttribArray(0);
+
+    // -- Attrib 1: Buffer
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, buffer));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(0);
+
+    //--------------------------
     // Lines
     //--------------------------
 
@@ -134,10 +111,10 @@ void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
     glBindVertexArray(vao_lines_);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, lineAttribs.size() * sizeof(VertexLineAttrib), lineAttribs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.lineAttribs.size() * sizeof(VertexLineAttrib), data.lineAttribs.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, lineIndices.size() * sizeof(GLuint), lineIndices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.lineIndices.size() * sizeof(GLuint), data.lineIndices.data(), GL_STATIC_DRAW);
 
     // Enable only attribs used in shader
 
@@ -163,10 +140,10 @@ void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
     glBindVertexArray(vao_points_);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, pointAttribs.size() * sizeof(VertexPointAttrib), pointAttribs.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, data.pointAttribs.size() * sizeof(VertexPointAttrib), data.pointAttribs.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, pointIndices.size() * sizeof(GLuint), pointIndices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.pointIndices.size() * sizeof(GLuint), data.pointIndices.data(), GL_STATIC_DRAW);
 
     // Enable only attribs used in shader
 
@@ -179,6 +156,62 @@ void MeshRenderer::initFromMesh(const PolyhedralMesh &mesh)
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
+}
+
+void MeshRenderer::init(const PolyhedralMesh &mesh)
+{
+    RenderData data;
+
+    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
+
+        // Compute smooth normal
+        Vec3f n(0,0,0);
+        for (auto vf_it = mesh.vf_iter(*v_it); vf_it.is_valid(); ++vf_it) {
+            n += toVec3<Vec3f>(mesh.normal(vf_it->halfface_handle(0)));
+        }
+        n = glm::normalize(n);
+
+        data.pointAttribs.push_back(VertexPointAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
+            .color = Color::BLACK
+        });
+
+        data.lineAttribs.push_back(VertexLineAttrib{
+           .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
+            .color = Color(v_it->idx()/(float)mesh.n_vertices(),0,0)
+        });
+
+        data.triangleAttribs.push_back(VertexTriangleAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
+            .color = Color::WHITE,
+            .normal = n,
+            .buffer = 0.0f
+        });
+
+    }
+
+    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
+        data.pointIndices.push_back(v_it->uidx());
+    }
+
+    for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
+        uint v0 = mesh.from_vertex_handle(e_it->halfedge_handle(0)).uidx();
+        uint v1 = mesh.from_vertex_handle(e_it->halfedge_handle(1)).uidx();
+        data.lineIndices.push_back(v0);
+        data.lineIndices.push_back(v1);
+    }
+
+    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
+        const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
+        for (uint j = 1; j < vhs.size()-1; ++j) {
+            data.triangleIndices.push_back(vhs[0].uidx());
+            data.triangleIndices.push_back(vhs[j].uidx());
+            data.triangleIndices.push_back(vhs[j+1].uidx());
+        }
+    }
+
+    init(data);
+
 }
 
 void MeshRenderer::render(const Matrices &m)
@@ -204,6 +237,9 @@ void MeshRenderer::render(const Matrices &m)
         Shader::VERTICES_SHADER.setFloat("point_size", settings_.pointSize);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
 
+        Shader::VERTICES_SHADER.setBool("use_global_color", settings_.useGlobalPointColor);
+        Shader::VERTICES_SHADER.setVec4f("global_color", settings_.globalPointColor);
+
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
 
@@ -224,6 +260,9 @@ void MeshRenderer::render(const Matrices &m)
         Shader::EDGES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
 
         Shader::EDGES_SHADER.setFloat("line_width", settings_.lineWidth);
+
+        Shader::EDGES_SHADER.setBool("use_global_color", settings_.useGlobalLineColor);
+        Shader::EDGES_SHADER.setVec4f("global_color", settings_.globalLineColor);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
@@ -250,6 +289,9 @@ void MeshRenderer::render(const Matrices &m)
         Shader::FACES_SHADER.setVec3f("light.diffuse", settings_.light.diffuse);
         Shader::FACES_SHADER.setVec3f("light.specular", settings_.light.specular);
 
+        Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
+        Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
+
         Shader::FACES_OUTLINES_SHADER.use();
 
         Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
@@ -274,7 +316,16 @@ void MeshRenderer::renderPicking(const Matrices& m, int id)
 {
     if (!settings_.visible) {return;}
 
-    // TODO
+    Shader::PICKING_SHADER.use();
+
+    Shader::PICKING_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
+    Shader::PICKING_SHADER.setUInt("object_index", id);
+
+    glBindVertexArray(vao_triangles_picking_);
+
+    glDrawElements(GL_TRIANGLES, 3*n_triangles_, GL_UNSIGNED_INT, NULL);
+
+    glBindVertexArray(0);
 }
 
 }

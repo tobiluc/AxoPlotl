@@ -14,6 +14,7 @@ class GeometryNode
 {
 protected:
     int id_;
+    bool target_ = false;
     static int id_counter_;
     std::string type_name_ = "AxPlObject";
     char name_[64] = "BASE";

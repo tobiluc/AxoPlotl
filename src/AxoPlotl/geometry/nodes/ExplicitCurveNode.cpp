@@ -90,7 +90,7 @@ void ExplicitCurveNode::addToRenderer(Scene* scene)
         mesh.add_edge(OVM::VH(l[0]), OVM::VH(l[1]));
     }
 
-    mesh_renderer_.initFromMesh(mesh);
+    mesh_renderer_.init(mesh);
 
     // std::vector<Rendering::Line> lines;
     // for (uint i = 0; i < mesh.lines.size(); ++i) {

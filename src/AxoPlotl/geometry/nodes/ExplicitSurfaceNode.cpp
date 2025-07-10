@@ -80,18 +80,8 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
 void ExplicitSurfaceNode::addToRenderer(Scene* scene)
 {
     PolyhedralMesh mesh;
-    TriangleMesh triangles;
-    createTriangles(f_, triangles, resolution_);
-
-    for (const auto& p : triangles.vertices) {
-        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
-    }
-
-    for (const auto& t : triangles.triangles) {
-        mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
-    }
-
-    mesh_renderer_.initFromMesh(mesh);
+    createMesh(f_, mesh, resolution_);
+    mesh_renderer_.init(mesh);
 }
 
 }

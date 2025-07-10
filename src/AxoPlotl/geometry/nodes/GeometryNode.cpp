@@ -38,9 +38,11 @@ void GeometryNode::renderUIHeader(Scene *scene)
     //     scene->zoomToObject(id());
     // }
     ImGui::SameLine();
-    ImGui::Checkbox("Expand", &show_ui_body_);
+    ImGui::Checkbox("Show", &mesh_renderer_.settings().visible);
     ImGui::SameLine();
-    ImGui::Checkbox("Visible", &mesh_renderer_.settings().visible);
+    ImGui::Checkbox("Target", &target_);
+
+    ImGui::Checkbox("Expand", &show_ui_body_);
 
     //---------------------
     // Rightclick Menu
@@ -69,14 +71,30 @@ void GeometryNode::renderUIHeader(Scene *scene)
 
         // Material
         auto& settings = mesh_renderer_.settings();
+
+        ImGui::Text("Vertices");
         ImGui::Checkbox("Show Vertices", &settings.renderPoints);
+        ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
+        ImGui::Checkbox("Enable Vertex Color", &settings.useGlobalPointColor);
+        ImGui::ColorEdit3("Vertex Color", &settings.globalPointColor[0]);
+        ImGui::Separator();
+
+        ImGui::Text("Edges");
         ImGui::Checkbox("Show Edges", &settings.renderLines);
-        ImGui::Checkbox("Show Faces", &settings.renderTriangles);
+        ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
+        ImGui::Checkbox("Enable Edge Color", &settings.useGlobalLineColor);
+        ImGui::ColorEdit3("Edge Color", &settings.globalLineColor[0]);
+        ImGui::Separator();
+
+        ImGui::Text("Faces");
+        ImGui::Checkbox("Show##xx", &settings.renderTriangles);
         ImGui::Checkbox("Wireframe", &settings.wireframe);
-        ImGui::SliderFloat("Vertex Size", &settings.pointSize, 1.f, 16.0f);
-        ImGui::SliderFloat("Edge Width", &settings.lineWidth, 1.f, 16.0f);
-        ImGui::SliderFloat("Polygon Outline Width", &settings.outlineWidth, 0.0f, 12.0f);
-        ImGui::ColorEdit3("Polygon Outline Color", &settings.outlineColor[0]);
+        ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
+        ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
+        ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
+        ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
+        ImGui::Separator();
+
         ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
         ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
         ImGui::ColorEdit3("Specular", &settings.light.specular[0]);

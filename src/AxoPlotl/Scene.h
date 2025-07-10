@@ -35,7 +35,7 @@ protected:
 
 public:
     Scene() :
-        camera_(Vec3f(0,0,1), Vec3f(0,0,-1)),
+        camera_(Vec3f(1,1,1), glm::normalize(Vec3f(-1,-1,-1))),
         clearColor_(Color::WHITE)
     {}
 
@@ -65,7 +65,7 @@ public:
     //     objects_.back()->addToRenderer(this);
     // }
 
-    inline void addVectorField(const std::function<float(Vec3f)>& func, const std::string& name) {
+    inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
         objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
         objects_.back()->addToRenderer(this);
     }

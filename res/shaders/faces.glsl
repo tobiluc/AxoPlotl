@@ -11,6 +11,8 @@ uniform mat4 view_matrix;
 uniform mat4 model_view_projection_matrix;
 uniform mat3 normal_matrix;
 uniform float time;
+uniform bool use_global_color;
+uniform vec4 global_color;
 
 out vec4 v2f_color;
 out vec4 v2f_view_position; // in view space
@@ -22,8 +24,13 @@ void main()
 	gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
 
 	v2f_view_position = view_matrix * vec4(pos, 1.0);
-	v2f_color = v_color;
 	v2f_view_normal = normalize(normal_matrix * v_normal);
+
+	if (use_global_color) {
+		v2f_color = global_color;
+	} else {
+		v2f_color = v_color;
+	}
 } 
 
 #shader fragment
@@ -55,9 +62,10 @@ void main()
 	// Ambient
     	vec3 ambient = light.ambient * f_color.xyz;
 
-	// Diffuse
 	vec3 normal = normalize(v2f_view_normal);
 	vec3 direction_to_light = normalize(light.position - v2f_view_position.xyz); 
+
+	// Diffuse
 	vec3 diffuse = light.diffuse * max(dot(normal, direction_to_light), 0.0) * f_color.xyz;
 
 	// Specular

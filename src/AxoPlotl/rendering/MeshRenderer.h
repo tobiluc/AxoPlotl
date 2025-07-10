@@ -42,10 +42,15 @@ public:
         bool renderTriangles = true;
         float pointSize = 5.0f;
         float lineWidth = 3.0f;
-        // Color pointColor = Color::RED;
-        // Color lineColor = Color::BLUE;
-        // Color triangleColor = Color::GREEN;
-        Light light{.ambient = Color::RED, .diffuse = Color::BLACK, .specular = Color::LIGHTGRAY};
+
+        Color globalPointColor = Color::RED;
+        bool useGlobalPointColor = true;
+        Color globalLineColor = Color::BLUE;
+        bool useGlobalLineColor = true;
+        Color gobalTriangleColor = Color::GREEN;
+        bool useGlobalTriangleColor = true;
+
+        Light light{.ambient = Color::LIGHTGRAY, .diffuse = Color::LIGHTGRAY, .specular = Color::DARKGRAY};
         float outlineWidth = 1.0f;
         Color outlineColor = Color::BLACK;
         bool wireframe = false;
@@ -98,28 +103,19 @@ private:
 public:
     MeshRenderer();
 
+    ~MeshRenderer();
+
     void deleteBuffers();
 
-    void initFromMesh(const PolyhedralMesh& mesh);
+    void init(const RenderData& data);
+
+    void init(const PolyhedralMesh& mesh);
 
     void render(const Matrices& m);
 
     void renderPicking(const Matrices& m, int id);
 
     inline Settings& settings() {return settings_;}
-};
-
-template<typename MeshT>
-class MeshRendererT : public MeshRenderer
-{
-public:
-    MeshRendererT(MeshT& mesh) :
-        MeshRenderer(),
-        mesh(mesh)
-    {}
-
-protected:
-    MeshT& mesh;
 };
 
 }

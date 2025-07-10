@@ -241,8 +241,8 @@ void Scene::renderUI()
 
                 if (ImGui::MenuItem("Vector Field")) {
                     addVectorField([](const Vec3f& p) {
-                        return p.x*p.x*p.y*p.z - sin(p.x*p.y);
-                    }, "Vector Field");
+                        return p;
+                    }, "Id");
                 }
 
                 ImGui::EndMenu();
@@ -263,6 +263,12 @@ void Scene::renderUI()
 
             ImGui::EndMenu(); // !Add
         }
+
+        if (ImGui::BeginMenu("Edit")) {
+
+            ImGui::EndMenu(); // !Edit
+        }
+
         ImGui::EndMainMenuBar();
     }
 
@@ -294,8 +300,8 @@ void Scene::renderUI()
 
     ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
     if (ImGui::Button("Reset Camera")) {
-        camera_.setPosition(Vec3f(0,0,1));
-        camera_.setForward(Vec3f(0,0,-1));
+        camera_.setPosition(Vec3f(1,1,1));
+        camera_.setForward(glm::normalize(Vec3f(-1,-1,-1)));
     }
 
     ImGui::NewLine();
@@ -364,15 +370,20 @@ void TestScene::init()
     //------------------------------------
 
     // Coordinate Frame
-    PolyhedralMesh mesh;
-    OVM::VH vh0 = mesh.add_vertex(OVM::Vec3d(0,0,0));
-    OVM::VH vh1 = mesh.add_vertex(OVM::Vec3d(5,0,0));
-    OVM::VH vh2 = mesh.add_vertex(OVM::Vec3d(0,5,0));
-    OVM::VH vh3 = mesh.add_vertex(OVM::Vec3d(0,0,5));
-    mesh.add_edge(vh0, vh1);
-    mesh.add_edge(vh0, vh2);
-    mesh.add_edge(vh0, vh3);
-    gizmoRenderer_.initFromMesh(mesh);
+    Rendering::MeshRenderer::RenderData data;
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::RED});
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Color::RED});
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::GREEN});
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Color::GREEN});
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::BLUE});
+    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Color::BLUE});
+    for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
+    gizmoRenderer_.init(data);
+    gizmoRenderer_.settings().useGlobalPointColor = false;
+    gizmoRenderer_.settings().useGlobalLineColor = false;
+    gizmoRenderer_.settings().useGlobalTriangleColor = false;
+    gizmoRenderer_.settings().lineWidth = 8.0f;
+    gizmoRenderer_.settings().pointSize = 12.0f;
 
     // Octree Test
     // Octree tree(AABB{0,1,0,1,0,1});

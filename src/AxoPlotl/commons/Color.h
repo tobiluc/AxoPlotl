@@ -9,33 +9,38 @@ namespace AxoPlotl
 
 struct Color
 {
-    std::array<float, 3> rgb;
+    std::array<float,4> rgba;
 
     Color(float r, float g, float b) :
-        rgb({r, g, b})
+        rgba({r, g, b, 1})
+    {}
+
+    Color(float r, float g, float b, float a) :
+        rgba({r, g, b, a})
     {}
 
     inline const float operator[](int i) const
     {
-        return rgb[i];
+        return rgba[i];
     }
 
     inline float& operator[](int i)
     {
-        return rgb[i];
+        return rgba[i];
     }
 
-    inline const float* data() const
-    {
-        return rgb.data();
-    }
+    // inline const float* data() const
+    // {
+    //     return rgba.data();
+    // }
 
     inline Color mix(const Color& color, float t = 0.5) const
     {
         return Color(
-            t*rgb[0] + (1.0-t)*color.rgb[0],
-            t*rgb[1] + (1.0-t)*color.rgb[1],
-            t*rgb[2] + (1.0-t)*color.rgb[2]
+            t*rgba[0] + (1.0-t)*color.rgba[0],
+            t*rgba[1] + (1.0-t)*color.rgba[1],
+            t*rgba[2] + (1.0-t)*color.rgba[2],
+            t*rgba[3] + (1.0-t)*color.rgba[3]
         );
     }
 
@@ -44,9 +49,8 @@ struct Color
     static const Color GREEN;
     static const Color BLACK;
     static const Color LIGHTGRAY;
+    static const Color DARKGRAY;
     static const Color WHITE;
-
-    static const std::array<Color, 6> COLORS;
 
     static Color random();
 

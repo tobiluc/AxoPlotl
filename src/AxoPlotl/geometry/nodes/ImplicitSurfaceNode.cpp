@@ -20,7 +20,7 @@ void ImplicitSurfaceNode::addToRenderer(Scene *scene)
         mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
     }
 
-    mesh_renderer_.initFromMesh(mesh);
+    mesh_renderer_.init(mesh);
 }
 
 void ImplicitSurfaceNode::renderUIBody(Scene *scene)

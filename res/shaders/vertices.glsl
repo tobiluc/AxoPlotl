@@ -7,13 +7,19 @@ layout (location = 1) in vec4 v_color;
 uniform mat4 model_view_projection_matrix;
 uniform float time;
 uniform float point_size;
+uniform bool use_global_color;
+uniform vec4 global_color;
 
 out vec4 v2f_color;
 
 void main() {
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
 	gl_PointSize = point_size;
-	v2f_color = v_color;
+	if (use_global_color) {
+		v2f_color = global_color;
+	} else {
+		v2f_color = v_color;
+	}
 } 
 
 #shader fragment

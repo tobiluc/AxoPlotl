@@ -36,16 +36,16 @@ ImplicitSurfaceFunction createIntersection(const ImplicitSurfaceFunction& f, Imp
     };
 }
 
-void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh &mesh, const uint resolution)
+void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const uint resolution)
 {
     // Generate Vertex Positions
-    int vo = mesh.vertices.size(); // vertex offset
+    int vo = mesh.n_vertices(); // vertex offset
     float s, t;
     for (int i = 0; i <= resolution; ++i) {
         s = esf.uMin + i * (esf.uMax - esf.uMin) / resolution;
         for (int j = 0; j <= resolution; ++j) {
             t = esf.vMin + j * (esf.vMax - esf.vMin) / resolution;
-            mesh.addVertex(esf(s, t));
+            mesh.add_vertex(toVec3<OVM::Vec3d>(esf(s, t)));
         }
     }
 
@@ -55,17 +55,12 @@ void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh &mesh, con
             int row1 = i * (resolution + 1);
             int row2 = (i + 1) * (resolution + 1);
 
-            mesh.addTriangle(
-                vo + row1 + j + 0,
-                vo + row2 + j + 0,
-                vo + row2 + j + 1
-            );
-
-            mesh.addTriangle(
-                vo + row1 + j + 0,
-                vo + row2 + j + 1,
-                vo + row1 + j + 1
-            );
+            mesh.add_face({
+               OVM::VH(vo + row1 + j + 0),
+               OVM::VH(vo + row2 + j + 0),
+               OVM::VH(vo + row2 + j + 1),
+                OVM::VH(vo + row1 + j + 1)
+            });
         }
     }
 }

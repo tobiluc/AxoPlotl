@@ -4,6 +4,7 @@
 #include "AxoPlotl/geometry/Octree.h"
 #include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/commons/Mesh.h"
+#include "AxoPlotl/geometry/ovm.h"
 
 namespace AxoPlotl
 {
@@ -42,7 +43,9 @@ ImplicitSurfaceFunction createUnion(const ImplicitSurfaceFunction& f, ImplicitSu
 
 ImplicitSurfaceFunction createIntersection(const ImplicitSurfaceFunction& f, ImplicitSurfaceFunction& g);
 
-void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, const uint resolution = 32);
+void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh& mesh, const uint resolution = 32);
+
+//void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, const uint resolution = 32);
 
 void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint resolution = 32);
 
