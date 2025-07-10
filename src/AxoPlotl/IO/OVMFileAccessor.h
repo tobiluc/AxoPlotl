@@ -12,6 +12,10 @@
 namespace AxoPlotl::IO
 {
 
+bool loadMeshOVM(const std::string& filename, PolyhedralMesh& mesh);
+
+bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh);
+
 template<typename MeshT>
 bool readMesh(const std::string& filename, MeshT& mesh, FileFormat ext = FileFormat::INVALID)
 {

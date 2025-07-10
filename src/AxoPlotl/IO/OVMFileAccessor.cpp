@@ -4,6 +4,20 @@
 namespace AxoPlotl::IO
 {
 
+bool loadMeshOVM(const std::string& filename, PolyhedralMesh& mesh)
+{
+    OVM::IO::FileManager fm;
+    return fm.readFile(filename, mesh);
+}
+
+bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh)
+{
+    auto codecs = OVM::IO::g_default_property_codecs;
+    auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
+    if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
+    return true;
+}
+
 // bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext)
 // {
 //     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);

@@ -1,71 +1,71 @@
-#include "PointsRenderBatch.h"
-#include "../commons/Shader.h"
+// #include "PointsRenderBatch.h"
+// #include "../commons/Shader.h"
 
-namespace AxoPlotl::Rendering
-{
+// namespace AxoPlotl::Rendering
+// {
 
-PointsRenderBatch::PointsRenderBatch(size_t max_num_points)
-{
-    vao.generateNew();
-    vbo.generateNew(max_num_points);
-    ibo.generateNew(max_num_points);
+// PointsRenderBatch::PointsRenderBatch(size_t max_num_points)
+// {
+//     vao.generateNew();
+//     vbo.generateNew(max_num_points);
+//     ibo.generateNew(max_num_points);
 
-    clearVertexBuffer();
+//     clearVertexBuffer();
 
-    vao.unbind();
-}
+//     vao.unbind();
+// }
 
-PointsRenderBatch::PointsRenderBatch(TetrahedralMesh& mesh)
-{
-    initFromMesh(mesh);
-}
+// PointsRenderBatch::PointsRenderBatch(TetrahedralMesh& mesh)
+// {
+//     initFromMesh(mesh);
+// }
 
-void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
-{
-    uint max_num_points = mesh.n_vertices();
+// void PointsRenderBatch::initFromMesh(TetrahedralMesh& mesh)
+// {
+//     uint max_num_points = mesh.n_vertices();
 
-    vao.generateNew();
-    vbo.generateNew(max_num_points);
-    ibo.generateNew(max_num_points);
+//     vao.generateNew();
+//     vbo.generateNew(max_num_points);
+//     ibo.generateNew(max_num_points);
 
-    clearVertexBuffer();
+//     clearVertexBuffer();
 
-    auto prop = mesh.template request_vertex_property<int>("AlgoHex::FeatureVertices");
-    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it)
-    {
-        auto vh = *v_it;
-        const auto& pos = mesh.vertex(vh);
-        Color col = Color::COLORS[prop[vh]%Color::COLORS.size()];
-        add(Point(pos, col));
-    }
+//     auto prop = mesh.template request_vertex_property<int>("AlgoHex::FeatureVertices");
+//     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it)
+//     {
+//         auto vh = *v_it;
+//         const auto& pos = mesh.vertex(vh);
+//         Color col = Color::COLORS[prop[vh]%Color::COLORS.size()];
+//         add(Point(pos, col));
+//     }
 
-    vao.unbind();
-}
+//     vao.unbind();
+// }
 
-void PointsRenderBatch::render()
-{
-    Shader::VERTICES_SHADER.use();
+// void PointsRenderBatch::render()
+// {
+//     Shader::VERTICES_SHADER.use();
 
-    vbo.bind();
-    while (!updated.empty())
-    {
-        GLuint i = updated.extract(updated.begin()).value(); // pop
-        vbo.bufferSubData(i, 1);
-    }
+//     vbo.bind();
+//     while (!updated.empty())
+//     {
+//         GLuint i = updated.extract(updated.begin()).value(); // pop
+//         vbo.bufferSubData(i, 1);
+//     }
 
-    vao.bind();
-    vbo.enableAttributes();
+//     vao.bind();
+//     vbo.enableAttributes();
 
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
+//     glEnable(GL_POLYGON_OFFSET_FILL);
+//     glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
 
-    ibo.drawAll();
+//     ibo.drawAll();
 
-    glDisable(GL_POLYGON_OFFSET_FILL);
+//     glDisable(GL_POLYGON_OFFSET_FILL);
 
-    vbo.disableAttributes();
+//     vbo.disableAttributes();
 
-    vao.unbind();
-}
+//     vao.unbind();
+// }
 
-}
+// }

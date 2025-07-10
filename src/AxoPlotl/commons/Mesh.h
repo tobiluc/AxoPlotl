@@ -53,56 +53,65 @@ typedef struct
     std::vector<std::array<int,8>> hexahedra;
 } HexMesh;
 
-class Mesh
-{
-public:
-    struct Cell {
-        u_int8_t dim; // 0 point, 1 line, 2 polygon
-        std::vector<int> vertices;
-    };
+// class Mesh
+// {
+// public:
+//     struct Edge {
+//         int v0, v1;
+//     };
 
-private:
-    std::vector<Vec3f> vertices_;
-    std::vector<Cell> cells_;
+//     struct Face {
+//         std::vector<int> e; // Edges
+//     }
 
-public:
-    Mesh() {}
+// private:
+//     std::vector<Vec3f> vertices_;
+//     std::vector<Edge> edges_;
+//     std::vector<Face> faces_;
 
-    template<typename Vec3T>
-    int addVertex(const Vec3T& p) {
-        vertices_.emplace_back(p[0], p[1], p[2]);
-        return vertices_.size()-1;
-    }
+// public:
+//     Mesh() {}
 
-    int addCell(u_int8_t dim, const std::vector<int>& vertices) {
-        cells_.push_back(Cell{.dim=dim, .vertices=vertices});
-        return cells_.size()-1;
-    }
+//     template<typename Vec3T>
+//     int addVertex(const Vec3T& p) {
+//         vertices_.emplace_back(p[0], p[1], p[2]);
+//         return vertices_.size()-1;
+//     }
 
-    size_t numVertices() const {
-        return vertices_.size();
-    }
+//     int addEdge(int v0, int v1) {
+//         edges_.emplace_back(v0, v1);
+//         return edges_.size()-1;
+//     }
 
-    size_t numCells() const {
-        return cells_.size();
-    }
+//     int addFace(const std::vector<int>& edges) {
+//         faces_.push_back(Cell{.dim=dim, .vertices=vertices});
+//         return cells_.size()-1;
+//     }
 
-    const std::vector<Vec3f> vertices() const {
-        return vertices_;
-    }
+//     size_t numVertices() const {
+//         return vertices_.size();
+//     }
 
-    const std::vector<Cell> cells() const {
-        return cells_;
-    }
+//     size_t numCells() const {
+//         return cells_.size();
+//     }
 
-    const Vec3f& vertex(int idx) const {
-        return vertices_[idx];
-    }
+//     const std::vector<Vec3f> vertices() const {
+//         return vertices_;
+//     }
 
-    const Cell& cell(int idx) const {
-        return cells_[idx];
-    }
+//     const std::vector<Cell> cells() const {
+//         return cells_;
+//     }
 
-};
+//     const Vec3f& vertex(int idx) const {
+//         return vertices_[idx];
+//     }
+
+//     const Cell& cell(int idx) const {
+//         return cells_[idx];
+//     }
+
+// };
 
 }

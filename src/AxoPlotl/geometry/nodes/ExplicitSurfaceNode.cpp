@@ -73,25 +73,25 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        renderer_.clear(renderLoc_);
         this->addToRenderer(scene);
     }
 }
 
 void ExplicitSurfaceNode::addToRenderer(Scene* scene)
 {
-    TriangleMesh mesh;
-    createTriangles(f_, mesh, resolution_);
-    std::vector<Rendering::Triangle> tris;
-    for (uint i = 0; i < mesh.triangles.size(); ++i) {
-        tris.emplace_back(
-            mesh.vertices[mesh.triangles[i][0]],
-            mesh.vertices[mesh.triangles[i][1]],
-            mesh.vertices[mesh.triangles[i][2]],
-            ui_color_ // TODO: Display correct color
-            );
+    PolyhedralMesh mesh;
+    TriangleMesh triangles;
+    createTriangles(f_, triangles, resolution_);
+
+    for (const auto& p : triangles.vertices) {
+        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
     }
-    renderer_.addTriangles(tris, renderLoc_);
+
+    for (const auto& t : triangles.triangles) {
+        mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
+    }
+
+    mesh_renderer_.initFromMesh(mesh);
 }
 
 }

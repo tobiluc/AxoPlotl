@@ -1,10 +1,10 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
+#include "AxoPlotl/geometry/ovm.h"
 
 namespace AxoPlotl::IO
 {
 
-bool loadMeshPLY(const std::string& filename, Mesh& mesh);
+bool loadMeshPLY(const std::string& filename, PolyhedralMesh& mesh);
 
 }

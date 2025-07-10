@@ -1,4 +1,5 @@
 #include "ConvexPolygonNode.h"
+#include "AxoPlotl/utils/Utils.h"
 
 namespace AxoPlotl
 {
@@ -7,7 +8,12 @@ void ConvexPolygonNode::addToRenderer(Scene* scene)
 {
     //bbox_.compute({vertices_[0],vertices_[1],vertices_[2]});
 
-    renderer_.addConvexPolygon(vertices_, Color::LIGHTGRAY, fill_, renderLoc_);
+    PolyhedralMesh mesh;
+    std::vector<OVM::VH> vhs;
+    for (const auto& v : vertices_) {vhs.push_back(mesh.add_vertex(toVec3<OVM::Vec3d>(v)));}
+    mesh.add_face(vhs);
+
+    mesh_renderer_.initFromMesh(mesh);
 }
 
 void ConvexPolygonNode::renderUIBody(Scene* scene)
@@ -37,7 +43,6 @@ void ConvexPolygonNode::renderUIBody(Scene* scene)
     if (ImGui::Button("Confirm")) {
 
         // Update Renderer
-        renderer_.clear(renderLoc_);
         this->addToRenderer(scene);
     }
 }

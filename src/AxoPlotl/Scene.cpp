@@ -102,7 +102,7 @@ void Scene::render(GLFWwindow *window)
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->render(view_matrix, projection_matrix);
     }
-    gizmoRenderer_.render(Rendering::Renderer::RenderMatrices(glm::mat4(1.0), view_matrix, projection_matrix));
+    gizmoRenderer_.render(Rendering::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
     renderUI();
@@ -272,7 +272,7 @@ void Scene::renderUI()
     if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
-            Mesh mesh;
+            PolyhedralMesh mesh;
             if (IO::loadMesh(filepath, mesh)) {
                 addMesh(mesh, std::filesystem::path(filepath).filename());
             } else {
@@ -292,7 +292,7 @@ void Scene::renderUI()
     ImGui::Text("%s", ("FPS " + std::to_string(Time::FRAMES_PER_SECOND)).c_str());
     ImGui::Text("%s", ("MEM " + std::to_string(getMemoryUsageMB()) + " MB").c_str());
 
-    ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings.visible);
+    ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
     if (ImGui::Button("Reset Camera")) {
         camera_.setPosition(Vec3f(0,0,1));
         camera_.setForward(Vec3f(0,0,-1));
@@ -362,15 +362,17 @@ void TestScene::init()
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
-    Rendering::Renderer::BatchIndices gizmoLoc;
 
     // Coordinate Frame
-    gizmoRenderer_.addLines({
-        Rendering::Line(Vec3f(0,0,0), Vec3f(5,0,0), Color::RED),
-        Rendering::Line(Vec3f(0,0,0), Vec3f(0,5,0), Color::GREEN),
-        Rendering::Line(Vec3f(0,0,0), Vec3f(0,0,5), Color::BLUE)
-    }, gizmoLoc);
-    gizmoRenderer_.settings.lineWidth = 5.0f;
+    PolyhedralMesh mesh;
+    OVM::VH vh0 = mesh.add_vertex(OVM::Vec3d(0,0,0));
+    OVM::VH vh1 = mesh.add_vertex(OVM::Vec3d(5,0,0));
+    OVM::VH vh2 = mesh.add_vertex(OVM::Vec3d(0,5,0));
+    OVM::VH vh3 = mesh.add_vertex(OVM::Vec3d(0,0,5));
+    mesh.add_edge(vh0, vh1);
+    mesh.add_edge(vh0, vh2);
+    mesh.add_edge(vh0, vh3);
+    gizmoRenderer_.initFromMesh(mesh);
 
     // Octree Test
     // Octree tree(AABB{0,1,0,1,0,1});

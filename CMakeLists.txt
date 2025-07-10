@@ -39,7 +39,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/rendering/LinesRenderBatch.cpp
     src/AxoPlotl/rendering/PointsRenderBatch.h
     src/AxoPlotl/rendering/PointsRenderBatch.cpp
-
+    src/AxoPlotl/rendering/MeshRenderer.h
 
 
     src/AxoPlotl/utils/Time.h
@@ -111,6 +111,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
     src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
     src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
+    src/AxoPlotl/rendering/MeshRenderer.cpp
 
 
 )

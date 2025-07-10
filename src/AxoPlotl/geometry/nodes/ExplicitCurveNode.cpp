@@ -70,24 +70,37 @@ void ExplicitCurveNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        renderer_.clear(renderLoc_);
+        mesh_renderer_.deleteBuffers();
         this->addToRenderer(scene);
     }
 }
 
 void ExplicitCurveNode::addToRenderer(Scene* scene)
 {
-    LineMesh mesh;
-    createLines(f_, mesh, resolution_);
-    std::vector<Rendering::Line> lines;
-    for (uint i = 0; i < mesh.lines.size(); ++i) {
-        lines.emplace_back(
-            mesh.vertices[mesh.lines[i][0]],
-            mesh.vertices[mesh.lines[i][1]],
-            ui_color_ // TODO: Display correct color
-            );
+    PolyhedralMesh mesh;
+
+    LineMesh lines;
+    createLines(f_, lines, resolution_);
+
+    for (const auto& p : lines.vertices) {
+        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
     }
-    renderer_.addLines(lines, renderLoc_);
+
+    for (const auto& l : lines.lines) {
+        mesh.add_edge(OVM::VH(l[0]), OVM::VH(l[1]));
+    }
+
+    mesh_renderer_.initFromMesh(mesh);
+
+    // std::vector<Rendering::Line> lines;
+    // for (uint i = 0; i < mesh.lines.size(); ++i) {
+    //     lines.emplace_back(
+    //         mesh.vertices[mesh.lines[i][0]],
+    //         mesh.vertices[mesh.lines[i][1]],
+    //         ui_color_ // TODO: Display correct color
+    //         );
+    // }
+    // renderer_.addLines(lines, renderLoc_);
 }
 
 }

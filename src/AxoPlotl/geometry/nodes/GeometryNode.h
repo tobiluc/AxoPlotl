@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AxoPlotl/rendering/Renderer.h"
+#include "AxoPlotl/rendering/MeshRenderer.h"
 #include <imgui.h>
 
 namespace AxoPlotl
@@ -19,8 +20,9 @@ protected:
     Color ui_color_;
     bool deleted_ = false;
     bool show_ui_body_ = false;
-    Rendering::Renderer renderer_;
-    Rendering::Renderer::BatchIndices renderLoc_;
+    //Rendering::Renderer renderer_;
+    Rendering::MeshRenderer mesh_renderer_;
+    //Rendering::Renderer::BatchIndices renderLoc_;
     glm::mat4 transform_; // model matrix
 
     /// General UI
@@ -51,13 +53,16 @@ public:
     }
 
     inline void render(const glm::mat4& view, const glm::mat4& projection) {
-        Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
-        renderer_.render(matrices);
+        // Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
+        // renderer_.render(matrices);
+
+        Rendering::MeshRenderer::Matrices m(transform_, view, projection);
+        mesh_renderer_.render(m);
     }
 
     inline void renderPicking(const glm::mat4& view, const glm::mat4& projection) {
-        Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
-        renderer_.renderPicking(matrices.model_view_projection_matrix, id_);
+        Rendering::MeshRenderer::Matrices m(transform_, view, projection);
+        mesh_renderer_.renderPicking(m, id_);
     }
 
     inline int id() const {return id_;}

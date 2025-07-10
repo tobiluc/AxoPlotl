@@ -1,4 +1,5 @@
 #include "VectorFieldNode.h"
+#include "AxoPlotl/utils/Utils.h"
 
 namespace AxoPlotl
 {
@@ -7,7 +8,7 @@ void VectorFieldNode::addToRenderer(Scene* scene)
 {
     //bbox_.compute(mesh_.vertices());
 
-    std::vector<Rendering::Line> lines;
+    PolyhedralMesh mesh;
 
     for (int ix = 0; ix <= resolution_; ++ix) {
         for (int iy = 0; iy <= resolution_; ++iy) {
@@ -19,12 +20,17 @@ void VectorFieldNode::addToRenderer(Scene* scene)
                 );
 
                 Vec3f d = glm::normalize(field_(p));
-                lines.emplace_back(p, p+scale_factor_*d, getColorOnSphere(d.x, d.y, d.z));
+                OVM::VH vh1 = mesh.add_vertex(toVec3<OVM::Vec3d>(p));
+                OVM::VH vh2 = mesh.add_vertex(toVec3<OVM::Vec3d>(p+scale_factor_*d));
+                mesh.add_edge(vh1, vh2);
+                // getColorOnSphere(d.x, d.y, d.z);
             }
         }
     }
 
-    renderer_.addLines(lines, renderLoc_);
+    mesh_renderer_.initFromMesh(mesh);
+
+    // renderer_.addLines(lines, renderLoc_);
 }
 
 void VectorFieldNode::renderUIBody(Scene* scene)

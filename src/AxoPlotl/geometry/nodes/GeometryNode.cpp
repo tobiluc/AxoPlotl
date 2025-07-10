@@ -40,7 +40,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
     ImGui::SameLine();
     ImGui::Checkbox("Expand", &show_ui_body_);
     ImGui::SameLine();
-    ImGui::Checkbox("Visible", &renderer_.settings.visible);
+    ImGui::Checkbox("Visible", &mesh_renderer_.settings().visible);
 
     //---------------------
     // Rightclick Menu
@@ -68,15 +68,15 @@ void GeometryNode::renderUIHeader(Scene *scene)
         // ImGui::Checkbox("Show Vertices", &settings.showVertices);
 
         // Material
-        auto& settings = renderer_.settings;
+        auto& settings = mesh_renderer_.settings();
+        ImGui::Checkbox("Show Vertices", &settings.renderPoints);
+        ImGui::Checkbox("Show Edges", &settings.renderLines);
+        ImGui::Checkbox("Show Faces", &settings.renderTriangles);
         ImGui::Checkbox("Wireframe", &settings.wireframe);
         ImGui::SliderFloat("Vertex Size", &settings.pointSize, 1.f, 16.0f);
         ImGui::SliderFloat("Edge Width", &settings.lineWidth, 1.f, 16.0f);
-        ImGui::SliderFloat("Cell Scale", &settings.cellScale, 0.0f, 1.0f);
         ImGui::SliderFloat("Polygon Outline Width", &settings.outlineWidth, 0.0f, 12.0f);
         ImGui::ColorEdit3("Polygon Outline Color", &settings.outlineColor[0]);
-        ImGui::Checkbox("Use Override Color", &settings.useColorOverride);
-        ImGui::ColorEdit3("Override Color", &settings.colorOverride[0]);
         ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
         ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
         ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
@@ -85,7 +85,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
         // Delete
         if (ImGui::MenuItem("Delete")) {
             deleted_ = true;
-            renderer_.clear(renderLoc_);
+            mesh_renderer_.deleteBuffers();
         }
 
         ImGui::EndPopup(); // Close the popup

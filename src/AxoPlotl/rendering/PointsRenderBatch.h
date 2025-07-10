@@ -1,27 +1,27 @@
-#ifndef POINTSRENDERBATCH_H
-#define POINTSRENDERBATCH_H
+// #ifndef POINTSRENDERBATCH_H
+// #define POINTSRENDERBATCH_H
 
-#include "AxoPlotl/geometry/ovm.h"
-#include "AxoPlotl/rendering/Primitives.h"
-#include "RenderBatch.h"
+// #include "AxoPlotl/geometry/ovm.h"
+// #include "AxoPlotl/rendering/Primitives.h"
+// #include "RenderBatch.h"
 
-namespace AxoPlotl::Rendering
-{
+// namespace AxoPlotl::Rendering
+// {
 
-class PointsRenderBatch : public RenderBatch<Point>
-{
+// class PointsRenderBatch : public RenderBatch<Point>
+// {
 
-public:
-    PointsRenderBatch(size_t max_num_vertices);
+// public:
+//     PointsRenderBatch(size_t max_num_vertices);
 
-    PointsRenderBatch(TetrahedralMesh& mesh);
+//     PointsRenderBatch(TetrahedralMesh& mesh);
 
-    void initFromMesh(TetrahedralMesh& mesh);
+//     void initFromMesh(TetrahedralMesh& mesh);
 
-    void render();
+//     void render();
 
-};
+// };
 
-}
+// }
 
-#endif // POINTSRENDERBATCH_H
+// #endif // POINTSRENDERBATCH_H

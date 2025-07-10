@@ -56,6 +56,11 @@ namespace AxoPlotl
         return arr;
     }
 
+    template<typename Vec3T2, typename Vec3T1>
+    inline Vec3T2 toVec3(const Vec3T1& v) {
+        return Vec3T2{v[0], v[1], v[2]};
+    }
+
     class Random
     {
     public:

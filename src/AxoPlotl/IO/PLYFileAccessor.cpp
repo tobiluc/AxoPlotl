@@ -7,7 +7,7 @@ enum PLYFormat {
     PLY_NONE, PLY_ASCII, PLY_BINARY_LITTLE_ENDIAN, PLY_BINARY_BIG_ENDIAN
 };
 
-bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, Mesh& mesh)
+bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh)
 {
     // Open File
     std::ifstream file(filename);
@@ -64,7 +64,7 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, Mesh& mesh)
             std::istringstream iss(line);
             float x, y, z;
             iss >> x >> y >> z;
-            mesh.addVertex(Vec3f(x, y, z));
+            mesh.add_vertex(OVM::Vec3d(x, y, z));
         }
 
         // Faces
@@ -73,11 +73,11 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, Mesh& mesh)
             std::istringstream iss(line);
             int n;
             iss >> n;
-            std::vector<int> indices(n);
+            std::vector<OVM::VH> vhs(n);
             for (int j = 0; j < n; ++j) {
-                iss >> indices[j];
+                iss >> vhs[j];
             }
-            mesh.addCell(2, indices);
+            mesh.add_face(vhs);
         }
 
         return true;
@@ -94,7 +94,7 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, Mesh& mesh)
                 std::cerr << "PLY: Error reading vertex " << i << std::endl;
                 return false;
             }
-            mesh.addVertex(Vec3f(coords[0], coords[1], coords[2]));
+            mesh.add_vertex(OVM::Vec3d(coords[0], coords[1], coords[2]));
         }
 
         // Faces
@@ -106,17 +106,17 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, Mesh& mesh)
                 return false;
             }
 
-            std::vector<int> indices(numVerts);
-            file.read(reinterpret_cast<char*>(indices.data()), numVerts * sizeof(int));
+            std::vector<OVM::VH> vhs(numVerts);
+            file.read(reinterpret_cast<char*>(vhs.data()), numVerts * sizeof(int));
             if (!file) {
                 std::cerr << "PLY: Error reading face indices" << std::endl;
                 return false;
             }
 
-            mesh.addCell(2, indices);
+            mesh.add_face(vhs);
         }
 
-        std::cout << mesh.numVertices() << "   " << mesh.numCells() << std::endl;
+        //std::cout << mesh.numVertices() << "   " << mesh.numCells() << std::endl;
 
         return true;
     }

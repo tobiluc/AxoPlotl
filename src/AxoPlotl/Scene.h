@@ -24,7 +24,7 @@ class Scene
 protected:
     std::vector<std::unique_ptr<GeometryNode>> objects_; // TODO: When closing application, Crash: Error prob. cause of missing cleanup?
 
-    Rendering::Renderer gizmoRenderer_;
+    Rendering::MeshRenderer gizmoRenderer_;
     Camera camera_;
     Color clearColor_ = Color::WHITE;
 
@@ -45,7 +45,7 @@ public:
     /// Render the scene and UI
     void render(GLFWwindow* window);
 
-    inline void addMesh(const Mesh& mesh, const std::string& name) {
+    inline void addMesh(const PolyhedralMesh& mesh, const std::string& name) {
         objects_.push_back(std::make_unique<MeshNode>(mesh, name));
         objects_.back()->addToRenderer(this);
     }

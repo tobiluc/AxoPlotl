@@ -7,34 +7,20 @@ namespace AxoPlotl
 
 void ImplicitSurfaceNode::addToRenderer(Scene *scene)
 {
-    TriangleMesh mesh;
+    PolyhedralMesh mesh;
+    TriangleMesh triangles;
     Octree tree;
-    createTrianglesAMC(f_, mesh, tree, 16, octree_depth_);
+    createTrianglesAMC(f_, triangles, tree, 16, octree_depth_);
 
-    // Octree
-    // HexahedralMesh treemesh;
-    // for (u32 i = 0; i < tree.numNodes(); ++i) {
-    //     if (!tree.isActive(i)) {continue;}
-    //     auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
-    //     std::vector<OVM::VH> vhs;
-    //     for (u32 j = 0; j < 8; ++j) {
-    //         vhs.push_back(treemesh.add_vertex(c[j]));
-    //     }
-    //     treemesh.add_cell(vhs);
-    // }
-    // scene->addHexahedralMesh(treemesh);
-
-    // Triangles
-    std::vector<Rendering::Triangle> tris;
-    for (uint i = 0; i < mesh.triangles.size(); ++i) {
-        tris.emplace_back(
-            mesh.vertices[mesh.triangles[i][0]],
-            mesh.vertices[mesh.triangles[i][1]],
-            mesh.vertices[mesh.triangles[i][2]],
-            ui_color_ // TODO: Display correct color
-            );
+    for (const auto& p : triangles.vertices) {
+        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
     }
-    renderer_.addTriangles(tris, renderLoc_);
+
+    for (const auto& t : triangles.triangles) {
+        mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
+    }
+
+    mesh_renderer_.initFromMesh(mesh);
 }
 
 void ImplicitSurfaceNode::renderUIBody(Scene *scene)
@@ -98,7 +84,6 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
 
         // Update renderer
         this->f_.f = func;
-        renderer_.clear(renderLoc_);
         this->addToRenderer(scene);
 
         //std::cout << "f(1,2,3) = " << func(1, 2, 3) << std::endl;
