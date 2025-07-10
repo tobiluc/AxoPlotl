@@ -27,7 +27,7 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
     //-------------------
     ImGui::InputFloat2("u Range", &f_.uMin);
     ImGui::InputFloat2("v Range", &f_.vMin);
-    ImGui::SliderInt("Resolution", &resolution_, 2, 64);
+    ImGui::SliderInt("Resolution", &resolution_, 2, 128);
 
     //-------------------
     // Update

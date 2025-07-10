@@ -1,18 +1,16 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include "AxoPlotl/commons/stb_image.h"
+#include <OpenGL/gltypes.h>
 
-/*
-namespace MV
+namespace AxoPlotl
 {
 class Texture {
 public:
-    unsigned int ID;
+    GLuint ID = 0;
 
     Texture();
 
-    // destructor
     ~Texture();
 
     void generateFromFile(const char* file);
@@ -22,5 +20,5 @@ public:
     void use(GLenum unit);
 };
 }
-*/
+
 #endif

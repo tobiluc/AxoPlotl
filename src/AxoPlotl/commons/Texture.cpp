@@ -1,15 +1,24 @@
 #include "Texture.h"
+#include "AxoPlotl/algorithms/simplex_noise.h"
 #include <chrono>
 #include <iostream>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
-/*
-namespace MV
+#define STB_IMAGE_IMPLEMENTATION
+#include "AxoPlotl/commons/stb_image.h"
+
+namespace AxoPlotl
 {
 
-Texture::Texture() : ID(0) {}
+Texture::Texture() : ID(0)
+{}
 
 Texture::~Texture() {
-    if (ID) glDeleteTextures(1, &ID);
+    if (ID) {
+        glDeleteTextures(1, &ID);
+        ID = 0;
+    }
 }
 
 void Texture::generateFromFile(const char* file) {
@@ -67,7 +76,7 @@ void Texture::generateProcedural(int width, int height) {
     float tx, ty, tz;
     float phi, theta;
 
-    SimplexNoise noise = SimplexNoise();
+    Algo::SimplexNoise noise = Algo::SimplexNoise();
 
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
@@ -99,5 +108,5 @@ void Texture::use(GLenum unit) {
     glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, ID);
 }
-}
-*/
+
+} // namespace AxoPlotl
