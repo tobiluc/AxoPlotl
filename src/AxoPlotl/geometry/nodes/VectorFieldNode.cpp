@@ -7,11 +7,11 @@
 namespace AxoPlotl
 {
 
-void VectorFieldNode::addToRenderer(Scene* scene)
+void VectorFieldNode::initRenderer(Scene* scene)
 {
     //bbox_.compute(mesh_.vertices());
 
-    Rendering::MeshRenderer::RenderData data;
+    GL::MeshRenderer::Data data;
 
     for (int ix = 0; ix <= resolution_; ++ix) {
         for (int iy = 0; iy <= resolution_; ++iy) {
@@ -107,8 +107,8 @@ void VectorFieldNode::renderUIBody(Scene* scene)
         };
 
         // Update renderer
-        this->field_ = func;
-        this->addToRenderer(scene);
+        this->field_.grad = func;
+        this->initRenderer(scene);
     }
 }
 

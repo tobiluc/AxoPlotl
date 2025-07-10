@@ -4,7 +4,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuiFileDialog.h>
 
-namespace AxoPlotl::Rendering
+namespace AxoPlotl::GL
 {
 
 bool IMGUI_FOCUS = false;

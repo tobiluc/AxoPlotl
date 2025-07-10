@@ -102,7 +102,7 @@ void MeshViewer::init()
     //------------------------------------------
     // ImGui
     //------------------------------------------
-    AxoPlotl::Rendering::ImGuiInit(window);
+    AxoPlotl::GL::ImGuiInit(window);
 }
 
 }

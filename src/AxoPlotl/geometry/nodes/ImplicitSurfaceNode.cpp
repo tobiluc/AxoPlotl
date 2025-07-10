@@ -5,12 +5,11 @@
 namespace AxoPlotl
 {
 
-void ImplicitSurfaceNode::addToRenderer(Scene *scene)
+void ImplicitSurfaceNode::initRenderer(Scene *scene)
 {
     PolyhedralMesh mesh;
     TriangleMesh triangles;
-    Octree tree;
-    createTrianglesAMC(f_, triangles, tree, 16, octree_depth_);
+    createTrianglesAMC(f_, triangles, 16, octree_depth_);
 
     for (const auto& p : triangles.vertices) {
         mesh.add_vertex(toVec3<OVM::Vec3d>(p));
@@ -84,7 +83,7 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
 
         // Update renderer
         this->f_.f = func;
-        this->addToRenderer(scene);
+        this->initRenderer(scene);
 
         //std::cout << "f(1,2,3) = " << func(1, 2, 3) << std::endl;
     }

@@ -400,7 +400,7 @@ EvalFunction FunctionCallNode::compile() const
     functions1d1d["log"] = [](double x) {return std::log(x);};
     functions1d1d["ln"] = functions1d1d["log"];
     functions1d1d["exp"] = [](double x) {return std::exp(x);};
-
+    functions1d1d["sqrt"] = [](double x) {return std::sqrt(x);};
 
     if (!functions1d1d.contains(name)) {
         return [](Scope& context) {return 0.0f;};

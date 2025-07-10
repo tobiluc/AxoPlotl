@@ -73,11 +73,11 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        this->addToRenderer(scene);
+        this->initRenderer(scene);
     }
 }
 
-void ExplicitSurfaceNode::addToRenderer(Scene* scene)
+void ExplicitSurfaceNode::initRenderer(Scene* scene)
 {
     PolyhedralMesh mesh;
     createMesh(f_, mesh, resolution_);

@@ -4,7 +4,7 @@
 namespace AxoPlotl
 {
 
-void ConvexPolygonNode::addToRenderer(Scene* scene)
+void ConvexPolygonNode::initRenderer(Scene* scene)
 {
     //bbox_.compute({vertices_[0],vertices_[1],vertices_[2]});
 
@@ -43,7 +43,7 @@ void ConvexPolygonNode::renderUIBody(Scene* scene)
     if (ImGui::Button("Confirm")) {
 
         // Update Renderer
-        this->addToRenderer(scene);
+        this->initRenderer(scene);
     }
 }
 

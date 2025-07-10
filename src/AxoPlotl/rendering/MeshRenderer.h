@@ -6,9 +6,8 @@
 #include "AxoPlotl/commons/Color.h"
 #include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/geometry/ovm.h"
-#include "Renderer.h"
 
-namespace AxoPlotl::Rendering
+namespace AxoPlotl::GL
 {
 
 class MeshRenderer
@@ -80,7 +79,7 @@ public:
         std::vector<GLuint> pointIndices;
         std::vector<GLuint> lineIndices;
         std::vector<GLuint> triangleIndices;
-    } RenderData;
+    } Data;
 
 private:
     uint n_points_;
@@ -107,7 +106,7 @@ public:
 
     void deleteBuffers();
 
-    void init(const RenderData& data);
+    void init(const Data& data);
 
     void init(const PolyhedralMesh& mesh);
 

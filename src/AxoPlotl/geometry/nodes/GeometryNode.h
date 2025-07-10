@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AxoPlotl/rendering/Renderer.h"
 #include "AxoPlotl/rendering/MeshRenderer.h"
 #include <imgui.h>
 
@@ -21,8 +20,8 @@ protected:
     Color ui_color_;
     bool deleted_ = false;
     bool show_ui_body_ = false;
-    //Rendering::Renderer renderer_;
-    Rendering::MeshRenderer mesh_renderer_;
+    //GL::Renderer renderer_;
+    GL::MeshRenderer mesh_renderer_;
     //Rendering::Renderer::BatchIndices renderLoc_;
     glm::mat4 transform_; // model matrix
 
@@ -44,7 +43,7 @@ public:
     virtual ~GeometryNode() = default;
 
     /// Must be called before rendering
-    virtual void addToRenderer(Scene* scene) = 0;
+    virtual void initRenderer(Scene* scene) = 0;
 
     inline void renderUI(Scene* scene) {
         ImGui::PushID(id_);
@@ -54,15 +53,12 @@ public:
     }
 
     inline void render(const glm::mat4& view, const glm::mat4& projection) {
-        // Rendering::Renderer::RenderMatrices matrices(transform_, view, projection);
-        // renderer_.render(matrices);
-
-        Rendering::MeshRenderer::Matrices m(transform_, view, projection);
+        GL::MeshRenderer::Matrices m(transform_, view, projection);
         mesh_renderer_.render(m);
     }
 
     inline void renderPicking(const glm::mat4& view, const glm::mat4& projection) {
-        Rendering::MeshRenderer::Matrices m(transform_, view, projection);
+        GL::MeshRenderer::Matrices m(transform_, view, projection);
         mesh_renderer_.renderPicking(m, id_);
     }
 

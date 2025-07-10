@@ -2,7 +2,7 @@
 #include "AxoPlotl/commons/Shader.h"
 #include "AxoPlotl/utils/Utils.h"
 
-namespace AxoPlotl::Rendering
+namespace AxoPlotl::GL
 {
 
 MeshRenderer::MeshRenderer()
@@ -27,9 +27,13 @@ void MeshRenderer::deleteBuffers()
     if (ibo_points_) {glDeleteBuffers(1, &ibo_points_);}
     if (ibo_lines_) {glDeleteBuffers(1, &ibo_lines_);}
     if (ibo_triangles_) {glDeleteBuffers(1, &ibo_triangles_);}
+
+    vbo_point_attrib_ = vbo_line_attrib_ = vbo_triangle_attrib_
+    = vao_points_ = vao_lines_ = vao_triangles_ = vao_triangles_picking_
+        = ibo_points_ = ibo_lines_ = ibo_triangles_ = 0;
 }
 
-void MeshRenderer::init(const RenderData& data)
+void MeshRenderer::init(const Data& data)
 {
     n_points_ = data.pointIndices.size();
     n_lines_     = data.lineIndices.size() / 2;
@@ -160,7 +164,7 @@ void MeshRenderer::init(const RenderData& data)
 
 void MeshRenderer::init(const PolyhedralMesh &mesh)
 {
-    RenderData data;
+    Data data;
 
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
 
@@ -231,7 +235,7 @@ void MeshRenderer::render(const Matrices &m)
     // Color outlineColor = Color::BLACK;
 
     // Points
-    if (settings_.renderPoints)
+    if (vao_points_ && settings_.renderPoints)
     {
         Shader::VERTICES_SHADER.use();
         Shader::VERTICES_SHADER.setFloat("point_size", settings_.pointSize);
@@ -251,7 +255,7 @@ void MeshRenderer::render(const Matrices &m)
         glBindVertexArray(0);
     }
 
-    if (settings_.renderLines)
+    if (vao_lines_ && settings_.renderLines)
     {
         // Lines
         Shader::EDGES_SHADER.use();
@@ -275,7 +279,7 @@ void MeshRenderer::render(const Matrices &m)
         glBindVertexArray(0);
     }
 
-    if (settings_.renderTriangles)
+    if (vao_triangles_ && settings_.renderTriangles)
     {
         // Triangles
         Shader::FACES_SHADER.use();

@@ -23,7 +23,7 @@ public:
         input_buffer_[sizeof(input_buffer_) - 1] = '\0';
     }
 
-    void addToRenderer(Scene* scene) override;
+    void initRenderer(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
 };

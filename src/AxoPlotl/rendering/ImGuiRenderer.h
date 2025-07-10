@@ -4,7 +4,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include <string>
 
-namespace AxoPlotl::Rendering
+namespace AxoPlotl::GL
 {
 
 extern bool IMGUI_FOCUS;

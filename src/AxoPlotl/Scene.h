@@ -12,7 +12,6 @@
 #include "glad/glad.h"
 #include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"
-#include "rendering/Renderer.h"
 #include <nlohmann/json.hpp>
 
 namespace AxoPlotl
@@ -24,7 +23,7 @@ class Scene
 protected:
     std::vector<std::unique_ptr<GeometryNode>> objects_; // TODO: When closing application, Crash: Error prob. cause of missing cleanup?
 
-    Rendering::MeshRenderer gizmoRenderer_;
+    GL::MeshRenderer gizmoRenderer_;
     Camera camera_;
     Color clearColor_ = Color::WHITE;
 
@@ -47,7 +46,7 @@ public:
 
     inline void addMesh(const PolyhedralMesh& mesh, const std::string& name) {
         objects_.push_back(std::make_unique<MeshNode>(mesh, name));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     // inline void addTetrahedralMesh(const std::string& filename) {
@@ -62,32 +61,32 @@ public:
 
     // inline void addHexahedralMesh(const HexahedralMesh& mesh) {
     //     objects_.push_back(std::make_unique<HexahedralMeshObject>(mesh));
-    //     objects_.back()->addToRenderer(this);
+    //     objects_.back()->initRenderer(this);
     // }
 
     inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
         objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     inline void addConvexPolygon(const std::vector<Vec3f>& vertices, const std::string& name) {
         objects_.push_back(std::make_unique<ConvexPolygonNode>(vertices, name));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitCurveNode>(name, func, color));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceNode>(name, func, color));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
         objects_.push_back(std::make_unique<ImplicitSurfaceNode>(name, func, color));
-        objects_.back()->addToRenderer(this);
+        objects_.back()->initRenderer(this);
     }
 
     inline bool saveScene(const std::string& filename) {

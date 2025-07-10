@@ -36,7 +36,7 @@ void Camera::setForward(glm::vec3 forward)
 
 void Camera::update(GLFWwindow* window)
 {
-    if (Rendering::IMGUI_FOCUS) return;
+    if (GL::IMGUI_FOCUS) return;
 
     processKeyboard(window);
     processMouseScroll(MouseHandler::SCROLL_DELTA[1]);

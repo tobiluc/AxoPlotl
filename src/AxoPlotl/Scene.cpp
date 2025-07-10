@@ -95,14 +95,14 @@ void Scene::render(GLFWwindow *window)
     }
 
     // ImGui - declare new frame
-    Rendering::ImGuiNewFrame();
+    GL::ImGuiNewFrame();
 
     // Render
     glm::mat4 projection_matrix = camera_.getProjectionMatrix();
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->render(view_matrix, projection_matrix);
     }
-    gizmoRenderer_.render(Rendering::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
+    gizmoRenderer_.render(GL::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
     renderUI();
@@ -125,7 +125,7 @@ void Scene::render(GLFWwindow *window)
         std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<GeometryNode>& obj) {
             return obj->isDeleted();
     }), objects_.end());
-
+    objects_.shrink_to_fit();
 }
 
 void Scene::renderUI()
@@ -370,13 +370,13 @@ void TestScene::init()
     //------------------------------------
 
     // Coordinate Frame
-    Rendering::MeshRenderer::RenderData data;
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::RED});
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Color::RED});
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::GREEN});
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Color::GREEN});
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::BLUE});
-    data.lineAttribs.push_back(Rendering::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Color::BLUE});
+    GL::MeshRenderer::Data data;
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::RED});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Color::RED});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::GREEN});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Color::GREEN});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::BLUE});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Color::BLUE});
     for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
     gizmoRenderer_.init(data);
     gizmoRenderer_.settings().useGlobalPointColor = false;
@@ -405,13 +405,13 @@ void TestScene::init()
     // addHexahedralMesh(mesh);
 
     // Triangle
-    // Rendering::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
-    // Rendering::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
-    // Rendering::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
+    // GL::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
+    // GL::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
+    // GL::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
     // renderer_.addPoint(p0, loc);
     // renderer_.addPoint(p1, loc);
     // renderer_.addPoint(p2, loc);
-    // renderer_.addTriangle(Rendering::Triangle(p0, p1, p2), loc);
+    // renderer_.addTriangle(GL::Triangle(p0, p1, p2), loc);
 
     // Circle
     // std::vector<glm::vec3> circle;

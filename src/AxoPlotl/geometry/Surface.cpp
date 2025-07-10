@@ -91,14 +91,14 @@ void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, c
     mc.generate(isf.f, mesh);
 }
 
-void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree,
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh,
                         const uint resolution, const uint maxDepth)
 {
     Algo::MarchingCubes mc;
     AABB b{isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax};
     mc.setBounds(b);
     mc.setResolution(resolution, resolution, resolution);
-    mc.generateWithOctree(isf.f, mesh, tree, maxDepth);
+    mc.generateWithOctree(isf.f, mesh, maxDepth);
 }
 
 ExplicitCurveFunction ExplicitCurveFunctionBuilder::dummy()

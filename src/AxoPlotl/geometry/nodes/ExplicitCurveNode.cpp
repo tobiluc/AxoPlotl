@@ -71,11 +71,11 @@ void ExplicitCurveNode::renderUIBody(Scene* scene)
         // Update renderer
         this->f_.f = func;
         mesh_renderer_.deleteBuffers();
-        this->addToRenderer(scene);
+        this->initRenderer(scene);
     }
 }
 
-void ExplicitCurveNode::addToRenderer(Scene* scene)
+void ExplicitCurveNode::initRenderer(Scene* scene)
 {
     PolyhedralMesh mesh;
 

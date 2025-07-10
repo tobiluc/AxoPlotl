@@ -36,7 +36,7 @@ public:
     /// Generates a Triangle Mesh representing the surface f(x,y,z) = 0
     void generate(const std::function<float(Vec3f)>& f, TriangleMesh& mesh);
 
-    void generateWithOctree(const std::function<float(Vec3f)>& f, TriangleMesh& mesh, Octree& tree, uint maxDepth = 5);
+    void generateWithOctree(const std::function<float(Vec3f)>& f, TriangleMesh& mesh, uint maxDepth = 5);
 
 };
 

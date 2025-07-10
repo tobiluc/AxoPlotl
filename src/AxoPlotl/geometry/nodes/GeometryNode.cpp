@@ -33,10 +33,6 @@ void GeometryNode::renderUIHeader(Scene *scene)
     //---------------------
     // Options
     //---------------------
-    // ImGui::SameLine();
-    // if (ImGui::Button("Zoom to")) {
-    //     scene->zoomToObject(id());
-    // }
     ImGui::SameLine();
     ImGui::Checkbox("Show", &mesh_renderer_.settings().visible);
     ImGui::SameLine();

@@ -53,7 +53,7 @@ void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint re
 void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
 
 /// Adaptive MC (using octree)
-void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, Octree& tree,
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh,
             const uint resolution = 8, const uint maxDepth = 4);
 
 class ExplicitCurveFunctionBuilder

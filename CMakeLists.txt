@@ -29,16 +29,16 @@ add_executable(${PROJECT_NAME}
 
 
 
-    src/AxoPlotl/rendering/GLBuffers.h
+
     src/AxoPlotl/rendering/ImGuiRenderer.h
     src/AxoPlotl/rendering/ImGuiRenderer.cpp
 
-    src/AxoPlotl/rendering/TrianglesRenderBatch.h
-    src/AxoPlotl/rendering/TrianglesRenderBatch.cpp
-    src/AxoPlotl/rendering/LinesRenderBatch.h
-    src/AxoPlotl/rendering/LinesRenderBatch.cpp
-    src/AxoPlotl/rendering/PointsRenderBatch.h
-    src/AxoPlotl/rendering/PointsRenderBatch.cpp
+
+
+
+
+
+
     src/AxoPlotl/rendering/MeshRenderer.h
 
 
@@ -55,10 +55,10 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/Utils.cpp
 
 
-    src/AxoPlotl/rendering/Renderer.h
-    src/AxoPlotl/rendering/Renderer.cpp
-    src/AxoPlotl/rendering/RenderBatch.h
-    src/AxoPlotl/rendering/RenderBatch.cpp
+
+
+
+
 
     src/AxoPlotl/commons/Color.h
     src/AxoPlotl/commons/Color.cpp
@@ -83,8 +83,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/Memory.h
     src/AxoPlotl/utils/Memory.cpp
     src/AxoPlotl/commons/Mesh.h
-    src/AxoPlotl/rendering/Primitives.h
-    src/AxoPlotl/rendering/Primitives.cpp
+
+
 
     src/AxoPlotl/geometry/Octree.h
 
