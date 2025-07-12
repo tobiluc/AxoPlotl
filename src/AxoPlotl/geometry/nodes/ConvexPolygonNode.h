@@ -9,7 +9,6 @@ class ConvexPolygonNode : public GeometryNode
 {
 private:
     std::vector<Vec3f> vertices_;
-    bool fill_ = true;
 
 public:
     ConvexPolygonNode(const std::vector<Vec3f>& _vertices, const std::string& _name="New Polygon", const glm::mat4& _transform = glm::mat4(1.0)) :

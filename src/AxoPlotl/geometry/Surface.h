@@ -47,7 +47,7 @@ void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh& mesh, const 
 
 //void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, const uint resolution = 32);
 
-void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint resolution = 32);
+void samplePoints(const ExplicitCurveFunction& ecf, std::vector<std::pair<float,Vec3f>>& pts, const uint resolution = 32);
 
 /// Marching Cubes
 void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);

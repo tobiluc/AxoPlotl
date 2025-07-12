@@ -20,24 +20,15 @@ add_executable(${PROJECT_NAME}
 
     src/AxoPlotl/commons/Camera.h
     src/AxoPlotl/commons/Camera.cpp
-    src/AxoPlotl/commons/PickingTexture.h
-    src/AxoPlotl/commons/PickingTexture.cpp
-    src/AxoPlotl/commons/Shader.h
-    src/AxoPlotl/commons/Shader.cpp
-    src/AxoPlotl/commons/Texture.h
-    src/AxoPlotl/commons/Texture.cpp
-
-
-
+    src/AxoPlotl/rendering/PickingTexture.h
+    src/AxoPlotl/rendering/PickingTexture.cpp
+    src/AxoPlotl/rendering/Shader.h
+    src/AxoPlotl/rendering/Shader.cpp
+    src/AxoPlotl/rendering/Texture.h
+    src/AxoPlotl/rendering/Texture.cpp
 
     src/AxoPlotl/rendering/ImGuiRenderer.h
     src/AxoPlotl/rendering/ImGuiRenderer.cpp
-
-
-
-
-
-
 
     src/AxoPlotl/rendering/MeshRenderer.h
 
@@ -54,25 +45,10 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/Utils.h
     src/AxoPlotl/utils/Utils.cpp
 
-
-
-
-
-
-
     src/AxoPlotl/commons/Color.h
     src/AxoPlotl/commons/Color.cpp
-    src/AxoPlotl/parsing/tokens.h
-    src/AxoPlotl/parsing/tokens.cpp
-    src/AxoPlotl/parsing/tree.h
-    src/AxoPlotl/parsing/parsing.h
-    src/AxoPlotl/parsing/parsing.cpp
-
-
-    src/AxoPlotl/parsing/Scope.h
-    src/AxoPlotl/parsing/Scope.cpp
-    src/AxoPlotl/parsing/tree.cpp
-
+    src/AxoPlotl/algorithms/parsing/tokens.h
+    src/AxoPlotl/algorithms/parsing/tokens.cpp
 
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
@@ -112,6 +88,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
     src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
     src/AxoPlotl/rendering/MeshRenderer.cpp
+    src/AxoPlotl/algorithms/parsing/reverse_polish.h
+    src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
 
 
 )

@@ -1,8 +1,5 @@
-#include "AxoPlotl/utils/Typedefs.h"
 #include "AxoPlotl/geometry/Octree.h"
 #include "gtest/gtest.h"
-
-#include <AxoPlotl/parsing/parsing.h>
 
 namespace AxoPlotl
 {

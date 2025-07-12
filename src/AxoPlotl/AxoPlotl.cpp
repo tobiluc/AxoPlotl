@@ -2,7 +2,7 @@
 #include "AxoPlotl.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
-#include "commons/Shader.h"
+#include "rendering/Shader.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
 #include "utils/MouseHandler.h"

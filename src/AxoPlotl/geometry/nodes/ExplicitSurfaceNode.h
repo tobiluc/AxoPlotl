@@ -12,6 +12,7 @@ private:
     ExplicitSurfaceFunction f_;
     ColorFunction2f color_;
     int resolution_ = 16;
+    bool continous_evaluation_ = false;
     char input_buffer_x_[512];
     char input_buffer_y_[512];
     char input_buffer_z_[512];

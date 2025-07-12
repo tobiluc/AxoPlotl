@@ -64,6 +64,8 @@ public:
 
     inline int id() const {return id_;}
 
+    inline const char* name() const {return name_;}
+
     inline bool isDeleted() const {return deleted_;}
 };
 

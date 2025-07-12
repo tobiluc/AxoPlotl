@@ -1,12 +1,13 @@
 #include "MeshRenderer.h"
-#include "AxoPlotl/commons/Shader.h"
+#include "AxoPlotl/rendering/Shader.h"
 #include "AxoPlotl/utils/Utils.h"
 
 namespace AxoPlotl::GL
 {
 
 MeshRenderer::MeshRenderer()
-{}
+{
+}
 
 MeshRenderer::~MeshRenderer()
 {
@@ -33,30 +34,30 @@ void MeshRenderer::deleteBuffers()
         = ibo_points_ = ibo_lines_ = ibo_triangles_ = 0;
 }
 
-void MeshRenderer::init(const Data& data)
+void MeshRenderer::createBuffers()
 {
-    n_points_ = data.pointIndices.size();
-    n_lines_     = data.lineIndices.size() / 2;
-    n_triangles_ = data.triangleIndices.size() / 3;
-
-    //--------------------------
-    // Triangles
-    //--------------------------
-
     glGenVertexArrays(1, &vao_triangles_);
     glGenBuffers(1, &vbo_triangle_attrib_);
     glGenBuffers(1, &ibo_triangles_);
 
-    // Upload data
+    glGenVertexArrays(1, &vao_triangles_picking_);
+
+    glGenVertexArrays(1, &vao_lines_);
+    glGenBuffers(1, &vbo_line_attrib_);
+    glGenBuffers(1, &ibo_lines_);
+
+    glGenVertexArrays(1, &vao_points_);
+    glGenBuffers(1, &vbo_point_attrib_);
+    glGenBuffers(1, &ibo_points_);
+}
+
+void MeshRenderer::setupVertexAttributes()
+{
+    //---------------
+    // Triangles
+    //---------------
     glBindVertexArray(vao_triangles_);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_STATIC_DRAW);
-
-    // Enable only attribs used in shader
 
     // -- Attrib 0: Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, position));
@@ -79,19 +80,8 @@ void MeshRenderer::init(const Data& data)
     //--------------------------
     // Triangles (Picking)
     //--------------------------
-
-    glGenVertexArrays(1, &vao_triangles_picking_);
-
-    // Upload data
     glBindVertexArray(vao_triangles_picking_);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_STATIC_DRAW);
-
-    // Enable only attribs used in shader
 
     // -- Attrib 0: Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, position));
@@ -103,24 +93,11 @@ void MeshRenderer::init(const Data& data)
 
     glBindVertexArray(0);
 
-    //--------------------------
+    //---------------
     // Lines
-    //--------------------------
-
-    glGenVertexArrays(1, &vao_lines_);
-    glGenBuffers(1, &vbo_line_attrib_);
-    glGenBuffers(1, &ibo_lines_);
-
-    // Upload data
+    //---------------
     glBindVertexArray(vao_lines_);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.lineAttribs.size() * sizeof(VertexLineAttrib), data.lineAttribs.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.lineIndices.size() * sizeof(GLuint), data.lineIndices.data(), GL_STATIC_DRAW);
-
-    // Enable only attribs used in shader
 
     // -- Attrib 0: Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexLineAttrib), (void*)offsetof(VertexLineAttrib, position));
@@ -132,24 +109,11 @@ void MeshRenderer::init(const Data& data)
 
     glBindVertexArray(0);
 
-    //--------------------------
+    //---------------
     // Points
-    //--------------------------
-
-    glGenVertexArrays(1, &vao_points_);
-    glGenBuffers(1, &vbo_point_attrib_);
-    glGenBuffers(1, &ibo_points_);
-
-    // Upload data
+    //---------------
     glBindVertexArray(vao_points_);
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.pointAttribs.size() * sizeof(VertexPointAttrib), data.pointAttribs.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.pointIndices.size() * sizeof(GLuint), data.pointIndices.data(), GL_STATIC_DRAW);
-
-    // Enable only attribs used in shader
 
     // -- Attrib 0: Position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPointAttrib), (void*)offsetof(VertexPointAttrib, position));
@@ -162,9 +126,78 @@ void MeshRenderer::init(const Data& data)
     glBindVertexArray(0);
 }
 
-void MeshRenderer::init(const PolyhedralMesh &mesh)
+void MeshRenderer::updateData(const Data& data)
 {
-    Data data;
+    if (!vao_points_ || !vao_lines_ || !vao_triangles_ || !vao_triangles_picking_) {
+        createBuffers();
+        setupVertexAttributes();
+    }
+
+    n_points_ = data.pointIndices.size();
+    n_lines_     = data.lineIndices.size() / 2;
+    n_triangles_ = data.triangleIndices.size() / 3;
+
+    //-------------
+    // Triangles
+    //-------------
+    glBindVertexArray(vao_triangles_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+
+    //----------------------
+    // Triangles (Picking)
+    //----------------------
+    glBindVertexArray(vao_triangles_picking_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+
+    //-----------
+    // Lines
+    //-----------
+    glBindVertexArray(vao_lines_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, data.lineAttribs.size() * sizeof(VertexLineAttrib), data.lineAttribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.lineIndices.size() * sizeof(GLuint), data.lineIndices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+
+    //-----------
+    // Points
+    //-----------
+    glBindVertexArray(vao_points_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, data.pointAttribs.size() * sizeof(VertexPointAttrib), data.pointAttribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.pointIndices.size() * sizeof(GLuint), data.pointIndices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+}
+
+void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
+{
+    data.pointAttribs.clear();
+    data.lineAttribs.clear();
+    data.triangleAttribs.clear();
+    data.pointIndices.clear();
+    data.lineIndices.clear();
+    data.triangleIndices.clear();
 
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
 
@@ -181,7 +214,7 @@ void MeshRenderer::init(const PolyhedralMesh &mesh)
         });
 
         data.lineAttribs.push_back(VertexLineAttrib{
-           .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
+            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
             .color = Color(v_it->idx()/(float)mesh.n_vertices(),0,0)
         });
 
@@ -213,9 +246,6 @@ void MeshRenderer::init(const PolyhedralMesh &mesh)
             data.triangleIndices.push_back(vhs[j+1].uidx());
         }
     }
-
-    init(data);
-
 }
 
 void MeshRenderer::render(const Matrices &m)
@@ -227,12 +257,6 @@ void MeshRenderer::render(const Matrices &m)
     glGetIntegerv(GL_VIEWPORT, viewport);
     const float width = viewport[2];
     const float height = viewport[3];
-
-    // float pointSize = 5.0f;
-    // float lineWidth = 3.0f;
-    // Light light{.ambient = Color::RED, .diffuse = Color::BLACK, .specular = Color::LIGHTGRAY};
-    // float outlineWidth = 1.0f;
-    // Color outlineColor = Color::BLACK;
 
     // Points
     if (vao_points_ && settings_.renderPoints)

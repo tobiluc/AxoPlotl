@@ -1,6 +1,5 @@
 #include "ExplicitCurveNode.h"
-#include "AxoPlotl/parsing/Scope.h"
-#include "AxoPlotl/parsing/parsing.h"
+#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
 
 namespace AxoPlotl
 {
@@ -36,71 +35,46 @@ void ExplicitCurveNode::renderUIBody(Scene* scene)
         auto tokens_y = Parsing::tokenize(input_buffer_y_);
         auto tokens_z = Parsing::tokenize(input_buffer_z_);
 
-        // Tranform ASTa into functiona of t
-        auto root_x = Parsing::Parser(tokens_x).parse();
-        auto root_y = Parsing::Parser(tokens_y).parse();
-        auto root_z = Parsing::Parser(tokens_z).parse();
+        Parsing::RPN rpn_x;
+        Parsing::reversePolish(tokens_x, rpn_x);
+        Parsing::RPN rpn_y;
+        Parsing::reversePolish(tokens_y, rpn_y);
+        Parsing::RPN rpn_z;
+        Parsing::reversePolish(tokens_z, rpn_z);
+        Parsing::Variables vars;
+        Parsing::Functions funcs;
+        Parsing::registerCommons(vars, funcs);
 
         std::function<Vec3f(float)> func = [&](float t) {
-            Scope scope;
-            scope.setVariable("t", std::make_shared<Parsing::ScalarNode>(t));
-
-            auto value_x = root_x->evaluate(scope);
-            auto value_y = root_y->evaluate(scope);
-            auto value_z = root_z->evaluate(scope);
-
+            vars["t"] = t;
             return Vec3f(
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_x.val),
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_y.val),
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_z.val)
+                Parsing::evaluate(rpn_x, vars, funcs),
+                Parsing::evaluate(rpn_y, vars, funcs),
+                Parsing::evaluate(rpn_z, vars, funcs)
                 );
         };
 
         // Update renderer
         this->f_.f = func;
-        mesh_renderer_.deleteBuffers();
         this->initRenderer(scene);
     }
 }
 
 void ExplicitCurveNode::initRenderer(Scene* scene)
 {
-    PolyhedralMesh mesh;
+    GL::MeshRenderer::Data data;
 
-    LineMesh lines;
-    createLines(f_, lines, resolution_);
+    std::vector<std::pair<float,Vec3f>> pts;
+    samplePoints(f_, pts, resolution_);
 
-    for (const auto& p : lines.vertices) {
-        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
+    for (uint i = 0; i < pts.size(); ++i) {
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position = pts[i].second, .color = Color::WHITE});
     }
-
-    for (const auto& l : lines.lines) {
-        mesh.add_edge(OVM::VH(l[0]), OVM::VH(l[1]));
+    for (uint i = 0; i < pts.size()-1; ++i) {
+        data.lineIndices.push_back(i);
+        data.lineIndices.push_back(i+1);
     }
-
-    mesh_renderer_.init(mesh);
-
-    // std::vector<Rendering::Line> lines;
-    // for (uint i = 0; i < mesh.lines.size(); ++i) {
-    //     lines.emplace_back(
-    //         mesh.vertices[mesh.lines[i][0]],
-    //         mesh.vertices[mesh.lines[i][1]],
-    //         ui_color_ // TODO: Display correct color
-    //         );
-    // }
-    // renderer_.addLines(lines, renderLoc_);
+    mesh_renderer_.updateData(data);
 }
 
 }

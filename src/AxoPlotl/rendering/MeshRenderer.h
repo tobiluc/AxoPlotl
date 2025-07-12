@@ -99,22 +99,32 @@ private:
 
     Settings settings_;
 
+    void deleteBuffers();
+
+    void createBuffers();
+
+    void setupVertexAttributes();
+
 public:
     MeshRenderer();
 
     ~MeshRenderer();
 
-    void deleteBuffers();
+    void updateData(const Data& data);
 
-    void init(const Data& data);
-
-    void init(const PolyhedralMesh& mesh);
+    static void createData(const PolyhedralMesh& mesh, Data& data);
 
     void render(const Matrices& m);
 
     void renderPicking(const Matrices& m, int id);
 
     inline Settings& settings() {return settings_;}
+
+    inline uint n_points() const {return n_points_;}
+
+    inline uint n_lines() const {return n_lines_;}
+
+    inline uint n_triangles() const {return n_triangles_;}
 };
 
 }

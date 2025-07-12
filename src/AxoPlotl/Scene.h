@@ -8,7 +8,7 @@
 #include "AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h"
 #include "AxoPlotl/geometry/nodes/MeshNode.h"
 #include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
-#include "commons/PickingTexture.h"
+#include "rendering/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
 #include "rendering/MeshRenderer.h"

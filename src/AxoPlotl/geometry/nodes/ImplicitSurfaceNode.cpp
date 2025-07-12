@@ -1,6 +1,5 @@
 #include "ImplicitSurfaceNode.h"
-#include "AxoPlotl/parsing/Scope.h"
-#include "AxoPlotl/parsing/parsing.h"
+#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
 
 namespace AxoPlotl
 {
@@ -19,7 +18,9 @@ void ImplicitSurfaceNode::initRenderer(Scene *scene)
         mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
     }
 
-    mesh_renderer_.init(mesh);
+    GL::MeshRenderer::Data data;
+    GL::MeshRenderer::createData(mesh, data);
+    mesh_renderer_.updateData(data);
 }
 
 void ImplicitSurfaceNode::renderUIBody(Scene *scene)
@@ -41,7 +42,7 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
     ImGui::InputFloat2("x Range", &f_.xMin);
     ImGui::InputFloat2("y Range", &f_.yMin);
     ImGui::InputFloat2("z Range", &f_.zMin);
-    ImGui::SliderInt("Octree Depth", &octree_depth_, 0, 4);
+    ImGui::SliderInt("Octree Depth", &octree_depth_, 0, 3);
 
     //-------------------
     // Update
@@ -49,43 +50,23 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
         auto tokens = Parsing::tokenize(input_buffer_);
-        //for (auto& token : tokens) std::cout << token << std::endl;
 
-        // Tranform AST into a function of x, y, z
-        auto root = Parsing::Parser(tokens).parse();
-        root->print();
-        std::cout << std::endl;
-        auto compiled = root->compile();
-        auto func = [compiled](const Vec3f& v) {
-            Scope scope;
-            scope.setVariable("x", std::make_shared<Parsing::ScalarNode>(v.x));
-            scope.setVariable("y", std::make_shared<Parsing::ScalarNode>(v.y));
-            scope.setVariable("z", std::make_shared<Parsing::ScalarNode>(v.z));
-            return compiled(scope).value<double>();
+        Parsing::RPN rpn;
+        Parsing::reversePolish(tokens, rpn);
+        Parsing::Variables vars;
+        Parsing::Functions funcs;
+        Parsing::registerCommons(vars, funcs);
+
+        auto func = [&](const Vec3f& v) {
+            vars["x"] = v.x;
+            vars["y"] = v.y;
+            vars["z"] = v.z;
+            return Parsing::evaluate(rpn, vars, funcs);
         };
-
-        // std::function<float(Vec3f)> func = [&root](const Vec3f& v) {
-        //     Scope scope;
-        //     scope.setVariable("x", std::make_shared<Parsing::ScalarNode>(v.x));
-        //     scope.setVariable("y", std::make_shared<Parsing::ScalarNode>(v.y));
-        //     scope.setVariable("z", std::make_shared<Parsing::ScalarNode>(v.z));
-        //     auto value = root->evaluate(scope);
-
-        //     return std::visit([](auto&& v) {
-        //         using T = std::decay_t<decltype(v)>;
-        //         if constexpr (std::is_same_v<T, double>) return v;
-        //         else {
-        //             std::cout << "Expected Scalar" << std::endl;
-        //             return 0.0;
-        //         }
-        //     }, value.val);
-        // };
 
         // Update renderer
         this->f_.f = func;
         this->initRenderer(scene);
-
-        //std::cout << "f(1,2,3) = " << func(1, 2, 3) << std::endl;
     }
 }
 

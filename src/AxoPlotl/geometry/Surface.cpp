@@ -65,20 +65,13 @@ void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const 
     }
 }
 
-void createLines(const ExplicitCurveFunction& ecf, LineMesh& mesh, const uint resolution)
+void samplePoints(const ExplicitCurveFunction& ecf, std::vector<std::pair<float,Vec3f>>& pts, const uint resolution)
 {
-    // Add Vertices
-    int vo = mesh.vertices.size();
-    for (uint i = 0; i < resolution; ++i) {
-        float t = ecf.tMin + (i+1) * (ecf.tMax - ecf.tMin) / resolution;
+    pts.reserve(resolution+1);
+    for (uint i = 0; i <= resolution; ++i) {
+        float t = ecf.tMin + i * (ecf.tMax - ecf.tMin) / resolution;
         Vec3f f = ecf.f(t);
-
-        mesh.vertices.push_back(f);
-    }
-
-    // Add Lines
-    for (uint i = 0; i < resolution-1; ++i) {
-        mesh.addLine(vo + i + 0, vo + i + 1);
+        pts.emplace_back(t, f);
     }
 }
 

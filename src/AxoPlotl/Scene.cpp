@@ -30,7 +30,7 @@ void Scene::render(GLFWwindow *window)
     glm::mat4 view_matrix = camera_.getViewMatrix();
 
     // Picking
-    if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED)
+    if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED || AxoPlotl::MouseHandler::RIGHT_JUST_PRESSED)
     {
         // Get Viewport and Framebuffer Size
         GLint viewport[4];
@@ -148,20 +148,8 @@ void Scene::renderUI()
 
             if (ImGui::BeginMenu("Simple")) {
 
-                if (ImGui::MenuItem("Point")) {
-
-                }
-
-                if (ImGui::MenuItem("Line")) {
-
-                }
-
                 if (ImGui::MenuItem("Convex Polygon")) {
                     addConvexPolygon({Vec3f(0,0,0), Vec3f(1,0,0), Vec3f(0,1,0)}, "Triangle");
-                }
-
-                if (ImGui::MenuItem("Tetrahedron")) {
-
                 }
 
                 ImGui::EndMenu(); // !Simple
@@ -311,16 +299,19 @@ void Scene::renderUI()
     //---------------------------
     if (picked_.object_index != 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
     {
-        ImGui::OpenPopup(("mesh_popup_" + std::to_string(picked_.object_index)).c_str());
+        ImGui::OpenPopup(("object_popup_" + std::to_string(picked_.object_index)).c_str());
     }
-    if (ImGui::BeginPopup(("mesh_popup_" + std::to_string(picked_.object_index)).c_str()))
+    if (ImGui::BeginPopup(("object_popup_" + std::to_string(picked_.object_index)).c_str()))
     {
-        // Get Render Batch
-        int i = picked_.object_index - 1;
-
-        // Modify Render Settings of Batch
-        std::string str = "TEMP";
-        ImGui::Text("%s", str.c_str());
+        // Find Object
+        int id = picked_.object_index;
+        auto it = std::find_if(objects_.begin(), objects_.end(), [id](const auto& obj) {
+            return obj->id() == id;
+        });
+        if (it != objects_.end())
+        {
+            ImGui::Text("Name: %s (Primitive %d)", it->get()->name(), picked_.primitive_id);
+        }
 
         ImGui::EndPopup();
     }
@@ -378,60 +369,12 @@ void TestScene::init()
     data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::BLUE});
     data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Color::BLUE});
     for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
-    gizmoRenderer_.init(data);
+    gizmoRenderer_.updateData(data);
     gizmoRenderer_.settings().useGlobalPointColor = false;
     gizmoRenderer_.settings().useGlobalLineColor = false;
     gizmoRenderer_.settings().useGlobalTriangleColor = false;
     gizmoRenderer_.settings().lineWidth = 8.0f;
     gizmoRenderer_.settings().pointSize = 12.0f;
-
-    // Octree Test
-    // Octree tree(AABB{0,1,0,1,0,1});
-    // tree.refineNode(0);
-    // tree.refineNode(8);
-    // for (u32 i = 0; i < tree.numNodes(); ++i) {
-    //     auto c = tree.getNodeBounds(i).center();
-    //     std::cout << i << ": " << c[0] << " " << c[1] << " " << c[2] << std::endl;
-    // }
-    // HexahedralMesh mesh;
-    // for (u32 i = 0; i < tree.numNodes(); ++i) {
-    //     auto c = tree.getNodeBounds(i).corners<OVM::Vec3d>();
-    //     std::vector<OVM::VH> vhs;
-    //     for (u32 j = 0; j < 8; ++j) {
-    //         vhs.push_back(mesh.add_vertex(c[j]));
-    //     }
-    //     mesh.add_cell(vhs);
-    // }
-    // addHexahedralMesh(mesh);
-
-    // Triangle
-    // GL::Point p0(glm::vec3{0,0,0}, glm::vec3{1,0,0});
-    // GL::Point p1(glm::vec3{10,0,0}, glm::vec3{0,1,0});
-    // GL::Point p2(glm::vec3{0,10,0}, glm::vec3{0,0,1});
-    // renderer_.addPoint(p0, loc);
-    // renderer_.addPoint(p1, loc);
-    // renderer_.addPoint(p2, loc);
-    // renderer_.addTriangle(GL::Triangle(p0, p1, p2), loc);
-
-    // Circle
-    // std::vector<glm::vec3> circle;
-    // uint n = 100;
-    // float r = 20;
-    // for (uint i = 0; i < n; ++i)
-    // {
-    //     circle.push_back(glm::vec3(
-    //         r * std::cos(2.0 * M_PI * i / n),
-    //         0,
-    //         r * std::sin(2.0 * M_PI * i / n)
-    //         ));
-    // }
-    // renderer_.addConvexPolygon(true, circle, Color(1,1,0));
-    // renderer_.addConvexPolygon(false, circle, Color(0,1,1));
-
-    // Spherical Harmonic
-    // renderer_.addSphericalHarmonic([&](Vec3f p) {
-    //     return pow(p.x,4) +  pow(p.y,4) +  pow(p.z,4);
-    // }, 10);
 }
 
 }

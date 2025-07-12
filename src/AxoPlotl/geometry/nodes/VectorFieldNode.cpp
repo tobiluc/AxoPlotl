@@ -1,8 +1,5 @@
 #include "VectorFieldNode.h"
-#include "AxoPlotl/parsing/Scope.h"
-#include "AxoPlotl/parsing/parsing.h"
-#include "AxoPlotl/parsing/tokens.h"
-#include "AxoPlotl/utils/Utils.h"
+#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
 
 namespace AxoPlotl
 {
@@ -33,7 +30,7 @@ void VectorFieldNode::initRenderer(Scene* scene)
         }
     }
 
-    mesh_renderer_.init(data);
+    mesh_renderer_.updateData(data);
 
     // renderer_.addLines(lines, renderLoc_);
 }
@@ -72,37 +69,24 @@ void VectorFieldNode::renderUIBody(Scene* scene)
         auto tokens_y = Parsing::tokenize(input_buffer_y_);
         auto tokens_z = Parsing::tokenize(input_buffer_z_);
 
-        // Tranform ASTa into functiona of u, v
-        auto root_x = Parsing::Parser(tokens_x).parse();
-        auto root_y = Parsing::Parser(tokens_y).parse();
-        auto root_z = Parsing::Parser(tokens_z).parse();
+        Parsing::RPN rpn_x;
+        Parsing::reversePolish(tokens_x, rpn_x);
+        Parsing::RPN rpn_y;
+        Parsing::reversePolish(tokens_y, rpn_y);
+        Parsing::RPN rpn_z;
+        Parsing::reversePolish(tokens_z, rpn_z);
+        Parsing::Variables vars;
+        Parsing::Functions funcs;
+        Parsing::registerCommons(vars, funcs);
 
         std::function<Vec3f(Vec3f)> func = [&](const Vec3f& p) {
-            Scope scope;
-            scope.setVariable("x", std::make_shared<Parsing::ScalarNode>(p.x));
-            scope.setVariable("y", std::make_shared<Parsing::ScalarNode>(p.y));
-            scope.setVariable("z", std::make_shared<Parsing::ScalarNode>(p.z));
-
-            auto value_x = root_x->evaluate(scope);
-            auto value_y = root_y->evaluate(scope);
-            auto value_z = root_z->evaluate(scope);
-
+            vars["x"] = p.x;
+            vars["y"] = p.y;
+            vars["z"] = p.z;
             return Vec3f(
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_x.val),
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_y.val),
-                std::visit([](auto&& v) {
-                    using T = std::decay_t<decltype(v)>;
-                    if constexpr (std::is_same_v<T, double>) {return v;}
-                    else {return 0.0;}
-                }, value_z.val)
+                Parsing::evaluate(rpn_x, vars, funcs),
+                Parsing::evaluate(rpn_y, vars, funcs),
+                Parsing::evaluate(rpn_z, vars, funcs)
                 );
         };
 
