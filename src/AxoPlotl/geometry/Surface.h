@@ -39,11 +39,25 @@ struct ImplicitSurfaceFunction
     inline float operator()(float x, float y, float z) const {return f(Vec3f(x, y, z));}
 };
 
+struct SphericalHarmonicFunction
+{
+    std::function<float(Vec3f)> f;
+    std::string str;
+
+    inline float operator()(const Vec3f& p) const {return f(p);}
+
+    inline float operator()(float x, float y, float z) const {return f(Vec3f(x, y, z));}
+};
+
 ImplicitSurfaceFunction createUnion(const ImplicitSurfaceFunction& f, ImplicitSurfaceFunction& g);
 
 ImplicitSurfaceFunction createIntersection(const ImplicitSurfaceFunction& f, ImplicitSurfaceFunction& g);
 
 void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh& mesh, const uint resolution = 32);
+
+void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const uint resolution = 32);
+
+void createQuads(const SphericalHarmonicFunction& sh, PolygonMesh& mesh, const uint resolution = 32);
 
 //void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, const uint resolution = 32);
 
@@ -76,7 +90,13 @@ public:
     static ExplicitSurfaceFunction moebiusStrip(float R = 1);
 
     /// f:Unit Sphere -> R
-    static ExplicitSurfaceFunction sphericalHarmonic(const std::function<float(Vec3f)>& f, const Vec3f& offset = Vec3f(0,0,0), float scale = 1.0f);
+    static ExplicitSurfaceFunction sphericalHarmonic(const SphericalHarmonicFunction& sh);
+};
+
+class SphericalHarmonicFunctionBuilder
+{
+public:
+    static SphericalHarmonicFunction identityFrame();
 };
 
 class ImplicitSurfaceFunctionBuilder
@@ -91,6 +111,8 @@ public:
     static ImplicitSurfaceFunction gyroid();
 
     static ImplicitSurfaceFunction heart();
+
+    static ImplicitSurfaceFunction cube();
 
     static ImplicitSurfaceFunction wineglass();
 

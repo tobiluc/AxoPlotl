@@ -7,6 +7,7 @@
 #include "AxoPlotl/geometry/Surface.h"
 #include "AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h"
 #include "AxoPlotl/geometry/nodes/MeshNode.h"
+#include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
 #include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
 #include "rendering/PickingTexture.h"
 #include "glad/glad.h"
@@ -66,6 +67,11 @@ public:
 
     inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
         objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
+        objects_.back()->initRenderer(this);
+    }
+
+    inline void addSphericalHarmonic(const std::string& name, const SphericalHarmonicFunction& sh) {
+        objects_.push_back(std::make_unique<SphericalHarmonicNode>(sh, name));
         objects_.back()->initRenderer(this);
     }
 

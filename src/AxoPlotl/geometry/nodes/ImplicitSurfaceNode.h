@@ -11,6 +11,7 @@ class ImplicitSurfaceNode : public GeometryNode
 private:
     ImplicitSurfaceFunction f_;
     Color color_;
+    int initial_resolution_ = 16;
     int octree_depth_ = 2;
     char input_buffer_[1024];
 

@@ -9,9 +9,10 @@ struct OpInfo {
 };
 
 std::unordered_map<Token::Type, OpInfo> opTable = {
+    {Token::Type::UNARY_PLUS, {7, true}}, {Token::Type::UNARY_MINUS, {7, true}},
     {Token::Type::PLUS, {4, false}}, {Token::Type::MINUS, {4, false}},
     {Token::Type::TIMES, {5, false}}, {Token::Type::DIV, {5, false}},
-    {Token::Type::POW, {6, true}},
+    {Token::Type::POW, {8, true}},
     {Token::Type::LAND, {2, false}}, {Token::Type::LOR, {1, false}},
     {Token::Type::NOT, {7, true}},
     {Token::Type::EQ, {3, false}}, {Token::Type::NEQ, {3, false}}, {Token::Type::LESS, {3, false}},
@@ -214,20 +215,32 @@ double evaluate(const RPN& rpn, const Variables& vars, const Functions& funcs)
             case Token::Type::GEQ: result = lhs >= rhs; break;
             case Token::Type::LAND: result = (lhs != 0.0 && rhs != 0.0); break;
             case Token::Type::LOR:  result = (lhs != 0.0 || rhs != 0.0); break;
-            default: std::cerr << "Unhandled binary operator" << std::endl; return 0.0;
+            default: std::cerr << "Unhandled binary operator " << token.lexeme << std::endl; return 0.0;
             }
 
             stack.push_back(result);
             break;
         }
 
+        case Token::Type::UNARY_PLUS:
+        case Token::Type::UNARY_MINUS:
         case Token::Type::NOT: {
             if (stack.empty()) {
                 std::cerr << "Insufficient operands for unary operator " << token.lexeme << std::endl;
                 return 0.0;
             }
-            double val = stack.back(); stack.pop_back();
-            stack.push_back(!(bool)(val));
+            double val = stack.back();
+            stack.pop_back();
+            double result;
+
+            switch (token.type) {
+            case Token::Type::UNARY_PLUS: result = val; break;
+            case Token::Type::UNARY_MINUS: result = -val; break;
+            case Token::Type::NOT: result = !val; break;
+            default: std::cerr << "Unhandled unary operator " << token.lexeme << std::endl; return 0.0;
+            }
+
+            stack.push_back(result);
             break;
         }
 
@@ -250,6 +263,11 @@ void registerCommons(Variables &vars, Functions& funcs)
     vars["pi"] = M_PI;
     vars["e"] = M_E;
 
+    funcs["abs"] = [](const FunctionArgs& args) {
+        if (args.size() != 1) {std::cerr << "abs expects 1 argument" << std::endl; return 0.0;}
+        return std::abs(args[0]);
+    };
+
     funcs["sin"] = [](const FunctionArgs& args) {
         if (args.size() != 1) {std::cerr << "sin expects 1 argument" << std::endl; return 0.0;}
         return std::sin(args[0]);
@@ -271,6 +289,11 @@ void registerCommons(Variables &vars, Functions& funcs)
     };
     funcs["ln"] = funcs["log"];
 
+    funcs["log2"] = [](const FunctionArgs& args) {
+        if (args.size() != 1) {std::cerr << "log2 expects 1 argument" << std::endl; return 0.0;}
+        return std::log2(args[0]);
+    };
+
     funcs["sqrt"] = [](const FunctionArgs& args) {
         if (args.size() != 1) {std::cerr << "sqrt expects 1 argument" << std::endl; return 0.0;}
         return std::sqrt(args[0]);
@@ -290,10 +313,15 @@ void registerCommons(Variables &vars, Functions& funcs)
         return min;
     };
 
-    funcs["ifthenelse"] = [](const FunctionArgs& args) {
-        if (args.size() != 3) {std::cerr << "ifthenelse expects 3 arguments" << std::endl; return 0.0;}
-        return args[0]? args[1] : args[2];
+    funcs["pow"] = [](const FunctionArgs& args) {
+        if (args.size() != 2) {std::cerr << "pow expects 2 arguments" << std::endl; return 0.0;}
+        return std::pow(args[0], args[1]);
     };
+
+    // funcs["ifthenelse"] = [](const FunctionArgs& args) {
+    //     if (args.size() != 3) {std::cerr << "ifthenelse expects 3 arguments" << std::endl; return 0.0;}
+    //     return args[0]? args[1] : args[2];
+    // };
 }
 
 }

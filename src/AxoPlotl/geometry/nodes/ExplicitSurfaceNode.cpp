@@ -61,16 +61,45 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
         this->f_.f = func;
         this->initRenderer(scene);
     }
-    ImGui::SameLine();
-    ImGui::Checkbox("Continous Evaluation", &continous_evaluation_);
+    // ImGui::SameLine();
+    // ImGui::Checkbox("Continous Evaluation", &continous_evaluation_);
 }
 
 void ExplicitSurfaceNode::initRenderer(Scene* scene)
 {
-    PolyhedralMesh mesh;
-    createMesh(f_, mesh, resolution_);
+    PolygonMesh mesh;
+    createQuads(f_, mesh, resolution_);
     GL::MeshRenderer::Data data;
-    GL::MeshRenderer::createData(mesh, data);
+
+    for (uint i = 0; i < mesh.vertices().size(); ++i) {
+        Vec3f p = mesh.vertex(i);
+        float t = i/((float)mesh.vertices().size()-1);
+
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+            .position = p,
+            .color = Color(t,0,1-t)
+        });
+
+        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
+        .position = p,
+        .color = getColorOnSphere(p.x,p.y,p.z),
+        .normal = mesh.vertexNormal(i)});
+
+        for (uint j : mesh.neighbors(i)) {
+            if (j > i) {
+                data.lineIndices.push_back(i);
+                data.lineIndices.push_back(j);
+            }
+        }
+
+    }
+    for (uint i = 0; i < mesh.polygons().size(); ++i) {
+        for (uint j = 1; j < mesh.polygon(i).size()-1; ++j) {
+            data.triangleIndices.push_back(mesh.polygon(i)[0]);
+            data.triangleIndices.push_back(mesh.polygon(i)[j]);
+            data.triangleIndices.push_back(mesh.polygon(i)[j+1]);
+        }
+    }
     mesh_renderer_.updateData(data);
 }
 

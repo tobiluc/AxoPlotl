@@ -90,9 +90,54 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/rendering/MeshRenderer.cpp
     src/AxoPlotl/algorithms/parsing/reverse_polish.h
     src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
+    src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
+    src/AxoPlotl/rendering/property_visualization.h
+    src/AxoPlotl/geometry/eigen.h
+
+
 
 
 )
+
+#=========================
+# OpenMP
+#=========================
+if(APPLE)
+    set(OpenMP_ROOT "/opt/homebrew/opt/libomp") # this is a bit of a hack
+endif()
+find_package(OpenMP COMPONENTS CXX REQUIRED)
+if(OpenMP_CXX_FOUND)
+    target_compile_options(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
+#=========================
+# Init Fetch Content
+#=========================
+include(FetchContent)
+set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
+set(SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
+set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
+
+#=========================
+# Eigen
+#=========================
+if(NOT TARGET Eigen3::Eigen)
+    FetchContent_Declare(Eigen3 SYSTEM
+        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+        GIT_TAG 3.4.0
+        GIT_SHALLOW TRUE
+        SOURCE_SUBDIR cmake
+    )
+    FetchContent_MakeAvailable(Eigen3)
+
+    add_library(Eigen3::Eigen INTERFACE IMPORTED)
+    set_target_properties(Eigen3::Eigen PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${eigen3_SOURCE_DIR})
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(Eigen3::Eigen INTERFACE OpenMP::OpenMP_CXX)
+    endif()
+endif()
+
 
 #=========================
 # GLFW
@@ -206,11 +251,13 @@ endif()
 #=========================
 # Link
 #=========================
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PUBLIC
 glad
 glfw 
 OpenGL::GL
+OpenMP::OpenMP_CXX
 glm
+Eigen3::Eigen
 OpenVolumeMesh::OpenVolumeMesh
 ImGui
 ImGuiFileDialog
@@ -241,6 +288,7 @@ target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
     glad
     glfw
     OpenGL::GL
+    OpenMP::OpenMP_CXX
     glm
     OpenVolumeMesh::OpenVolumeMesh
     ImGui

@@ -25,6 +25,17 @@ using TetrahedralMesh = OVM::TetrahedralGeometryKernel<OVM::Vec3d, OpenVolumeMes
 using PolyhedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::TopologyKernel>;
 using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::HexahedralMeshTopologyKernel>;
 
+template<typename Handle>
+auto entity_iter(const PolyhedralMesh& mesh) {
+    if constexpr (std::is_same_v<Handle, OVM::VH>) {return mesh.v_iter();}
+    if constexpr (std::is_same_v<Handle, OVM::EH>) {return mesh.e_iter();}
+    if constexpr (std::is_same_v<Handle, OVM::FH>) {return mesh.f_iter();}
+    if constexpr (std::is_same_v<Handle, OVM::CH>) {return mesh.c_iter();}
+    if constexpr (std::is_same_v<Handle, OVM::HEH>) {return mesh.he_iter();}
+    if constexpr (std::is_same_v<Handle, OVM::HFH>) {return mesh.hf_iter();}
+}
+
+
 template<typename MeshT>
 int mesh_n_boundary_faces(MeshT& mesh)
 {

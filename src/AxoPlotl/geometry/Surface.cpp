@@ -65,6 +65,41 @@ void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const 
     }
 }
 
+void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const uint resolution)
+{
+    mesh.clear();
+
+    // Generate Vertex Positions
+    float s, t;
+    for (int i = 0; i <= resolution; ++i) {
+        s = esf.uMin + i * (esf.uMax - esf.uMin) / resolution;
+        for (int j = 0; j <= resolution; ++j) {
+            t = esf.vMin + j * (esf.vMax - esf.vMin) / resolution;
+            mesh.addVertex(esf(s, t));
+        }
+    }
+
+    // Generate Triangles
+    for (int i = 0; i < resolution; ++i) {
+        for (int j = 0; j < resolution; ++j) {
+            int row1 = i * (resolution + 1);
+            int row2 = (i + 1) * (resolution + 1);
+
+            mesh.addPolygon({
+                (row1 + j + 0),
+                (row2 + j + 0),
+                (row2 + j + 1),
+                (row1 + j + 1)
+            });
+        }
+    }
+}
+
+void createQuads(const SphericalHarmonicFunction& sh, PolygonMesh& mesh, const uint resolution)
+{
+    createQuads(ExplicitSurfaceFunctionBuilder::sphericalHarmonic(sh), mesh, resolution);
+}
+
 void samplePoints(const ExplicitCurveFunction& ecf, std::vector<std::pair<float,Vec3f>>& pts, const uint resolution)
 {
     pts.reserve(resolution+1);
@@ -99,11 +134,11 @@ ExplicitCurveFunction ExplicitCurveFunctionBuilder::dummy()
     return ExplicitCurveFunction{
         .f = [](float t)
         {
-            return Vec3f(std::cos(t), t, std::sin(t));
-        }, .tMin=0,.tMax=4*M_PI,
-            .str_x = "cos(t)",
-            .str_y = "t",
-            .str_z = "sin(t)"
+            return Vec3f(0,0,0);
+        }, .tMin=0,.tMax=1,
+            .str_x = "0",
+            .str_y = "0",
+            .str_z = "0"
     };
 }
 
@@ -130,11 +165,11 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::dummy()
     return ExplicitSurfaceFunction{
         .f = [](float u, float v)
         {
-            return Vec3f(u, u*u+v*v, v);
-        }, .uMin=-1,.uMax=1,.vMin=-1,.vMax=1,
-        .str_x = "u",
-        .str_y = "u^2 + v^2",
-        .str_z = "v"
+            return Vec3f(0,0,0);
+        }, .uMin=0,.uMax=1,.vMin=0,.vMax=1,
+        .str_x = "0",
+        .str_y = "0",
+        .str_z = "0"
     };
 }
 
@@ -194,16 +229,29 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::moebiusStrip(float R)
     };
 }
 
-ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphericalHarmonic(const std::function<float(Vec3f)>& f, const Vec3f& offset, float scale)
+ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphericalHarmonic(const SphericalHarmonicFunction &sh)
 {
-    std::function<Vec3f(float,float)> func = [offset,scale,f](float phi, float theta)
+    std::function<Vec3f(float,float)> func = [sh](float phi, float theta)
     {
         Vec3f p(sin(phi) * cos(theta), cos(phi), sin(phi) * sin(theta));
-        float r = f(p);
-        return offset + scale * r * p;
+        float r = sh(p);
+        return r * p;
     };
     return ExplicitSurfaceFunction{
-        .f = func, .uMin=0,.uMax=M_PI,.vMin=0,.vMax=2.0*M_PI
+        .f = func, .uMin=0,.uMax=M_PI,.vMin=0,.vMax=2.0*M_PI,
+        .str_x = "",
+        .str_y = "",
+        .str_z = ""
+    };
+}
+
+SphericalHarmonicFunction SphericalHarmonicFunctionBuilder::identityFrame()
+{
+    return SphericalHarmonicFunction{
+        .f = [](Vec3f p) {
+            return pow(p.x,4)+pow(p.y,4)+pow(p.z,4);
+        },
+        .str = "x^4 + y^4 + z^4"
     };
 }
 
@@ -228,12 +276,25 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::dummy()
 {
     return ImplicitSurfaceFunction{
         .f = [](Vec3f p) {
-            return p.y;
+            return 0;
         },
-        .xMin = -5, .xMax = 5,
-        .yMin = -5, .yMax = 5,
-        .zMin = -5, .zMax = 5,
-        .str = "y"
+        .xMin = 0, .xMax = 1,
+        .yMin = 0, .yMax = 1,
+        .zMin = 0, .zMax = 1,
+        .str = "0"
+    };
+}
+
+ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::cube()
+{
+    return ImplicitSurfaceFunction{
+        .f = [](Vec3f p) {
+            return std::max(std::abs(p.x),std::max(std::abs(p.y),std::abs(p.z))) - 1;
+        },
+        .xMin = -1.5f, .xMax = 1.5f,
+        .yMin = -1.5f, .yMax = 1.5f,
+        .zMin = -1.5f, .zMax = 1.5f,
+        .str = IO::string_format("max(abs(x),abs(y),abs(z)) - 1")
     };
 }
 

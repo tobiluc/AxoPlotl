@@ -73,7 +73,7 @@ void Scene::render(GLFWwindow *window)
         int y = AxoPlotl::MouseHandler::POSITION[1] * yscale / framebuffer_height * pickingTexture_.getHeight();
         picked_ = pickingTexture_.readPixel(x, y);
 
-        std::cout << "Picked: Object: " << picked_.object_index << ", Buffer: " << picked_.buffer << ", Primitive: " << picked_.primitive_id << std::endl;
+        //std::cout << "Picked: Object: " << picked_.object_index << ", Buffer: " << picked_.buffer << ", Primitive: " << picked_.primitive_id << std::endl;
 
         // Unbind Texture
         pickingTexture_.unbind();
@@ -155,10 +155,10 @@ void Scene::renderUI()
                 ImGui::EndMenu(); // !Simple
             }
 
-            if (ImGui::BeginMenu("Explicit 1D Curve")) {
+            if (ImGui::BeginMenu("Curve")) {
 
-                if (ImGui::MenuItem("Custom")) {
-                    addExplicitCurve("Custom", ExplicitCurveFunctionBuilder::dummy(), Color::random());
+                if (ImGui::MenuItem("Empty")) {
+                    addExplicitCurve("Empty", ExplicitCurveFunctionBuilder::dummy(), Color::random());
                 }
                 ImGui::Separator();
 
@@ -166,63 +166,72 @@ void Scene::renderUI()
                     addExplicitCurve("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), Color::random());
                 }
 
-                ImGui::EndMenu(); // !Explicit 1D Curve
+                ImGui::EndMenu(); // !Curve
             }
 
-            if (ImGui::BeginMenu("Explicit 2D Surface")) {
+            if (ImGui::BeginMenu("Surface")) {
 
-                if (ImGui::MenuItem("Custom")) {
-                    addExplicitSurface("Custom", ExplicitSurfaceFunctionBuilder::dummy(), Color::random());
-                }
-                ImGui::Separator();
+                if (ImGui::BeginMenu("Explicit")) {
 
-                if (ImGui::MenuItem("Sphere")) {
-                    addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), Color::random());
-                }
+                    if (ImGui::MenuItem("Empty")) {
+                        addExplicitSurface("Empty", ExplicitSurfaceFunctionBuilder::dummy(), Color::random());
+                    }
+                    ImGui::Separator();
 
-                if (ImGui::MenuItem("Torus")) {
-                    addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), Color::random());
-                }
+                    if (ImGui::MenuItem("Sphere")) {
+                        addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), Color::random());
+                    }
 
-                if (ImGui::MenuItem("Moebius Strip")) {
-                    addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), Color::random());
-                }
+                    if (ImGui::MenuItem("Torus")) {
+                        addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), Color::random());
+                    }
 
-                ImGui::EndMenu(); // !Explicit 2D Surface
-            }
+                    if (ImGui::MenuItem("Moebius Strip")) {
+                        addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), Color::random());
+                    }
 
-            if (ImGui::BeginMenu("Implicit 2D Surface")) {
-
-                if (ImGui::MenuItem("Custom")) {
-                    addImplicitSurface("Custom", ImplicitSurfaceFunctionBuilder::dummy());
-                }
-                ImGui::Separator();
-
-                if (ImGui::MenuItem("Sphere")) {
-                    addImplicitSurface("Sphere", ImplicitSurfaceFunctionBuilder::sphere());
+                    ImGui::EndMenu(); // !Explicit
                 }
 
-                if (ImGui::MenuItem("Torus")) {
-                    addImplicitSurface("Torus", ImplicitSurfaceFunctionBuilder::torus());
+                if (ImGui::BeginMenu("Implicit")) {
+
+                    if (ImGui::MenuItem("Empty")) {
+                        addImplicitSurface("Empty", ImplicitSurfaceFunctionBuilder::dummy());
+                    }
+                    ImGui::Separator();
+
+                    if (ImGui::MenuItem("Sphere")) {
+                        addImplicitSurface("Sphere", ImplicitSurfaceFunctionBuilder::sphere());
+                    }
+
+                    if (ImGui::MenuItem("Cube")) {
+                        addImplicitSurface("Cube", ImplicitSurfaceFunctionBuilder::cube());
+                    }
+
+                    if (ImGui::MenuItem("Torus")) {
+                        addImplicitSurface("Torus", ImplicitSurfaceFunctionBuilder::torus());
+                    }
+
+                    if (ImGui::MenuItem("Gyroid")) {
+                        addImplicitSurface("Gyroid", ImplicitSurfaceFunctionBuilder::gyroid());
+                    }
+
+                    if (ImGui::MenuItem("Heart")) {
+                        addImplicitSurface("Heart", ImplicitSurfaceFunctionBuilder::heart());
+                    }
+
+                    if (ImGui::MenuItem("Wineglass")) {
+                        addImplicitSurface("Wineglass", ImplicitSurfaceFunctionBuilder::wineglass());
+                    }
+
+                    if (ImGui::MenuItem("Test")) {
+                        addImplicitSurface("Test", ImplicitSurfaceFunctionBuilder::test());
+                    }
+
+                    ImGui::EndMenu(); // !Implicit
                 }
 
-                if (ImGui::MenuItem("Gyroid")) {
-                    addImplicitSurface("Gyroid", ImplicitSurfaceFunctionBuilder::gyroid());
-                }
-
-                if (ImGui::MenuItem("Heart")) {
-                    addImplicitSurface("Heart", ImplicitSurfaceFunctionBuilder::heart());
-                }
-
-                if (ImGui::MenuItem("Wineglass")) {
-                    addImplicitSurface("Wineglass", ImplicitSurfaceFunctionBuilder::wineglass());
-                }
-
-                if (ImGui::MenuItem("Test")) {
-                    addImplicitSurface("Test", ImplicitSurfaceFunctionBuilder::test());
-                }
-
-                ImGui::EndMenu(); // !Explicit 2D Surface
+                ImGui::EndMenu(); // !Surface
             }
 
             if (ImGui::BeginMenu("Others")) {
@@ -230,7 +239,11 @@ void Scene::renderUI()
                 if (ImGui::MenuItem("Vector Field")) {
                     addVectorField([](const Vec3f& p) {
                         return p;
-                    }, "Id");
+                    }, "Direction");
+                }
+
+                if (ImGui::MenuItem("Spherical Harmonic")) {
+                    addSphericalHarmonic("SH", SphericalHarmonicFunctionBuilder::identityFrame());
                 }
 
                 ImGui::EndMenu();
@@ -375,6 +388,14 @@ void TestScene::init()
     gizmoRenderer_.settings().useGlobalTriangleColor = false;
     gizmoRenderer_.settings().lineWidth = 8.0f;
     gizmoRenderer_.settings().pointSize = 12.0f;
+
+    PolyhedralMesh mesh;
+    IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_tet.ovmb", mesh);
+    addMesh(mesh, "Tet Mesh");
+
+    PolyhedralMesh mesh2;
+    IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_point_cloud.ovmb", mesh2);
+    addMesh(mesh2, "Point Cloud");
 }
 
 }

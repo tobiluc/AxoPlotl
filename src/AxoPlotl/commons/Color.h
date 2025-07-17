@@ -11,6 +11,8 @@ struct Color
 {
     std::array<float,4> rgba;
 
+    Color() : rgba({0, 0, 0, 1}) {}
+
     Color(float r, float g, float b) :
         rgba({r, g, b, 1})
     {}
@@ -93,10 +95,11 @@ public:
 struct Light {Color ambient, diffuse, specular;};
 
 inline Color getColorOnSphere(float x, float y, float z) {
+    float d = std::sqrt(x*x+y*y+z*z);
     return Color(
-        0.5 * (x + 1),
-        0.5 * (y + 1),
-        0.5 * (z + 1)
+        0.5 * (x/d + 1),
+        0.5 * (y/d + 1),
+        0.5 * (z/d + 1)
         );
 }
 

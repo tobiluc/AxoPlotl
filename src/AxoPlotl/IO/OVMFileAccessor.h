@@ -1,13 +1,18 @@
 #pragma once
 
+#include "AxoPlotl/geometry/eigen.h"
 #include "FileUtils.h"
 
 #include "AxoPlotl/geometry/ovm.h"
-#include "OpenVolumeMesh/IO/ovmb_write.hh"
 #include "OpenVolumeMesh/IO/PropertyCodecs.hh"
-#include "OpenVolumeMesh/IO/PropertyCodecsT_impl.hh"
 #include "OpenVolumeMesh/IO/ovmb_read.hh"
+#include <Eigen/Core>
 
+namespace OpenVolumeMesh {
+
+//template <> OVM_EXPORT const std::string typeName<IGRec::Eig::Mat3x3d>();
+
+}
 
 namespace AxoPlotl::IO
 {

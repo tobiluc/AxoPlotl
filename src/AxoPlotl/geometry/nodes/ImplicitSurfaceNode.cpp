@@ -8,7 +8,7 @@ void ImplicitSurfaceNode::initRenderer(Scene *scene)
 {
     PolyhedralMesh mesh;
     TriangleMesh triangles;
-    createTrianglesAMC(f_, triangles, 16, octree_depth_);
+    createTrianglesAMC(f_, triangles, initial_resolution_, octree_depth_);
 
     for (const auto& p : triangles.vertices) {
         mesh.add_vertex(toVec3<OVM::Vec3d>(p));
@@ -42,6 +42,7 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
     ImGui::InputFloat2("x Range", &f_.xMin);
     ImGui::InputFloat2("y Range", &f_.yMin);
     ImGui::InputFloat2("z Range", &f_.zMin);
+    ImGui::SliderInt("Init. Resolution", &initial_resolution_, 8, 32);
     ImGui::SliderInt("Octree Depth", &octree_depth_, 0, 3);
 
     //-------------------
