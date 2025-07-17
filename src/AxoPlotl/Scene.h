@@ -25,19 +25,21 @@ protected:
     std::vector<std::unique_ptr<GeometryNode>> objects_; // TODO: When closing application, Crash: Error prob. cause of missing cleanup?
 
     GL::MeshRenderer gizmoRenderer_;
-    Camera camera_;
+    CameraSet camera_set_;
     Color clearColor_ = Color::WHITE;
 
     PickingTexture pickingTexture_;
     PickingTexture::Pixel picked_ = {0,0,0};
 
-    void renderUI();
+    void renderUI(GLFWwindow* window);
 
 public:
-    Scene() :
-        camera_(Vec3f(1,1,1), glm::normalize(Vec3f(-1,-1,-1))),
-        clearColor_(Color::WHITE)
+    Scene()
     {}
+
+    ~Scene() {
+
+    }
 
     /// Call once before rendering for the first time
     virtual void init();
@@ -95,17 +97,24 @@ public:
         objects_.back()->initRenderer(this);
     }
 
-    inline bool saveScene(const std::string& filename) {
+    inline bool saveToFile(const std::string& filename) {
         return IO::serialize(filename, *this);
     }
 
-    inline bool loadScene(const std::string& filename) {
-        return false; // TODO
-        //return IO::deserialize(filename, *this);
+    inline bool loadFromFile(const std::string& filename) {
+        // Scene scene;
+        // if (IO::deserialize(filename, scene)) {
+        //     this->clearColor_ = scene.clearColor_;
+        //     // TODO
+        //     return true;
+        // } else {
+        //     return false;
+        // }
+        return false;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Scene,
-    camera_)
+    camera_set_, clearColor_)
 };
 
 class TestScene : public Scene

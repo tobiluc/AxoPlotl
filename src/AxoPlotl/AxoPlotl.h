@@ -8,7 +8,7 @@
 namespace AxoPlotl
 {
 
-class MeshViewer
+class Runner
 {
 
 private:
@@ -21,9 +21,9 @@ public:
 
     GLFWwindow* window;
 
-    MeshViewer();
+    Runner();
 
-    ~MeshViewer();
+    ~Runner();
 
     void run();
 

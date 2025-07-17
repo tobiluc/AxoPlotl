@@ -3,6 +3,7 @@
 
 #include <array>
 #include <functional>
+#include "AxoPlotl/IO/JSONFileAccessor.h"
 
 namespace AxoPlotl
 {
@@ -55,6 +56,8 @@ struct Color
     static const Color WHITE;
 
     static Color random();
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Color, rgba);
 
 };
 

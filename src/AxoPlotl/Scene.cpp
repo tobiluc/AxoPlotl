@@ -21,13 +21,15 @@ namespace AxoPlotl
 void Scene::init()
 {
     pickingTexture_ = PickingTexture(800, 600);
+
+
 }
 
 void Scene::render(GLFWwindow *window)
 {
     // Cache matrices for rendering
-    //Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera_.getViewMatrix(), camera_.getProjectionMatrix());
-    glm::mat4 view_matrix = camera_.getViewMatrix();
+    //Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera_set_.getViewMatrix(), camera_set_.getProjectionMatrix());
+    glm::mat4 view_matrix = camera_set_.camera()->getViewMatrix();
 
     // Picking
     if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED || AxoPlotl::MouseHandler::RIGHT_JUST_PRESSED)
@@ -59,7 +61,7 @@ void Scene::render(GLFWwindow *window)
         glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 
         // Change Projection Matrix for Framebuffer (ratio might differ from viewport)
-        const auto& projection_matrix = camera_.getProjectionMatrix(framebuffer_ratio);
+        const auto& projection_matrix = camera_set_.camera()->getProjectionMatrix(framebuffer_ratio);
         //const glm::mat4x4 model_view_projection_matrix = projection_matrix * matrices.model_view_matrix;
 
         // Render to Picking Texture
@@ -98,14 +100,14 @@ void Scene::render(GLFWwindow *window)
     GL::ImGuiNewFrame();
 
     // Render
-    glm::mat4 projection_matrix = camera_.getProjectionMatrix();
+    glm::mat4 projection_matrix = camera_set_.camera()->getProjectionMatrix();
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->render(view_matrix, projection_matrix);
     }
     gizmoRenderer_.render(GL::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
-    renderUI();
+    renderUI(window);
 
     // Check for errors
     GLenum error = glGetError();
@@ -117,7 +119,7 @@ void Scene::render(GLFWwindow *window)
     glfwSwapBuffers(window);
     AxoPlotl::MouseHandler::update(window);
     AxoPlotl::Time::update();
-    camera_.update(window);
+    camera_set_.camera()->update(window);
     glfwPollEvents();
 
     // Remove deleted objects
@@ -128,18 +130,24 @@ void Scene::render(GLFWwindow *window)
     objects_.shrink_to_fit();
 }
 
-void Scene::renderUI()
+void Scene::renderUI(GLFWwindow *window)
 {
+    // Get Width and Height of Viewport
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    const float width = viewport[2];
+    const float height = viewport[3];
+
     //-------------
     // Menu Bar
     //-------------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
             if (ImGui::MenuItem("Save Scene")) {
-                saveScene("/Users/tobiaskohler/Projects/MeshViewer/res/scene.json");
+                saveToFile("/Users/tobiaskohler/Projects/MeshViewer/res/scene.sce");
             }
             if (ImGui::MenuItem("Load Scene")) {
-                loadScene("/Users/tobiaskohler/Projects/MeshViewer/res/scene.json");
+                loadFromFile("/Users/tobiaskohler/Projects/MeshViewer/res/scene.sce");
             }
             ImGui::EndMenu(); // !File
         }
@@ -301,8 +309,7 @@ void Scene::renderUI()
 
     ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
     if (ImGui::Button("Reset Camera")) {
-        camera_.setPosition(Vec3f(1,1,1));
-        camera_.setForward(glm::normalize(Vec3f(-1,-1,-1)));
+        camera_set_.reset(window);
     }
 
     ImGui::NewLine();
@@ -324,6 +331,9 @@ void Scene::renderUI()
         if (it != objects_.end())
         {
             ImGui::Text("Name: %s (Primitive %d)", it->get()->name(), picked_.primitive_id);
+            if (ImGui::Button("Delete")) {
+                it->get()->setDeleted();
+            }
         }
 
         ImGui::EndPopup();
@@ -332,7 +342,7 @@ void Scene::renderUI()
     //---------------------
     // General Settings
     //---------------------
-    ImGui::Checkbox("Orthographic", &camera_.isOrthographic);
+    ImGui::Checkbox("Orthographic", &camera_set_.use_ortho);
     ImGui::ColorEdit3("Background", &clearColor_[0]);
 
     //---------------------
@@ -340,10 +350,12 @@ void Scene::renderUI()
     //---------------------
     ImGui::Separator();
 
+    ImGui::BeginChild("ScrollRegion", ImVec2(0.1f*width, 0.3f*height), true, ImGuiWindowFlags_HorizontalScrollbar);
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->renderUI(this);
         ImGui::Separator();
     }
+    ImGui::EndChild();
 
     // End
     ImGui::End();
@@ -361,13 +373,13 @@ void TestScene::init()
     Scene::init();
 
     //for (const std::string& filename : {"../res/meshes/i25u.ovmb","../res/meshes/i01c.ovmb"})
-    for (const std::string& filename : {"../res/meshes/i01c.ovmb"})
-    {
-        AxoPlotl::TetrahedralMesh tetMesh;
-        readMesh(filename, tetMesh, IO::FileFormat::OVMB);
+    // for (const std::string& filename : {"../res/meshes/i01c.ovmb"})
+    // {
+    //     AxoPlotl::TetrahedralMesh tetMesh;
+    //     readMesh(filename, tetMesh, IO::FileFormat::OVMB);
 
-        //auto where = renderer.addTetMesh(tetMesh);
-    }
+    //     //auto where = renderer.addTetMesh(tetMesh);
+    // }
 
     //------------------------------------
     // Add some shapes for testing

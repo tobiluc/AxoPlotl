@@ -463,7 +463,7 @@ struct Vec3fHash {
     }
 };
 
-void MarchingCubes::generateWithOctree(const std::function<float (Vec3f)> &f, TriangleMesh &mesh, uint maxDepth)
+void MarchingCubes::generateAdaptive(const std::function<float (Vec3f)> &f, TriangleMesh &mesh, uint maxDepth)
 {
     // Init. Octree
     Octree tree(bounds, std::max(nx,std::max(ny,nz)), maxDepth);

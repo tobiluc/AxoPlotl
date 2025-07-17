@@ -126,7 +126,7 @@ void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh,
     AABB b{isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax};
     mc.setBounds(b);
     mc.setResolution(resolution, resolution, resolution);
-    mc.generateWithOctree(isf.f, mesh, maxDepth);
+    mc.generateAdaptive(isf.f, mesh, maxDepth);
 }
 
 ExplicitCurveFunction ExplicitCurveFunctionBuilder::dummy()

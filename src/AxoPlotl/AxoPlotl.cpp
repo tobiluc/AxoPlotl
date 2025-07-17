@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "AxoPlotl.h"
+#include "AxoPlotl/IO/FileAccessor.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "rendering/Shader.h"
@@ -10,13 +11,13 @@
 namespace AxoPlotl
 {
 
-MeshViewer::MeshViewer() :
+Runner::Runner() :
     window(nullptr),
     scene_()
 {
 }
 
-MeshViewer::~MeshViewer()
+Runner::~Runner()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -25,7 +26,7 @@ MeshViewer::~MeshViewer()
     glfwTerminate();
 }
 
-void MeshViewer::run()
+void Runner::run()
 {
     //-------------------------------------
     // Initialize OpenGL for Rendering
@@ -55,7 +56,7 @@ void MeshViewer::run()
     }
 }
 
-void MeshViewer::init()
+void Runner::init()
 {
     //--------------------------------
     // glfw: initialize and configure
@@ -83,9 +84,28 @@ void MeshViewer::init()
     glfwSetFramebufferSizeCallback(window, AxoPlotl::framebuffer_size_callback);
     glfwSwapInterval(1); // <- Without this as many frames as possible are rendered and the GPU suffers
 
+    // Set this instance as the user of the window by storing a pointer to this
+    glfwSetWindowUserPointer(window, this);
+
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, AxoPlotl::mouse_callback);
     glfwSetScrollCallback(window, AxoPlotl::scroll_callback);
+
+    // Drop Callback -> Drag in Files to load them
+    glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char** paths) {
+
+        Runner* app = static_cast<Runner*>(glfwGetWindowUserPointer(window));
+        if (!app) {return;}
+
+        for (int i = 0; i < count; ++i) {
+            PolyhedralMesh mesh;
+            if (IO::loadMesh(paths[i], mesh)) {
+                app->scene_.addMesh(mesh, std::filesystem::path(paths[i]).filename());
+            } else {
+            }
+        }
+    });
+
 
     //------------------------------------------
     // glad: load all OpenGL function pointers

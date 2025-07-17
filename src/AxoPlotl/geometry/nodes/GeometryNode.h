@@ -67,6 +67,8 @@ public:
     inline const char* name() const {return name_;}
 
     inline bool isDeleted() const {return deleted_;}
+
+    inline void setDeleted() {deleted_ = true;}
 };
 
 }

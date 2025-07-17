@@ -10,79 +10,103 @@
 namespace AxoPlotl
 {
 
-class Camera {
+class BaseCamera
+{
 public:
-    enum CameraMovement {FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN};
-
-    // Camera Options
-    bool isOrthographic = false;
-
-    Camera(glm::vec3 position, glm::vec3 forward) {
-        setPosition(position);
-        setForward(forward);
-    }
-
-    void setPosition(glm::vec3 position);
-
-    void setForward(glm::vec3 forward);
-
-    const glm::vec3& forward() const {return perspective.forward;}
-
-    // Returns the view matrix calculated using Euler Angles and the LookAt Matrix
-    glm::mat4 getViewMatrix() const;
-    glm::mat4 getProjectionMatrix() const;
-    glm::mat4 getProjectionMatrix(float width_over_height) const;
-
-    void update(GLFWwindow* window);
-
-    void processKeyboard(GLFWwindow* window);
-
-    void processKeyboard(CameraMovement dir);
-
-    void processMouseScroll(float dy);
-
-    void processMouseMovement(float dx, float dy);
-
-private:
-    // calculates the front vector from the Camera's (updated) Euler Angles
-    void updateCameraVectors();
-
-    static constexpr glm::vec3 world_up = glm::vec3(0.0f, 1.0f, 0.0f);
+    static constexpr glm::vec3 world_up = glm::vec3(0,1,0);
     static constexpr float sensitivity = 0.001f; // mouse movement and scroll
     static constexpr float movement_speed = 5.0f;
+    static constexpr float near = 0.1f;
+    static constexpr float far = 4096.0f;
 
-    struct PerspectiveProjection
-    {
-        // Camera Attributes
-        glm::vec3 position;
-        glm::vec3 forward;
-        glm::vec3 up;
-        glm::vec3 right;
+    virtual glm::mat4 getViewMatrix() const = 0;
+    virtual glm::mat4 getProjectionMatrix(float width_over_height) const = 0;
 
-        // Euler Angles in radians
-        float yaw;
-        float pitch;
+    inline glm::mat4 getProjectionMatrix() const {
+        GLint viewport[4];
+        glGetIntegerv(GL_VIEWPORT, viewport);
+        float width = viewport[2];
+        float height = viewport[3];
+        float aspect_ratio = width/height;
+        return getProjectionMatrix(aspect_ratio);
+    }
 
-        float fov; // field of view in radians
+    virtual void update(GLFWwindow* window) = 0;
 
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveProjection,
-                                       position, forward, up, right, yaw, pitch, fov)
+    virtual void reset(GLFWwindow* window) = 0;
+};
 
-    } perspective;
-
-    struct OrthographicProjection
-    {
-        glm::vec3 position;
-        float height;
-
-        NLOHMANN_DEFINE_TYPE_INTRUSIVE(OrthographicProjection, position, height)
-
-    } orthographic;
+class PerspectiveCamera : public BaseCamera
+{
+private:
+    glm::vec3 orbit_target = glm::vec3(0.0f);
+    float orbit_distance = 10.0f;
+    glm::vec3 position;
+    glm::vec3 up;
+    float yaw = 0; // Euler Angles in radians
+    float pitch = 0;
+    float fov = 0.25*M_PI; // field of view in radians
 
 public:
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Camera, perspective, orthographic)
+    inline glm::mat4 getViewMatrix() const override {
+        return lookAt(position, orbit_target, up);
+    }
 
+    inline glm::mat4 getProjectionMatrix(float width_over_height) const override {
+        return glm::perspective(fov, width_over_height, near, far);
+    }
+
+    void update(GLFWwindow* window) override;
+
+    void reset(GLFWwindow* window) override;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveCamera, position, up,
+orbit_target, orbit_distance, yaw, pitch, fov)
 };
+
+class OrthographicCamera : public BaseCamera
+{
+private:
+    glm::vec3 position = glm::vec3(0,0,1);
+    float height = 10;
+
+public:
+    inline glm::mat4 getViewMatrix() const override {
+        return lookAt(position, position + glm::vec3(0,0,-1), world_up);
+    }
+
+    inline glm::mat4 getProjectionMatrix(float width_over_height) const override {
+        const float ortho_height = height;
+        const float ortho_width = width_over_height * ortho_height;
+        return glm::ortho(-0.5f*ortho_width, 0.5f*ortho_width, -0.5f*ortho_height, 0.5f*ortho_height, near, far);
+    }
+
+    void update(GLFWwindow* window) override;
+
+    void reset(GLFWwindow* window) override;
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(OrthographicCamera, position, height)
+};
+
+struct CameraSet {
+    PerspectiveCamera perspective;
+    OrthographicCamera orthographic;
+
+    bool use_ortho = false;
+
+    inline BaseCamera* camera() {
+        if (use_ortho) {return &orthographic;}
+        return &perspective;
+    }
+
+    inline void reset(GLFWwindow* window) {
+        perspective.reset(window);
+        orthographic.reset(window);
+    }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(CameraSet, perspective, orthographic, use_ortho)
+};
+
 }
 
 #endif
