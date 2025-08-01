@@ -48,7 +48,7 @@ void Runner::run()
     //--------------------
     // Main Render Loop
     //--------------------
-    Rendering::triggerRedraw(10);
+    Rendering::triggerRedraw();
     while (!glfwWindowShouldClose(window))
     {
         // Close Window by pressing ESCAPE
@@ -63,7 +63,8 @@ void Runner::run()
             glfwSwapBuffers(window);
             Rendering::redraw_frames_--;
         } else {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            glfwWaitEventsTimeout(0.01);
+            //std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         // Check for errors
@@ -77,8 +78,7 @@ void Runner::run()
         AxoPlotl::Time::update();
 
         // Request Input Events
-        glfwPollEvents();
-
+        //glfwPollEvents();
     }
 }
 
@@ -116,6 +116,8 @@ void Runner::init()
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, AxoPlotl::mouse_callback);
     glfwSetScrollCallback(window, AxoPlotl::scroll_callback);
+    glfwSetMouseButtonCallback(window, [](GLFWwindow*,int,int,int) {Rendering::triggerRedraw();});
+    glfwSetKeyCallback(window, [](GLFWwindow*,int,int,int,int) {Rendering::triggerRedraw();});
 
     // Drop Callback -> Drag in Files to load them
     glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char** paths) {
@@ -130,8 +132,6 @@ void Runner::init()
             } else {
             }
         }
-
-        Rendering::triggerRedraw();
     });
 
 

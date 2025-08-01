@@ -9,6 +9,7 @@
 #include "AxoPlotl/geometry/nodes/MeshNode.h"
 #include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
 #include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
+#include "AxoPlotl/rendering/redraw_frames.h"
 #include "rendering/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
@@ -22,7 +23,7 @@ namespace AxoPlotl
 class Scene
 {
 protected:
-    std::vector<std::unique_ptr<GeometryNode>> objects_; // TODO: When closing application, Crash: Error prob. cause of missing cleanup?
+    std::vector<std::unique_ptr<GeometryNode>> objects_;
 
     GL::MeshRenderer gizmoRenderer_;
     CameraSet camera_set_;
@@ -52,51 +53,43 @@ public:
     inline void addMesh(const PolyhedralMesh& mesh, const std::string& name) {
         objects_.push_back(std::make_unique<MeshNode>(mesh, name));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
-
-    // inline void addTetrahedralMesh(const std::string& filename) {
-    //     objects_.push_back(std::make_unique<TetrahedralMeshObject>(filename));
-    //     objects_.back()->addToRenderer(this);
-    // }
-
-    // inline void addHexahedralMesh(const std::string& filename) {
-    //     objects_.push_back(std::make_unique<HexahedralMeshObject>(filename));
-    //     objects_.back()->addToRenderer(this);
-    // }
-
-    // inline void addHexahedralMesh(const HexahedralMesh& mesh) {
-    //     objects_.push_back(std::make_unique<HexahedralMeshObject>(mesh));
-    //     objects_.back()->initRenderer(this);
-    // }
 
     inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
         objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline void addSphericalHarmonic(const std::string& name, const SphericalHarmonicFunction& sh) {
         objects_.push_back(std::make_unique<SphericalHarmonicNode>(sh, name));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline void addConvexPolygon(const std::vector<Vec3f>& vertices, const std::string& name) {
         objects_.push_back(std::make_unique<ConvexPolygonNode>(vertices, name));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitCurveNode>(name, func, color));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceNode>(name, func, color));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
         objects_.push_back(std::make_unique<ImplicitSurfaceNode>(name, func, color));
         objects_.back()->initRenderer(this);
+        Rendering::triggerRedraw();
     }
 
     inline bool saveToFile(const std::string& filename) {
