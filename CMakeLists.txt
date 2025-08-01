@@ -35,7 +35,7 @@ add_executable(${PROJECT_NAME}
 
     src/AxoPlotl/utils/Time.h
     src/AxoPlotl/utils/Time.cpp
-    src/AxoPlotl/utils/KeyHandler.h
+
     src/AxoPlotl/utils/MouseHandler.h
     src/AxoPlotl/utils/MouseHandler.cpp
     src/AxoPlotl/algorithms/simplex_noise.h
@@ -43,7 +43,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/commons/stb_image.h
     src/AxoPlotl/utils/Typedefs.h
     src/AxoPlotl/utils/Utils.h
-    src/AxoPlotl/utils/Utils.cpp
+
 
     src/AxoPlotl/commons/Color.h
     src/AxoPlotl/commons/Color.cpp
@@ -93,6 +93,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
     src/AxoPlotl/rendering/property_visualization.h
     src/AxoPlotl/geometry/eigen.h
+    src/AxoPlotl/rendering/redraw_frames.h
+    src/AxoPlotl/rendering/redraw_frames.cpp
 
 
 

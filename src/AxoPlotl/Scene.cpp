@@ -1,5 +1,6 @@
 #include <glad/glad.h>
 #include "Scene.h"
+#include "AxoPlotl/AxoPlotl.h"
 #include "AxoPlotl/IO/FileAccessor.h"
 #include "AxoPlotl/IO/OBJFileAccessor.h"
 #include "AxoPlotl/geometry/Octree.h"
@@ -25,20 +26,29 @@ void Scene::init()
 
 }
 
+void Scene::update(GLFWwindow* window)
+{
+    camera_set_.camera()->update(window);
+
+    // Remove deleted objects
+    objects_.erase(
+        std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<GeometryNode>& obj) {
+            return obj->isDeleted();
+        }), objects_.end());
+    objects_.shrink_to_fit();
+}
+
 void Scene::render(GLFWwindow *window)
 {
     // Cache matrices for rendering
-    //Renderer::RenderMatrices matrices(glm::mat4x4(1.0f), camera_set_.getViewMatrix(), camera_set_.getProjectionMatrix());
     glm::mat4 view_matrix = camera_set_.camera()->getViewMatrix();
 
     // Picking
     if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED || AxoPlotl::MouseHandler::RIGHT_JUST_PRESSED)
     {
         // Get Viewport and Framebuffer Size
-        GLint viewport[4];
-        glGetIntegerv(GL_VIEWPORT, viewport);
-        GLint viewport_width = viewport[2];
-        GLint viewport_height = viewport[3];
+        GLint viewport_width, viewport_height;
+        getViewportSize(viewport_width, viewport_height);
         int framebuffer_width, framebuffer_height;
         glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
         float framebuffer_ratio = (float)(framebuffer_width) / framebuffer_height;
@@ -96,9 +106,6 @@ void Scene::render(GLFWwindow *window)
         exit(1);
     }
 
-    // ImGui - declare new frame
-    GL::ImGuiNewFrame();
-
     // Render
     glm::mat4 projection_matrix = camera_set_.camera()->getProjectionMatrix();
     for (uint i = 0; i < objects_.size(); ++i) {
@@ -107,27 +114,8 @@ void Scene::render(GLFWwindow *window)
     gizmoRenderer_.render(GL::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
+    GL::ImGuiNewFrame();
     renderUI(window);
-
-    // Check for errors
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error: " << error << std::endl;
-    }
-
-    // End of frame
-    glfwSwapBuffers(window);
-    AxoPlotl::MouseHandler::update(window);
-    AxoPlotl::Time::update();
-    camera_set_.camera()->update(window);
-    glfwPollEvents();
-
-    // Remove deleted objects
-    objects_.erase(
-        std::remove_if(objects_.begin(), objects_.end(), [&](const std::unique_ptr<GeometryNode>& obj) {
-            return obj->isDeleted();
-    }), objects_.end());
-    objects_.shrink_to_fit();
 }
 
 void Scene::renderUI(GLFWwindow *window)
@@ -350,7 +338,7 @@ void Scene::renderUI(GLFWwindow *window)
     //---------------------
     ImGui::Separator();
 
-    ImGui::BeginChild("ScrollRegion", ImVec2(0.1f*width, 0.3f*height), true, ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::BeginChild("ScrollRegion", ImVec2(0, 0.5f*ImGui::GetWindowHeight()), true, ImGuiWindowFlags_HorizontalScrollbar);
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->renderUI(this);
         ImGui::Separator();
@@ -401,13 +389,13 @@ void TestScene::init()
     gizmoRenderer_.settings().lineWidth = 8.0f;
     gizmoRenderer_.settings().pointSize = 12.0f;
 
-    PolyhedralMesh mesh;
-    IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_tet.ovmb", mesh);
-    addMesh(mesh, "Tet Mesh");
+    // PolyhedralMesh mesh;
+    // IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_tet.ovmb", mesh);
+    // addMesh(mesh, "Tet Mesh");
 
-    PolyhedralMesh mesh2;
-    IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_point_cloud.ovmb", mesh2);
-    addMesh(mesh2, "Point Cloud");
+    // PolyhedralMesh mesh2;
+    // IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_point_cloud.ovmb", mesh2);
+    // addMesh(mesh2, "Point Cloud");
 }
 
 }

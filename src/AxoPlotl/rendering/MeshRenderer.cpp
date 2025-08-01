@@ -1,4 +1,5 @@
 #include "MeshRenderer.h"
+#include "AxoPlotl/AxoPlotl.h"
 #include "AxoPlotl/rendering/Shader.h"
 #include "AxoPlotl/utils/Utils.h"
 
@@ -253,10 +254,8 @@ void MeshRenderer::render(const Matrices &m)
     if (!settings_.visible) {return;}
 
     // Get Width and Height of Viewport
-    GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    const float width = viewport[2];
-    const float height = viewport[3];
+    GLint width, height;
+    getViewportSize(width, height);
 
     // Points
     if (vao_points_ && settings_.renderPoints)

@@ -1,9 +1,6 @@
 #ifndef TIME_H
 #define TIME_H
 
-#include "Typedefs.h"
-#include <array>
-
 namespace AxoPlotl
 {
 

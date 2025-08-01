@@ -7,27 +7,29 @@ namespace AxoPlotl
 {
 
 void PerspectiveCamera::update(GLFWwindow* window) {
-    if (GL::IMGUI_FOCUS) return;
 
-    // Compute Pitch/Yaw based on Input
-
-    // Zoom
-    float dy = MouseHandler::SCROLL_DELTA[1];
-    if (dy) {
-        dy *= sensitivity;
-        orbit_distance = std::clamp(orbit_distance * (1.0f-dy), near, far);
-    }
-
-    // Pan
-    if (MouseHandler::LEFT_PRESSED)
+    if (!GL::IMGUI_FOCUS)
     {
-        float dx = MouseHandler::POSITION_DELTA[0];
-        float dy = MouseHandler::POSITION_DELTA[1];
-        dx *= sensitivity;
-        dy *= sensitivity;
+        // Compute Pitch/Yaw based on Input
 
-        yaw -= dx;
-        pitch = std::clamp(pitch - dy, -1.5f, 1.5f); // between -89 and 89 degrees
+        // Zoom
+        float dy = MouseHandler::SCROLL_DELTA[1];
+        if (dy) {
+            dy *= sensitivity;
+            orbit_distance = std::clamp(orbit_distance * (1.0f-dy), near, far);
+        }
+
+        // Pan
+        if (MouseHandler::LEFT_PRESSED)
+        {
+            float dx = MouseHandler::POSITION_DELTA[0];
+            float dy = MouseHandler::POSITION_DELTA[1];
+            dx *= sensitivity;
+            dy *= sensitivity;
+
+            yaw -= dx;
+            pitch = std::clamp(pitch - dy, -1.5f, 1.5f); // between -89 and 89 degrees
+        }
     }
 
     // Update Vectors

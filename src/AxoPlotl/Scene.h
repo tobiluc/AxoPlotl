@@ -44,6 +44,8 @@ public:
     /// Call once before rendering for the first time
     virtual void init();
 
+    void update(GLFWwindow* window);
+
     /// Render the scene and UI
     void render(GLFWwindow* window);
 

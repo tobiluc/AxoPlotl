@@ -7,54 +7,54 @@
 
 namespace AxoPlotl
 {
-    enum MeshRenderMode {NONE, CELLS, BOUNDARY_FACES, EDGES};
+    // enum MeshRenderMode {NONE, CELLS, BOUNDARY_FACES, EDGES};
 
-    template <typename T, typename = void>
-    struct is_iterable : std::false_type {};
+    // template <typename T, typename = void>
+    // struct is_iterable : std::false_type {};
 
-    template <typename T>
-    struct is_iterable<T, std::void_t<decltype(std::begin(std::declval<T>())),
-                                       decltype(std::end(std::declval<T>()))>> : std::true_type {};
+    // template <typename T>
+    // struct is_iterable<T, std::void_t<decltype(std::begin(std::declval<T>())),
+    //                                    decltype(std::end(std::declval<T>()))>> : std::true_type {};
 
-    template <typename T, typename = void>
-    struct has_subscript_operator : std::false_type {};
+    // template <typename T, typename = void>
+    // struct has_subscript_operator : std::false_type {};
 
-    template <typename T>
-    struct has_subscript_operator<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>> : std::true_type {};
+    // template <typename T>
+    // struct has_subscript_operator<T, std::void_t<decltype(std::declval<T>()[std::declval<std::size_t>()])>> : std::true_type {};
 
-    // Recursive function to fill the array
-    template <typename T, std::size_t N, typename First, typename... Rest>
-    void fillArray(std::array<T, N>& arr, std::size_t& index, const First& first, const Rest&... rest)
-    {
-        if constexpr (is_iterable<First>::value)
-        {
-            for (const auto& elem : first) arr[index++] = static_cast<T>(elem);
-        }
-        else if constexpr (has_subscript_operator<First>::value)
-        {
-            for (size_t i = 0; i < first.length(); ++i) arr[index++] = static_cast<T>(first[i]);
-        }
-        else
-        {
-            arr[index++] = static_cast<T>(first);
-        }
-        if constexpr (sizeof...(rest) > 0) {fillArray(arr, index, rest...);} // recursion
-    }
+    // // Recursive function to fill the array
+    // template <typename T, std::size_t N, typename First, typename... Rest>
+    // void fillArray(std::array<T, N>& arr, std::size_t& index, const First& first, const Rest&... rest)
+    // {
+    //     if constexpr (is_iterable<First>::value)
+    //     {
+    //         for (const auto& elem : first) arr[index++] = static_cast<T>(elem);
+    //     }
+    //     else if constexpr (has_subscript_operator<First>::value)
+    //     {
+    //         for (size_t i = 0; i < first.length(); ++i) arr[index++] = static_cast<T>(first[i]);
+    //     }
+    //     else
+    //     {
+    //         arr[index++] = static_cast<T>(first);
+    //     }
+    //     if constexpr (sizeof...(rest) > 0) {fillArray(arr, index, rest...);} // recursion
+    // }
 
-    template <typename T, size_t N>
-    void fillArray(std::array<T, N>& arr, std::size_t& index) {}
+    // template <typename T, size_t N>
+    // void fillArray(std::array<T, N>& arr, std::size_t& index) {}
 
-    // Flattens args into an array of type T ans size N
-    template <typename T, size_t N, typename... Args>
-    std::array<T, N> toArray(const Args&... args)
-    {
-        static_assert(sizeof...(args) > 0);
-        std::array<T, N> arr{};
-        std::size_t index = 0;
-        fillArray(arr, index, args...);
-        if (index != N) {throw std::runtime_error("Number of elements does not match array size!");}
-        return arr;
-    }
+    // // Flattens args into an array of type T ans size N
+    // template <typename T, size_t N, typename... Args>
+    // std::array<T, N> toArray(const Args&... args)
+    // {
+    //     static_assert(sizeof...(args) > 0);
+    //     std::array<T, N> arr{};
+    //     std::size_t index = 0;
+    //     fillArray(arr, index, args...);
+    //     if (index != N) {throw std::runtime_error("Number of elements does not match array size!");}
+    //     return arr;
+    // }
 
     template<typename Vec3T2, typename Vec3T1>
     inline Vec3T2 toVec3(const Vec3T1& v) {

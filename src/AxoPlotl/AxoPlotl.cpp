@@ -1,16 +1,18 @@
 #include <glad/glad.h>
 #include "AxoPlotl.h"
 #include "AxoPlotl/IO/FileAccessor.h"
+#include "AxoPlotl/rendering/redraw_frames.h"
+#include "AxoPlotl/utils/Time.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "rendering/Shader.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
+#include <thread>
 #include "utils/MouseHandler.h"
 
 namespace AxoPlotl
 {
-
 Runner::Runner() :
     window(nullptr),
     scene_()
@@ -46,13 +48,37 @@ void Runner::run()
     //--------------------
     // Main Render Loop
     //--------------------
+    Rendering::triggerRedraw(10);
     while (!glfwWindowShouldClose(window))
     {
         // Close Window by pressing ESCAPE
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) glfwSetWindowShouldClose(window, true);
 
+        // Update the Scene
+        scene_.update(window);
+
         // Render the Scene
-        scene_.render(window);
+        if (Rendering::redraw_frames_ > 0) {
+            scene_.render(window);
+            glfwSwapBuffers(window);
+            Rendering::redraw_frames_--;
+        } else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        // Check for errors
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR) {
+            std::cerr << "OpenGL Error: " << error << std::endl;
+        }
+
+        // End of frame
+        AxoPlotl::MouseHandler::update(window);
+        AxoPlotl::Time::update();
+
+        // Request Input Events
+        glfwPollEvents();
+
     }
 }
 
@@ -104,6 +130,8 @@ void Runner::init()
             } else {
             }
         }
+
+        Rendering::triggerRedraw();
     });
 
 
