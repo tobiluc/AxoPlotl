@@ -56,6 +56,8 @@ void Runner::run()
 
         // Update the Scene
         scene_.update(window);
+        AxoPlotl::MouseHandler::update(window);
+        AxoPlotl::Time::update();
 
         // Render the Scene
         if (Rendering::redraw_frames_ > 0) {
@@ -72,13 +74,6 @@ void Runner::run()
         if (error != GL_NO_ERROR) {
             std::cerr << "OpenGL Error: " << error << std::endl;
         }
-
-        // End of frame
-        AxoPlotl::MouseHandler::update(window);
-        AxoPlotl::Time::update();
-
-        // Request Input Events
-        //glfwPollEvents();
     }
 }
 
