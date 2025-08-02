@@ -15,8 +15,8 @@ endif()
 add_executable(${PROJECT_NAME}
     src/AxoPlotl/main.cpp
 
-    src/AxoPlotl/AxoPlotl.h
-    src/AxoPlotl/AxoPlotl.cpp
+    src/AxoPlotl/Runner.h
+    src/AxoPlotl/Runner.cpp
 
     src/AxoPlotl/commons/Camera.h
     src/AxoPlotl/commons/Camera.cpp

@@ -1,6 +1,6 @@
 #include <glad/glad.h>
 #include "Scene.h"
-#include "AxoPlotl/AxoPlotl.h"
+#include "AxoPlotl/Runner.h"
 #include "AxoPlotl/IO/FileAccessor.h"
 #include "AxoPlotl/IO/OBJFileAccessor.h"
 #include "AxoPlotl/geometry/Octree.h"

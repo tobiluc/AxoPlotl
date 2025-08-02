@@ -1,8 +1,7 @@
-#ifndef AXOPLOTL_H
-#define AXOPLOTL_H
+#ifndef RUNNER_H
+#define RUNNER_H
 
 #include "AxoPlotl/Scene.h"
-#include "AxoPlotl/rendering/redraw_frames.h"
 #include "glad/glad.h"
 #include "rendering/MeshRenderer.h"
 
@@ -37,20 +36,6 @@ public:
     void run();
 };
 
-inline void checkOpenGLError()
-{
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error: " << error << std::endl;
-    }
 }
 
-inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-    Rendering::triggerRedraw();
-}
-
-}
-
-#endif // AXOPLOTL_H
+#endif // RUNNER_H
