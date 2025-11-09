@@ -1,43 +1,41 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
-#include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/geometry/glm.h"
+#include "AxoPlotl/geometry/AABB.h"
+#include <array>
+#include <functional>
+#include <glm/common.hpp>
+#include <glm/glm.hpp>
 
 namespace AxoPlotl::Algo
 {
 
 class MarchingCubes
 {
+public:
+    struct Settings {
+        glm::vec<3, uint32_t, glm::defaultp> resolution = {8,8,8};
+        Geometry::AABB bounds = {-5,5,-5,5,-5,5};
+        uint32_t max_adaptive_depth = 5;
+    };
+
 private:
     const static int edgeTable[256];
     const static int triangleTable[256][16];
-    const static Vec3f cubeVertices[8];
+    const static glm::vec3 cubeVertices[8];
     const static int cubeEdges[12][2];
 
-    size_t nx = 32, ny = 32, nz = 32; // number of vertices per dimension
-    AABB bounds = {-5,5,-5,5,-5,5};
-
     /// Generate Triangles on a single node
-    int generate(const std::function<float (Vec3f)> &f, AABB b, TriangleMesh &mesh);
+    static int generate(const std::function<float(glm::vec3)> &f, Geometry::AABB b, std::vector<glm::vec3>& points, std::vector<std::array<uint32_t,3>>& triangles);
 
 public:
 
-    inline void setBounds(AABB b) {
-        this->bounds = b;
-    }
-
-    inline void setResolution(size_t nx, size_t ny, size_t nz) {
-        this->nx = nx;
-        this->ny = ny;
-        this->nz = nz;
-    }
-
     /// Generates a Triangle Mesh representing the surface f(x,y,z) = 0
-    void generate(const std::function<float(Vec3f)>& f, TriangleMesh& mesh);
+    static void generate(const std::function<float(glm::vec3)>& f,
+                  std::vector<glm::vec3>& points, std::vector<std::array<uint32_t,3>>& triangles,
+            const Settings& settings);
 
     /// Using an Octree
-    void generateAdaptive(const std::function<float(Vec3f)>& f, TriangleMesh& mesh, uint maxDepth = 5);
+    static void generateAdaptive(const std::function<float(glm::vec3)>& f, std::vector<glm::vec3>& points, std::vector<std::array<uint32_t,3>>& triangles, const Settings& settings);
 
 };
 

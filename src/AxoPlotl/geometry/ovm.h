@@ -47,8 +47,8 @@ int mesh_n_boundary_faces(MeshT& mesh)
 }
 
 template<typename MeshT>
-AABB computeBoundingBox(const MeshT& mesh) {
-    AABB bb;
+Geometry::AABB computeBoundingBox(const MeshT& mesh) {
+    Geometry::AABB bb;
     bb.x0 = bb.y0 = bb.z0 = +std::numeric_limits<double>::infinity();
     bb.x1 = bb.y1 = bb.z1 = -std::numeric_limits<double>::infinity();
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {

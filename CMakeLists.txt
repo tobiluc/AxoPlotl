@@ -15,92 +15,53 @@ endif()
 add_executable(${PROJECT_NAME}
     src/AxoPlotl/main.cpp
 
-    # src/AxoPlotl/Runner.h
-    # src/AxoPlotl/Runner.cpp
-
-    # src/AxoPlotl/commons/Camera.h
-    # src/AxoPlotl/commons/Camera.cpp
-    # src/AxoPlotl/rendering/PickingTexture.h
-    # src/AxoPlotl/rendering/PickingTexture.cpp
-    # src/AxoPlotl/rendering/Shader.h
-    # src/AxoPlotl/rendering/Shader.cpp
-    # src/AxoPlotl/rendering/Texture.h
-    # src/AxoPlotl/rendering/Texture.cpp
-
-    # src/AxoPlotl/rendering/ImGuiRenderer.h
-    # src/AxoPlotl/rendering/ImGuiRenderer.cpp
-
-    # src/AxoPlotl/rendering/MeshRenderer.h
-
-
     # src/AxoPlotl/utils/Time.h
     # src/AxoPlotl/utils/Time.cpp
 
     # src/AxoPlotl/utils/MouseHandler.h
     # src/AxoPlotl/utils/MouseHandler.cpp
-    # src/AxoPlotl/algorithms/simplex_noise.h
-    # src/AxoPlotl/algorithms/simplex_noise.cpp
+    src/AxoPlotl/algorithms/simplex_noise.h
+    src/AxoPlotl/algorithms/simplex_noise.cpp
     # src/AxoPlotl/commons/stb_image.h
-    # src/AxoPlotl/utils/Typedefs.h
     # src/AxoPlotl/utils/Utils.h
 
+    src/AxoPlotl/algorithms/parsing/tokens.h
+    src/AxoPlotl/algorithms/parsing/tokens.cpp
+    src/AxoPlotl/algorithms/marching_cubes.h
+    src/AxoPlotl/algorithms/marching_cubes.cpp
 
-    # src/AxoPlotl/commons/Color.h
-    # src/AxoPlotl/commons/Color.cpp
-    # src/AxoPlotl/algorithms/parsing/tokens.h
-    # src/AxoPlotl/algorithms/parsing/tokens.cpp
+    src/AxoPlotl/geometry/explicit_functions.cpp
+    src/AxoPlotl/geometry/explicit_functions.h
 
-    # src/AxoPlotl/algorithms/marching_cubes.h
-    # src/AxoPlotl/algorithms/marching_cubes.cpp
-    # src/AxoPlotl/Scene.h
-    # src/AxoPlotl/Scene.cpp
-    # src/AxoPlotl/geometry/Surface.h
-    # src/AxoPlotl/geometry/Surface.cpp
-    # src/AxoPlotl/utils/Memory.h
-    # src/AxoPlotl/utils/Memory.cpp
-    # src/AxoPlotl/commons/Mesh.h
+    src/AxoPlotl/utils/Memory.h
+    src/AxoPlotl/utils/Memory.cpp
 
 
 
-    # src/AxoPlotl/geometry/Octree.h
+    src/AxoPlotl/geometry/Octree.h
 
-    # src/AxoPlotl/geometry/Octree.cpp
-    # src/AxoPlotl/IO/OBJFileAccessor.h
-    # src/AxoPlotl/IO/OVMFileAccessor.h
-    # src/AxoPlotl/IO/OVMFileAccessor.cpp
-    # src/AxoPlotl/IO/FileUtils.h
-    # src/AxoPlotl/IO/JSONFileAccessor.h
+    src/AxoPlotl/geometry/Octree.cpp
+    src/AxoPlotl/IO/OBJFileAccessor.h
+    src/AxoPlotl/IO/OVMFileAccessor.h
+    src/AxoPlotl/IO/OVMFileAccessor.cpp
+    src/AxoPlotl/IO/FileUtils.h
+    src/AxoPlotl/IO/JSONFileAccessor.h
     # src/AxoPlotl/geometry/glm.h
     # src/AxoPlotl/geometry/ovm.h
-    # src/AxoPlotl/IO/OBJFileAccessor.cpp
-    # src/AxoPlotl/IO/PLYFileAccessor.h
-    # src/AxoPlotl/IO/PLYFileAccessor.cpp
-    # src/AxoPlotl/IO/FileAccessor.h
-    # src/AxoPlotl/IO/FileAccessor.cpp
-    # src/AxoPlotl/geometry/nodes/GeometryNode.h
-    # src/AxoPlotl/geometry/nodes/GeometryNode.cpp
-    # src/AxoPlotl/geometry/nodes/MeshNode.h
-    # src/AxoPlotl/geometry/nodes/MeshNode.cpp
-    # src/AxoPlotl/geometry/nodes/ExplicitCurveNode.h
-    # src/AxoPlotl/geometry/nodes/ExplicitCurveNode.cpp
-    # src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
-    # src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
-    # src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
-    # src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
-    # src/AxoPlotl/rendering/MeshRenderer.cpp
-    # src/AxoPlotl/algorithms/parsing/reverse_polish.h
-    # src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
-    # src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
-    # src/AxoPlotl/rendering/property_visualization.h
     # src/AxoPlotl/geometry/eigen.h
-    # src/AxoPlotl/rendering/redraw_frames.h
-    # src/AxoPlotl/rendering/redraw_frames.cpp
-    # src/AxoPlotl/IO/MESHFileAccessor.h
-    # src/AxoPlotl/IO/MESHFileAccessor.cpp
-
-
-
-
+    src/AxoPlotl/IO/OBJFileAccessor.cpp
+    src/AxoPlotl/IO/PLYFileAccessor.h
+    src/AxoPlotl/IO/PLYFileAccessor.cpp
+    src/AxoPlotl/IO/FileAccessor.h
+    src/AxoPlotl/IO/FileAccessor.cpp
+    src/AxoPlotl/algorithms/parsing/reverse_polish.h
+    src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
+    src/AxoPlotl/IO/MESHFileAccessor.h
+    src/AxoPlotl/IO/MESHFileAccessor.cpp
+    src/AxoPlotl/geometry/implicit_functions.h
+    src/AxoPlotl/geometry/AABB.h
+    src/AxoPlotl/geometry/implicit_functions.cpp
+    src/AxoPlotl/interface/request_explicit_function.h
 )
 
 #=========================

@@ -312,13 +312,13 @@ const int MarchingCubes::cubeEdges[12][2] = {
     {0,4}, {1,5}, {2,6}, {3,7}
 };
 
-int MarchingCubes::generate(const std::function<float (Vec3f)> &f, AABB b, TriangleMesh &mesh)
+int MarchingCubes::generate(const std::function<float (Vec3f)> &f, Geometry::AABB b, std::vector<glm::vec3> &points, std::vector<std::array<uint32_t, 3> > &triangles)
 {
     // Evaluate function at node corners
     Vec3f p[8];
     float val[8];
     auto size = b.size();
-    for (u32 i = 0; i < 8; ++i) {
+    for (uint32_t i = 0; i < 8; ++i) {
         int dxi = cubeVertices[i].x;
         int dyi = cubeVertices[i].y;
         int dzi = cubeVertices[i].z;
@@ -357,38 +357,40 @@ int MarchingCubes::generate(const std::function<float (Vec3f)> &f, AABB b, Trian
         int i1 = triangleTable[cubeIndex][i + 1];
         int i2 = triangleTable[cubeIndex][i + 2];
 
-        int base = mesh.vertices.size();
-        mesh.addVertex(vertList[i0]);
-        mesh.addVertex(vertList[i1]);
-        mesh.addVertex(vertList[i2]);
-        mesh.addTriangle(base+0, base+1, base+2);
+        uint32_t base = points.size();
+        points.push_back(vertList[i0]);
+        points.push_back(vertList[i1]);
+        points.push_back(vertList[i2]);
+        triangles.push_back({base+0, base+1, base+2});
     }
 
     return edges;
 }
 
-void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh &mesh)
+void MarchingCubes::generate(const std::function<float (Vec3f)> &f,
+                std::vector<glm::vec3> &points, std::vector<std::array<uint32_t, 3> > &triangles,
+    const Settings& settings)
 {
     // Compute cube sizes
-    auto boundsSize = bounds.size();
-    float dx = boundsSize[0] / (nx - 1);
-    float dy = boundsSize[1] / (ny - 1);
-    float dz = boundsSize[2] / (nz - 1);
+    auto boundsSize = settings.bounds.size();
+    float dx = boundsSize[0] / (settings.resolution.x - 1);
+    float dy = boundsSize[1] / (settings.resolution.y - 1);
+    float dz = boundsSize[2] / (settings.resolution.z - 1);
 
     // From 3d index to 1d index
     auto index = [&](int ix, int iy, int iz) {
-        return ix + iy * nx + iz * nx * ny;
+        return ix + iy * settings.resolution.x + iz * settings.resolution.x * settings.resolution.y;
     };
 
     // Compute scalar field
-    std::vector<float> field(nx * ny * nz);
-    for (int iz = 0; iz < nz; ++iz) {
-        for (int iy = 0; iy < ny; ++iy) {
-            for (int ix = 0; ix < nx; ++ix) {
+    std::vector<float> field(settings.resolution.x * settings.resolution.y * settings.resolution.z);
+    for (int iz = 0; iz < settings.resolution.z; ++iz) {
+        for (int iy = 0; iy < settings.resolution.y; ++iy) {
+            for (int ix = 0; ix < settings.resolution.x; ++ix) {
 
-                float x = bounds.x0 + ix * dx;
-                float y = bounds.y0 + iy * dy;
-                float z = bounds.z0 + iz * dz;
+                float x = settings.bounds.x0 + ix * dx;
+                float y = settings.bounds.y0 + iy * dy;
+                float z = settings.bounds.z0 + iz * dz;
 
                 field[index(ix, iy, iz)] = f(Vec3f(x, y, z));
             }
@@ -396,9 +398,9 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
     }
 
     // Cube Marching
-    for (int iz = 0; iz < nz - 1; ++iz) {
-        for (int iy = 0; iy < ny - 1; ++iy) {
-            for (int ix = 0; ix < nx - 1; ++ix) {
+    for (int iz = 0; iz < settings.resolution.z - 1; ++iz) {
+        for (int iy = 0; iy < settings.resolution.y - 1; ++iy) {
+            for (int ix = 0; ix < settings.resolution.x - 1; ++ix) {
 
                 // Get the cube corners and their values
                 Vec3f p[8];
@@ -408,9 +410,9 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                     int dy_i = cubeVertices[i].y;
                     int dz_i = cubeVertices[i].z;
                     p[i] = {
-                        bounds.x0 + (ix + dx_i) * dx,
-                        bounds.y0 + (iy + dy_i) * dy,
-                        bounds.z0 + (iz + dz_i) * dz
+                        settings.bounds.x0 + (ix + dx_i) * dx,
+                        settings.bounds.y0 + (iy + dy_i) * dy,
+                        settings.bounds.z0 + (iz + dz_i) * dz
                     };
                     val[i] = field[index(ix + dx_i, iy + dy_i, iz + dz_i)];
                 }
@@ -442,11 +444,11 @@ void MarchingCubes::generate(const std::function<float (Vec3f)> &f, TriangleMesh
                     int i1 = triangleTable[cubeIndex][i + 1];
                     int i2 = triangleTable[cubeIndex][i + 2];
 
-                    int base = mesh.vertices.size();
-                    mesh.addVertex(vertList[i0]);
-                    mesh.addVertex(vertList[i1]);
-                    mesh.addVertex(vertList[i2]);
-                    mesh.addTriangle(base+0, base+1, base+2);
+                    uint32_t base = points.size();
+                    points.push_back(vertList[i0]);
+                    points.push_back(vertList[i1]);
+                    points.push_back(vertList[i2]);
+                    triangles.push_back({base+0, base+1, base+2});
                 }
             }
         }
@@ -463,22 +465,24 @@ struct Vec3fHash {
     }
 };
 
-void MarchingCubes::generateAdaptive(const std::function<float (Vec3f)> &f, TriangleMesh &mesh, uint maxDepth)
+void MarchingCubes::generateAdaptive(const std::function<float (Vec3f)> &f,
+    std::vector<glm::vec3>& points, std::vector<std::array<uint32_t,3>>& triangles,
+    const Settings& settings)
 {
     // Init. Octree
-    Octree tree(bounds, std::max(nx,std::max(ny,nz)), maxDepth);
+    Geometry::Octree tree(settings.bounds, std::max(settings.resolution.x,std::max(settings.resolution.y,settings.resolution.z)), settings.max_adaptive_depth);
 
     std::unordered_map<Vec3f,float,Vec3fHash> cachedVals;
 
     // Refine the tree
-    for (u32 idx = 0; idx < tree.numNodes(); ++idx) {
-        if (tree.getDepth(idx) < maxDepth) {
+    for (uint32_t idx = 0; idx < tree.numNodes(); ++idx) {
+        if (tree.getDepth(idx) < settings.max_adaptive_depth) {
 
             // Evaluate function at node corners
-            AABB b = tree.getNodeBounds(idx);
+            Geometry::AABB b = tree.getNodeBounds(idx);
             auto corners = b.corners<Vec3f>();
             bool pos = false, neg = false;
-            for (u32 c = 0; c < 8; ++c) {
+            for (uint32_t c = 0; c < 8; ++c) {
                 float val = 0.0f;
                 if (cachedVals.contains(corners[c])) {val = cachedVals.at(corners[c]);}
                 else {val = f(corners[c]);}
@@ -494,9 +498,9 @@ void MarchingCubes::generateAdaptive(const std::function<float (Vec3f)> &f, Tria
     }
 
     // Now, generate on each leaf node (unrefined)
-    for (u32 idx = 0; idx < tree.numNodes(); ++idx) {
+    for (uint32_t idx = 0; idx < tree.numNodes(); ++idx) {
         if (!tree.isRefined(idx)) {
-            if (!generate(f, tree.getNodeBounds(idx), mesh)) {
+            if (!generate(f, tree.getNodeBounds(idx), points, triangles)) {
                 tree.deactivate(idx); // no geometry
             }
         }

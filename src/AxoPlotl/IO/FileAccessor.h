@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
 #include "AxoPlotl/geometry/ovm.h"
 
 namespace AxoPlotl::IO

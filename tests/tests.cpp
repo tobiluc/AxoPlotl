@@ -11,10 +11,10 @@ TEST(HelloWorldTest, OnePlusOneIsTwo)
 
 TEST(MortonCodeTest, Test1)
 {
-    u32 x = 4, y = 2, z = 7, depth = 5;
-    OctreeNodeCode code = encode(x, y, z, depth);
-    u32 dx, dy, dz, d;
-    decode(code, dx, dy, dz, d);
+    uint32_t x = 4, y = 2, z = 7, depth = 5;
+    Geometry::OctreeNodeCode code = Geometry::encode(x, y, z, depth);
+    uint32_t dx, dy, dz, d;
+    Geometry::decode(code, dx, dy, dz, d);
 
     ASSERT_EQ(x, dx);
     ASSERT_EQ(y, dy);

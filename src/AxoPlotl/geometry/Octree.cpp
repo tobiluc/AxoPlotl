@@ -1,6 +1,6 @@
 #include "Octree.h"
 
-namespace AxoPlotl
+namespace AxoPlotl::Geometry
 {
 
 void Octree::refineNode(u32 idx) {
