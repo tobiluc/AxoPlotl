@@ -10,6 +10,9 @@ void createMesh(const ExplicitSurfaceFunction& esf,
                 std::vector<std::array<uint32_t,3>>& triangles,
                 const uint32_t resolution)
 {
+    points.reserve((resolution+1)*(resolution+1));
+    triangles.reserve(2*(resolution+1)*(resolution+1));
+
     // Generate Vertex Positions
     int vo = points.size(); // vertex offset
     float s, t;

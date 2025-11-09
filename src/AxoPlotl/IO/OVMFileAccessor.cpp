@@ -12,20 +12,20 @@ namespace OpenVolumeMesh {
 namespace AxoPlotl::IO
 {
 
-bool loadMeshOVM(const std::string& filename, PolyhedralMesh& mesh)
-{
-    OVM::IO::FileManager fm;
-    return fm.readFile(filename, mesh);
-}
+// bool loadMeshOVM(const std::string& filename, PolyhedralMesh& mesh)
+// {
+//     OVM::IO::FileManager fm;
+//     return fm.readFile(filename, mesh);
+// }
 
-bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh)
-{
-    auto codecs = OVM::IO::g_default_property_codecs;
-    //OVM::IO::register_eigen_codecs(codecs);
-    auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
-    if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
-    return true;
-}
+// bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh)
+// {
+//     auto codecs = OVM::IO::g_default_property_codecs;
+//     //OVM::IO::register_eigen_codecs(codecs);
+//     auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
+//     if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
+//     return true;
+// }
 
 // bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext)
 // {
@@ -73,28 +73,42 @@ bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh)
 //     }
 // }
 
-void writeTetMesh(const std::string& filename, const TetrahedralMesh& mesh, FileFormat ext)
+bool loadMeshOVM(const std::filesystem::path& path, PolyhedralMesh& mesh)
 {
-    if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
-
-    if (ext == FileFormat::OVM)
-    {
+    const std::string ext = path.extension();
+    if (ext == ".ovm") {
         OVM::IO::FileManager fm;
-        std::ofstream off(filename.c_str(), std::ios::out);
-        off << std::setprecision(100);
-        if(!off.good()) std::cerr << "Could not open file " << filename << " for writing!" <<std::endl;
-        else fm.writeStream(off, mesh);
+        return fm.readFile(path, mesh);
+    } else if (ext == ".ovmb") {
+        auto codecs = OVM::IO::g_default_property_codecs;
+        auto res = OVM::IO::ovmb_read(path, mesh, OVM::IO::ReadOptions(), codecs);
+        if (res != OVM::IO::ReadResult::Ok) {
+            std::cerr << OVM::IO::to_string(res) << std::endl;
+            return false;
+        }
+        return true;
+    } else {
+        return false;
     }
-    else if (ext == FileFormat::OVMB)
+}
+
+void writeMeshOVM(const std::filesystem::path& path, const PolyhedralMesh& mesh)
+{
+    const std::string ext = path.extension();
+    if (ext == ".ovm") {
+        OVM::IO::FileManager fm;
+        std::ofstream off(path, std::ios::out);
+        off << std::setprecision(100);
+        if(!off.good()) std::cerr << "Could not open file " << path << " for writing!" <<std::endl;
+        else fm.writeStream(off, mesh);
+    } else if (ext == ".ovmb")
     {
         // Save Binary
         auto codecs = OVM::IO::g_default_property_codecs;
-        auto res = OVM::IO::ovmb_write(filename.c_str(), mesh, OVM::IO::WriteOptions(), codecs);
+        auto res = OVM::IO::ovmb_write(path, mesh, OVM::IO::WriteOptions(), codecs);
         if (res != OVM::IO::WriteResult::Ok) std::cerr << OVM::IO::to_string(res) << std::endl;
     }
-    else
-    {
-        std::cerr << "Unsupported File Format. Cannot write Input Tet Mesh to: " << filename << std::endl;
-    }
+    std::cerr << "Unsupported File Format. Cannot write Input Tet Mesh to: " << path << std::endl;
 }
+
 }

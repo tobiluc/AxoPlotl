@@ -1,9 +1,10 @@
 #include "marching_cubes.h"
 #include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/geometry/glm.h"
 
 namespace AxoPlotl::Algo
 {
+
+using Vec3f = glm::vec3;
 
 const int MarchingCubes::edgeTable[256] =
     {

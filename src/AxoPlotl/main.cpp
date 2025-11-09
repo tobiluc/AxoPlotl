@@ -1,7 +1,6 @@
 //#define GLFW_INCLUDE_NONE
 //#define GL_SILENCE_DEPRECATION
 
-//#include <AxoPlotl/Runner.h>
 #include "AxoPlotl/algorithms/marching_cubes.h"
 #include "AxoPlotl/geometry/implicit_functions.h"
 #include "AxoPlotl/geometry/ovm.h"
@@ -25,7 +24,21 @@ void add_mesh_ovm(const AxoPlotl::PolyhedralMesh& mesh, std::string name) {
         }
     }
     if (tris.empty()) {
-        polyscope::registerPointCloud(name, mesh.vertex_positions());
+        polyscope::PointCloud* pc = polyscope::registerPointCloud(name, mesh.vertex_positions());
+        if (mesh.n_vertex_props()>0) {
+            for (auto v_prop = mesh.vertex_props_begin(); v_prop != mesh.vertex_props_end(); ++v_prop) {
+                if ((*v_prop)->typeNameWrapper() == "double") {
+                    auto prop = mesh.get_vertex_property<double>((*v_prop)->name()).value();
+                    pc->addScalarQuantity((*v_prop)->name(), prop);
+                } else if ((*v_prop)->typeNameWrapper() == "int") {
+                    auto prop = mesh.get_vertex_property<int>((*v_prop)->name()).value();
+                    pc->addScalarQuantity((*v_prop)->name(), prop);
+                } else if ((*v_prop)->typeNameWrapper() == "vec3d") {
+                    auto prop = mesh.get_vertex_property<OpenVolumeMesh::Vec3d>((*v_prop)->name()).value();
+                    pc->addVectorQuantity((*v_prop)->name(), prop);
+                }
+            }
+        }
     } else {
         polyscope::registerSurfaceMesh(name, mesh.vertex_positions(), tris);
     }
@@ -53,6 +66,47 @@ int main()
         AxoPlotl::Algo::MarchingCubes::Settings cfg;
         cfg.bounds = func.bounds;
         AxoPlotl::Algo::MarchingCubes::generateAdaptive(func.f, pts, tris, cfg);
+        polyscope::registerSurfaceMesh(name, pts, tris);
+    };
+
+    auto add_explicit_surface_function = [&](const std::string& name,
+            const AxoPlotl::Geometry::ExplicitSurfaceFunction& func,
+            const uint32_t resolution = 32) {
+        std::vector<glm::vec3> pts;
+        pts.reserve((resolution+1)*(resolution+1));
+        std::vector<std::array<uint32_t,3>> tris;
+        tris.reserve(2*(resolution+1)*(resolution+1));
+
+        // Generate Vertex Positions
+        float s, t;
+        for (int i = 0; i <= resolution; ++i) {
+            s = func.uMin + i * (func.uMax - func.uMin) / resolution;
+            for (int j = 0; j <= resolution; ++j) {
+                t = func.vMin + j * (func.vMax - func.vMin) / resolution;
+                pts.push_back(func(s, t));
+            }
+        }
+
+        // Generate Triangles
+        for (int i = 0; i < resolution; ++i) {
+            for (int j = 0; j < resolution; ++j) {
+                uint32_t row1 = i * (resolution + 1);
+                uint32_t row2 = (i + 1) * (resolution + 1);
+
+                tris.push_back({
+                    (row1 + j + 0),
+                    (row2 + j + 0),
+                    (row2 + j + 1)
+                });
+
+                tris.push_back({
+                    (row2 + j + 1),
+                    (row1 + j + 1),
+                    (row1 + j + 0)
+                });
+            }
+        }
+
         polyscope::registerSurfaceMesh(name, pts, tris);
     };
 
@@ -101,15 +155,18 @@ int main()
                         ImGui::Separator();
 
                         if (ImGui::MenuItem("Sphere")) {
-                            // TODO
+                            add_explicit_surface_function("Sphere",
+                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::sphere());
                         }
 
                         if (ImGui::MenuItem("Torus")) {
-                            // TODO
+                            add_explicit_surface_function("Sphere",
+                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::torus());
                         }
 
                         if (ImGui::MenuItem("Moebius Strip")) {
-                            // TODO
+                            add_explicit_surface_function("Moebius Strip",
+                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::moebiusStrip());
                         }
 
                         ImGui::EndMenu(); // !Explicit
@@ -183,7 +240,11 @@ int main()
                 if (ImGui::BeginMenu("Mesh")) {
 
                     if (ImGui::MenuItem("Load from File")) {
-                        //TODO
+                        // AxoPlotl::PolyhedralMesh mesh;
+                        // std::filesystem::path path;
+                        // if (AxoPlotl::IO::loadMesh(path, mesh)) {
+                        //     add_mesh_ovm(mesh, path.filename());
+                        // }
                     }
                     ImGui::EndMenu(); // !Mesh
                 }
@@ -208,7 +269,11 @@ int main()
         static float val = 0.5f;
         ImGui::SliderFloat("Cool Slider", &val, 0.f, 1.f);
 
-        AxoPlotl::Interface::request_input_xyz(test_in_x, test_in_y, test_in_z);
+        std::vector<glm::vec3> points;
+        std::vector<std::array<uint32_t,3>> triangles;
+        if (AxoPlotl::Interface::request_input_xyz(test_in_x, test_in_y, test_in_z, points, triangles)) {
+            polyscope::registerSurfaceMesh("TEST_EXPLICIT_SURFACE", points, triangles);
+        }
     };
 
     //-----------------
@@ -225,15 +290,6 @@ int main()
         }
     });
 
-
-    std::vector<std::array<double,3>> points;
-    points.push_back({0,0,0});
-
-    polyscope::registerPointCloud("my points", points);
-    //polyscope::registerSurfaceMesh("my mesh", meshVerts, meshFaces);
-    //polyscope::getSurfaceMesh("my mesh")->addVertexScalarQuantity("my_scalar", scalarQuantity);
-    //polyscope::getSurfaceMesh("my mesh")->addFaceVectorQuantity("my_vector", vectorQuantity);
-
-    // View the point cloud and mesh we just registered in the 3D UI
+    // View the 3D UI
     polyscope::show();
 }

@@ -2,16 +2,19 @@
 
 #include "AxoPlotl/algorithms/parsing/reverse_polish.h"
 #include "AxoPlotl/algorithms/parsing/tokens.h"
+#include "AxoPlotl/geometry/explicit_functions.h"
 #include "glm/ext/vector_float3.hpp"
 #include "imgui.h"
 
 namespace AxoPlotl::Interface
 {
 
-void request_input_xyz(
+bool request_input_xyz(
     char* input_buffer_x,
     char* input_buffer_y,
-    char* input_buffer_z
+    char* input_buffer_z,
+    std::vector<glm::vec3>& points,
+    std::vector<std::array<uint32_t,3>>& triangles
 )
 {
     //-------------------
@@ -49,19 +52,26 @@ void request_input_xyz(
         Parsing::reversePolish(tokens_y, rpn_y);
         Parsing::RPN rpn_z;
         Parsing::reversePolish(tokens_z, rpn_z);
-        Parsing::Variables vars;
-        Parsing::Functions funcs;
-        Parsing::registerCommons(vars, funcs);
 
-        std::function<glm::vec3(float)> func = [&](float t) {
-            vars["t"] = t;
+        Geometry::ExplicitSurfaceFunction func;
+        func.f = [&](float u, float v) {
+            Parsing::Variables vars;
+            Parsing::Functions funcs;
+            Parsing::registerCommons(vars, funcs);
+
+            vars["u"] = u;
+            vars["v"] = v;
+
             return glm::vec3(
                 Parsing::evaluate(rpn_x, vars, funcs),
                 Parsing::evaluate(rpn_y, vars, funcs),
                 Parsing::evaluate(rpn_z, vars, funcs)
             );
         };
+        Geometry::createMesh(func, points, triangles, 32);
+        return true;
     }
+    return false;
 }
 
 }

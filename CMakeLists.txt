@@ -46,7 +46,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/OVMFileAccessor.cpp
     src/AxoPlotl/IO/FileUtils.h
     src/AxoPlotl/IO/JSONFileAccessor.h
-    # src/AxoPlotl/geometry/glm.h
+    src/AxoPlotl/commons/glm.h
     # src/AxoPlotl/geometry/ovm.h
     # src/AxoPlotl/geometry/eigen.h
     src/AxoPlotl/IO/OBJFileAccessor.cpp

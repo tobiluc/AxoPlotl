@@ -1,19 +1,16 @@
 #include "FileAccessor.h"
-#include "AxoPlotl/IO/FileUtils.h"
 #include "AxoPlotl/IO/MESHFileAccessor.h"
 #include "AxoPlotl/IO/OBJFileAccessor.h"
 #include "AxoPlotl/IO/OVMFileAccessor.h"
 #include "AxoPlotl/IO/PLYFileAccessor.h"
 
-bool AxoPlotl::IO::loadMesh(const std::string& filename, PolyhedralMesh &mesh)
+bool AxoPlotl::IO::loadMesh(const std::filesystem::path& path, PolyhedralMesh &mesh)
 {
-    FileFormat f = getFileFormatFromName(filename);
-    switch(f) {
-    case OBJ: return loadMeshOBJ(filename, mesh);
-    case PLY: return loadMeshPLY(filename, mesh);
-    case OVM: return loadMeshOVM(filename, mesh);
-    case OVMB: return loadMeshOVMB(filename, mesh);
-    case MESH: return loadMeshMESH(filename, mesh);
-    default: return false;
-    }
+    std::string ext = path.extension();
+    if (ext == ".obj") return loadMeshOBJ(path, mesh);
+    if (ext == ".ply") return loadMeshPLY(path, mesh);
+    if (ext == ".ovm" || ext == ".ovmb") return loadMeshOVM(path, mesh);
+    if (ext == ".mesh") return loadMeshMESH(path, mesh);
+    std::cerr << "Unknown file format: " << ext << std::endl;
+    return false;
 }

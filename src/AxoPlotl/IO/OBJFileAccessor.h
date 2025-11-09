@@ -5,6 +5,6 @@
 namespace AxoPlotl::IO
 {
 
-bool loadMeshOBJ(const std::string& filename, PolyhedralMesh& mesh);
+bool loadMeshOBJ(const std::filesystem::path&, PolyhedralMesh& mesh);
 
 }

@@ -5,11 +5,11 @@
 #include <vector>
 #include <iostream>
 
-bool AxoPlotl::IO::loadMeshOBJ(const std::string& filename, PolyhedralMesh &mesh)
+bool AxoPlotl::IO::loadMeshOBJ(const std::filesystem::path& path, PolyhedralMesh &mesh)
 {
-    std::ifstream in(filename);
+    std::ifstream in(path);
     if (!in.is_open()) {
-        std::cerr << "Failed to open OBJ file: " << filename << std::endl;
+        std::cerr << "Failed to open OBJ file: " << path << std::endl;
         return false;
     }
 

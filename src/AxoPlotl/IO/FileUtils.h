@@ -17,33 +17,33 @@ std::string string_format( const std::string& format, Args ... args )
     return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
 }
 
-inline std::string toLower(const std::string& s)
-{
-    std::string r = s;
-    std::transform(r.begin(), r.end(), r.begin(),[](unsigned char c){return std::tolower(c);});
-    return r;
-}
+// inline std::string toLower(const std::string& s)
+// {
+//     std::string r = s;
+//     std::transform(r.begin(), r.end(), r.begin(),[](unsigned char c){return std::tolower(c);});
+//     return r;
+// }
 
-inline std::pair<std::string,std::string> splitFilenameExtension(const std::string& filename)
-{
-    auto i = filename.find_last_of(".");
-    return std::make_pair(filename.substr(0,i), filename.substr(i));
-}
+// inline std::pair<std::string,std::string> splitFilenameExtension(const std::string& filename)
+// {
+//     auto i = filename.find_last_of(".");
+//     return std::make_pair(filename.substr(0,i), filename.substr(i));
+// }
 
-enum FileFormat : char16_t {
-    INVALID, OBJ, PLY, MESH, OVM, OVMB
-};
+// enum FileFormat : char16_t {
+//     INVALID, OBJ, PLY, MESH, OVM, OVMB
+// };
 
-inline FileFormat getFileFormatFromName(const std::string& filename)
-{
-    std::string ext = toLower(splitFilenameExtension(filename).second);
-    if (ext == ".ovm") return FileFormat::OVM;
-    if (ext == ".ovmb") return FileFormat::OVMB;
-    if (ext == ".mesh") return FileFormat::MESH;
-    if (ext == ".obj") return FileFormat::OBJ;
-    if (ext == ".ply") return FileFormat::PLY;
-    return FileFormat::INVALID;
-}
+// inline FileFormat getFileFormatFromName(const std::string& filename)
+// {
+//     std::string ext = toLower(splitFilenameExtension(filename).second);
+//     if (ext == ".ovm") return FileFormat::OVM;
+//     if (ext == ".ovmb") return FileFormat::OVMB;
+//     if (ext == ".mesh") return FileFormat::MESH;
+//     if (ext == ".obj") return FileFormat::OBJ;
+//     if (ext == ".ply") return FileFormat::PLY;
+//     return FileFormat::INVALID;
+// }
 
 inline std::string getWorkingDirectory()
 {

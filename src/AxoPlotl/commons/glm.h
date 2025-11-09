@@ -5,7 +5,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ostream>
 
-namespace AxoPlotl
+namespace AxoPlotl::GLM
 {
 
 template <typename T>
@@ -35,6 +35,6 @@ using Mat4x4d = Mat4x4<double>;
 
 }
 
-inline std::ostream& operator<<(std::ostream& os, const AxoPlotl::Vec3f& v) {
+inline std::ostream& operator<<(std::ostream& os, const AxoPlotl::GLM::Vec3f& v) {
     return os << v.x << " " << v.y << " " << v.z;
 }
