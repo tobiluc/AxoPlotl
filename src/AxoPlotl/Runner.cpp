@@ -27,14 +27,6 @@ Runner::~Runner()
     glfwTerminate();
 }
 
-static void checkOpenGLError()
-{
-    GLenum error = glGetError();
-    if (error != GL_NO_ERROR) {
-        std::cerr << "OpenGL Error: " << error << std::endl;
-    }
-}
-
 void Runner::run()
 {
     //-------------------------------------

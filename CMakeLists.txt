@@ -15,88 +15,88 @@ endif()
 add_executable(${PROJECT_NAME}
     src/AxoPlotl/main.cpp
 
-    src/AxoPlotl/Runner.h
-    src/AxoPlotl/Runner.cpp
+    # src/AxoPlotl/Runner.h
+    # src/AxoPlotl/Runner.cpp
 
-    src/AxoPlotl/commons/Camera.h
-    src/AxoPlotl/commons/Camera.cpp
-    src/AxoPlotl/rendering/PickingTexture.h
-    src/AxoPlotl/rendering/PickingTexture.cpp
-    src/AxoPlotl/rendering/Shader.h
-    src/AxoPlotl/rendering/Shader.cpp
-    src/AxoPlotl/rendering/Texture.h
-    src/AxoPlotl/rendering/Texture.cpp
+    # src/AxoPlotl/commons/Camera.h
+    # src/AxoPlotl/commons/Camera.cpp
+    # src/AxoPlotl/rendering/PickingTexture.h
+    # src/AxoPlotl/rendering/PickingTexture.cpp
+    # src/AxoPlotl/rendering/Shader.h
+    # src/AxoPlotl/rendering/Shader.cpp
+    # src/AxoPlotl/rendering/Texture.h
+    # src/AxoPlotl/rendering/Texture.cpp
 
-    src/AxoPlotl/rendering/ImGuiRenderer.h
-    src/AxoPlotl/rendering/ImGuiRenderer.cpp
+    # src/AxoPlotl/rendering/ImGuiRenderer.h
+    # src/AxoPlotl/rendering/ImGuiRenderer.cpp
 
-    src/AxoPlotl/rendering/MeshRenderer.h
-
-
-    src/AxoPlotl/utils/Time.h
-    src/AxoPlotl/utils/Time.cpp
-
-    src/AxoPlotl/utils/MouseHandler.h
-    src/AxoPlotl/utils/MouseHandler.cpp
-    src/AxoPlotl/algorithms/simplex_noise.h
-    src/AxoPlotl/algorithms/simplex_noise.cpp
-    src/AxoPlotl/commons/stb_image.h
-    src/AxoPlotl/utils/Typedefs.h
-    src/AxoPlotl/utils/Utils.h
+    # src/AxoPlotl/rendering/MeshRenderer.h
 
 
-    src/AxoPlotl/commons/Color.h
-    src/AxoPlotl/commons/Color.cpp
-    src/AxoPlotl/algorithms/parsing/tokens.h
-    src/AxoPlotl/algorithms/parsing/tokens.cpp
+    # src/AxoPlotl/utils/Time.h
+    # src/AxoPlotl/utils/Time.cpp
 
-    src/AxoPlotl/algorithms/marching_cubes.h
-    src/AxoPlotl/algorithms/marching_cubes.cpp
-    src/AxoPlotl/Scene.h
-    src/AxoPlotl/Scene.cpp
-    src/AxoPlotl/geometry/Surface.h
-    src/AxoPlotl/geometry/Surface.cpp
-    src/AxoPlotl/utils/Memory.h
-    src/AxoPlotl/utils/Memory.cpp
-    src/AxoPlotl/commons/Mesh.h
+    # src/AxoPlotl/utils/MouseHandler.h
+    # src/AxoPlotl/utils/MouseHandler.cpp
+    # src/AxoPlotl/algorithms/simplex_noise.h
+    # src/AxoPlotl/algorithms/simplex_noise.cpp
+    # src/AxoPlotl/commons/stb_image.h
+    # src/AxoPlotl/utils/Typedefs.h
+    # src/AxoPlotl/utils/Utils.h
 
 
+    # src/AxoPlotl/commons/Color.h
+    # src/AxoPlotl/commons/Color.cpp
+    # src/AxoPlotl/algorithms/parsing/tokens.h
+    # src/AxoPlotl/algorithms/parsing/tokens.cpp
 
-    src/AxoPlotl/geometry/Octree.h
+    # src/AxoPlotl/algorithms/marching_cubes.h
+    # src/AxoPlotl/algorithms/marching_cubes.cpp
+    # src/AxoPlotl/Scene.h
+    # src/AxoPlotl/Scene.cpp
+    # src/AxoPlotl/geometry/Surface.h
+    # src/AxoPlotl/geometry/Surface.cpp
+    # src/AxoPlotl/utils/Memory.h
+    # src/AxoPlotl/utils/Memory.cpp
+    # src/AxoPlotl/commons/Mesh.h
 
-    src/AxoPlotl/geometry/Octree.cpp
-    src/AxoPlotl/IO/OBJFileAccessor.h
-    src/AxoPlotl/IO/OVMFileAccessor.h
-    src/AxoPlotl/IO/OVMFileAccessor.cpp
-    src/AxoPlotl/IO/FileUtils.h
-    src/AxoPlotl/IO/JSONFileAccessor.h
-    src/AxoPlotl/geometry/glm.h
-    src/AxoPlotl/geometry/ovm.h
-    src/AxoPlotl/IO/OBJFileAccessor.cpp
-    src/AxoPlotl/IO/PLYFileAccessor.h
-    src/AxoPlotl/IO/PLYFileAccessor.cpp
-    src/AxoPlotl/IO/FileAccessor.h
-    src/AxoPlotl/IO/FileAccessor.cpp
-    src/AxoPlotl/geometry/nodes/GeometryNode.h
-    src/AxoPlotl/geometry/nodes/GeometryNode.cpp
-    src/AxoPlotl/geometry/nodes/MeshNode.h
-    src/AxoPlotl/geometry/nodes/MeshNode.cpp
-    src/AxoPlotl/geometry/nodes/ExplicitCurveNode.h
-    src/AxoPlotl/geometry/nodes/ExplicitCurveNode.cpp
-    src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
-    src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
-    src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
-    src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
-    src/AxoPlotl/rendering/MeshRenderer.cpp
-    src/AxoPlotl/algorithms/parsing/reverse_polish.h
-    src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
-    src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
-    src/AxoPlotl/rendering/property_visualization.h
-    src/AxoPlotl/geometry/eigen.h
-    src/AxoPlotl/rendering/redraw_frames.h
-    src/AxoPlotl/rendering/redraw_frames.cpp
-    src/AxoPlotl/IO/MESHFileAccessor.h
-    src/AxoPlotl/IO/MESHFileAccessor.cpp
+
+
+    # src/AxoPlotl/geometry/Octree.h
+
+    # src/AxoPlotl/geometry/Octree.cpp
+    # src/AxoPlotl/IO/OBJFileAccessor.h
+    # src/AxoPlotl/IO/OVMFileAccessor.h
+    # src/AxoPlotl/IO/OVMFileAccessor.cpp
+    # src/AxoPlotl/IO/FileUtils.h
+    # src/AxoPlotl/IO/JSONFileAccessor.h
+    # src/AxoPlotl/geometry/glm.h
+    # src/AxoPlotl/geometry/ovm.h
+    # src/AxoPlotl/IO/OBJFileAccessor.cpp
+    # src/AxoPlotl/IO/PLYFileAccessor.h
+    # src/AxoPlotl/IO/PLYFileAccessor.cpp
+    # src/AxoPlotl/IO/FileAccessor.h
+    # src/AxoPlotl/IO/FileAccessor.cpp
+    # src/AxoPlotl/geometry/nodes/GeometryNode.h
+    # src/AxoPlotl/geometry/nodes/GeometryNode.cpp
+    # src/AxoPlotl/geometry/nodes/MeshNode.h
+    # src/AxoPlotl/geometry/nodes/MeshNode.cpp
+    # src/AxoPlotl/geometry/nodes/ExplicitCurveNode.h
+    # src/AxoPlotl/geometry/nodes/ExplicitCurveNode.cpp
+    # src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
+    # src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
+    # src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
+    # src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
+    # src/AxoPlotl/rendering/MeshRenderer.cpp
+    # src/AxoPlotl/algorithms/parsing/reverse_polish.h
+    # src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
+    # src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
+    # src/AxoPlotl/rendering/property_visualization.h
+    # src/AxoPlotl/geometry/eigen.h
+    # src/AxoPlotl/rendering/redraw_frames.h
+    # src/AxoPlotl/rendering/redraw_frames.cpp
+    # src/AxoPlotl/IO/MESHFileAccessor.h
+    # src/AxoPlotl/IO/MESHFileAccessor.cpp
 
 
 
@@ -198,34 +198,35 @@ find_package(OpenGL REQUIRED)
 #=========================
 # ImGui
 #=========================
-if (NOT TARGET ImGui)
-    message(STATUS "Fetching ImGui")
-    FetchContent_Declare(ImGui
-        GIT_REPOSITORY https://github.com/ocornut/imgui.git
-        SOURCE_DIR "${EXTERNAL_DIR}/ImGui"
-    )
-    FetchContent_MakeAvailable(ImGui)
-    add_library(ImGui STATIC
-        ${IMGUI_SRC_FILES}
-        ${EXTERNAL_DIR}/ImGui/imgui.cpp
-        ${EXTERNAL_DIR}/ImGui/imgui_demo.cpp
-        ${EXTERNAL_DIR}/ImGui/imgui_draw.cpp
-        ${EXTERNAL_DIR}/ImGui/imgui_tables.cpp
-        ${EXTERNAL_DIR}/ImGui/imgui_widgets.cpp
-        ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_glfw.cpp
-        ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_opengl3.cpp
-    )
-    target_include_directories(ImGui PUBLIC ${EXTERNAL_DIR}/ImGui)
-    target_link_libraries(ImGui PUBLIC glfw OpenGL::GL)
-endif()
-if (NOT TARGET ImGuiFileDialog)
-    message(STATUS "Fetching ImGuiFileDialog")
-    FetchContent_Declare(ImGuiFileDialog
-        GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
-        SOURCE_DIR "${EXTERNAL_DIR}/ImGuiFileDialog"
-    )
-    FetchContent_MakeAvailable(ImGuiFileDialog)
-endif()
+# if (NOT TARGET ImGui)
+#     message(STATUS "Fetching ImGui")
+#     FetchContent_Declare(ImGui
+#         GIT_REPOSITORY https://github.com/ocornut/imgui.git
+#         SOURCE_DIR "${EXTERNAL_DIR}/ImGui"
+#     )
+#     FetchContent_MakeAvailable(ImGui)
+#     add_library(ImGui STATIC
+#         ${IMGUI_SRC_FILES}
+#         ${EXTERNAL_DIR}/ImGui/imgui.cpp
+#         ${EXTERNAL_DIR}/ImGui/imgui_demo.cpp
+#         ${EXTERNAL_DIR}/ImGui/imgui_draw.cpp
+#         ${EXTERNAL_DIR}/ImGui/imgui_tables.cpp
+#         ${EXTERNAL_DIR}/ImGui/imgui_widgets.cpp
+#         ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_glfw.cpp
+#         ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_opengl3.cpp
+#     )
+#     target_include_directories(ImGui PUBLIC ${EXTERNAL_DIR}/ImGui)
+#     target_link_libraries(ImGui PUBLIC glfw OpenGL::GL)
+# endif()
+# if (NOT TARGET ImGuiFileDialog)
+#     message(STATUS "Fetching ImGuiFileDialog")
+#     FetchContent_Declare(ImGuiFileDialog
+#         GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+#         SOURCE_DIR "${EXTERNAL_DIR}/ImGuiFileDialog"
+#     )
+#     FetchContent_MakeAvailable(ImGuiFileDialog)
+
+# endif()
 
 
 #=========================
@@ -235,7 +236,7 @@ if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
     message(STATUS "Fetching OpenVolumeMesh")
     FetchContent_Declare(ovm
         GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenVolumeMesh/OpenVolumeMesh
-        GIT_TAG v3.3
+        #GIT_TAG v3.4
         SOURCE_DIR "${EXTERNAL_DIR}/OpenVolumeMesh"
         )
     FetchContent_MakeAvailable(ovm)
@@ -252,22 +253,36 @@ if (NOT TARGET nlohmann_json::nlohmann_json)
     FetchContent_MakeAvailable(json)
 endif()
 
+#=====================
+# Polyscope
+#=====================
+if (NOT TARGET polyscope)
+    message(STATUS "Fetching polyscope")
+    FetchContent_Declare(polyscope
+       GIT_REPOSITORY https://github.com/nmwsharp/polyscope.git
+       GIT_TAG        master
+       SOURCE_DIR "${EXTERNAL_DIR}/polyscope"
+    )
+    FetchContent_MakeAvailable(polyscope)
+endif()
+
 #=========================
 # Link
 #=========================
 target_link_libraries(${PROJECT_NAME} PUBLIC
 glad
-glfw 
-OpenGL::GL
-OpenMP::OpenMP_CXX
-glm
+#glfw
+#OpenGL::GL
+#OpenMP::OpenMP_CXX
+#glm
 Eigen3::Eigen
 OpenVolumeMesh::OpenVolumeMesh
-ImGui
-ImGuiFileDialog
+#ImGui
+# ImGuiFileDialog
 nlohmann_json::nlohmann_json
+polyscope
 )
-target_link_libraries(ImGuiFileDialog ImGui)
+# target_link_libraries(ImGuiFileDialog ImGui)
 
 #=========================
 # Define what to include
@@ -289,15 +304,15 @@ add_executable(${PROJECT_NAME}-Tests tests/tests.cpp)
 target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
     gtest
     gtest_main
-    glad
-    glfw
-    OpenGL::GL
-    OpenMP::OpenMP_CXX
-    glm
-    OpenVolumeMesh::OpenVolumeMesh
-    ImGui
-    ImGuiFileDialog
-    nlohmann_json::nlohmann_json
+    #glad
+    #glfw
+    #OpenGL::GL
+    #OpenMP::OpenMP_CXX
+    #glm
+    #OpenVolumeMesh::OpenVolumeMesh
+    #ImGui
+    #ImGuiFileDialog
+    #nlohmann_json::nlohmann_json
 )
 target_include_directories(${PROJECT_NAME}-Tests PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

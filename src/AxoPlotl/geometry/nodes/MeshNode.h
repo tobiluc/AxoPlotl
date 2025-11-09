@@ -10,6 +10,7 @@ class MeshNode : public GeometryNode
 {
 private:
     PolyhedralMesh mesh_;
+    std::vector<OVM::PropertyStorageBase*> props_;
     OVM::PropertyStorageBase* selected_psb_ = nullptr;
 
     void visualizeSelectedProperty();

@@ -4,7 +4,25 @@
 #include <iostream>
 
 enum PLYFormat {
-    PLY_NONE, PLY_ASCII, PLY_BINARY_LITTLE_ENDIAN, PLY_BINARY_BIG_ENDIAN
+    PLY_FORMAT_NONE, PLY_FORMAT_ASCII, PLY_FORMAT_BINARY_LITTLE_ENDIAN, PLY_FORMAT_BINARY_BIG_ENDIAN
+};
+
+static PLYFormat parse_format(const std::string& str) {
+    if (str == "ascii") {return PLY_FORMAT_ASCII;}
+    if (str == "binary_little_endian") {return PLY_FORMAT_BINARY_LITTLE_ENDIAN;}
+    if (str == "binary_big_endian") {return PLY_FORMAT_BINARY_BIG_ENDIAN;}
+    return PLY_FORMAT_NONE;
+};
+
+enum PLYElement {
+    PLY_ELEMENT_NONE, PLY_ELEMENT_VERTEX, PLY_ELEMENT_EDGE, PLY_ELEMENT_FACE
+};
+
+static PLYElement parse_element(const std::string& str) {
+    if (str == "vertex") {return PLY_ELEMENT_VERTEX;}
+    if (str == "edge") {return PLY_ELEMENT_EDGE;}
+    if (str == "face") {return PLY_ELEMENT_FACE;}
+    return PLY_ELEMENT_NONE;
 };
 
 bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh)
@@ -19,7 +37,7 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh
     // Header
     std::string line;
     uint numVertices = 0, numFaces = 0;
-    PLYFormat format = PLY_NONE;
+    PLYFormat format = PLY_FORMAT_NONE;
     bool headerStatus = false;
     while (std::getline(file, line)) {
         std::istringstream iss(line);
@@ -39,11 +57,13 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh
             std::string f;
             double version;
             iss >> f >> version;
-            if (f == "ascii") {format = PLY_ASCII;}
-            else if (f == "binary_little_endian") {format = PLY_BINARY_LITTLE_ENDIAN;}
-            else if (f == "binary_big_endian") {format = PLY_BINARY_BIG_ENDIAN;}
+            if (f == "ascii") {format = PLY_FORMAT_ASCII;}
+            else if (f == "binary_little_endian") {format = PLY_FORMAT_BINARY_LITTLE_ENDIAN;}
+            else if (f == "binary_big_endian") {format = PLY_FORMAT_BINARY_BIG_ENDIAN;}
         }
         else if (word == "property") {
+            std::string type;
+            iss >> type;
             // TODO
         }
         else if (word == "end_header") {
@@ -51,12 +71,12 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh
             break;
         }
     }
-    if (!headerStatus || format == PLY_NONE) {
+    if (!headerStatus || format == PLY_FORMAT_NONE) {
         std::cerr << "PLY: Invalid or incomplete PLY header" << std::endl;
         return false;
     }
 
-    if (format == PLY_ASCII) {
+    if (format == PLY_FORMAT_ASCII) {
 
         // Vertices
         for (uint i = 0; i < numVertices; ++i) {
@@ -84,7 +104,7 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh
 
     }
 
-    if (format == PLY_BINARY_LITTLE_ENDIAN) {
+    if (format == PLY_FORMAT_BINARY_LITTLE_ENDIAN) {
 
         // Vertices
         for (uint i = 0; i < numVertices; ++i) {
@@ -121,7 +141,7 @@ bool AxoPlotl::IO::loadMeshPLY(const std::string& filename, PolyhedralMesh &mesh
         return true;
     }
 
-    if (format == PLY_BINARY_BIG_ENDIAN) {
+    if (format == PLY_FORMAT_BINARY_BIG_ENDIAN) {
         std::cerr << "PLY: Bin endian is unsupported" << std::endl; // TODO
     }
 
