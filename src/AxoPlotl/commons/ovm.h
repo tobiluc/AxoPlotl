@@ -62,4 +62,8 @@ Geometry::AABB computeBoundingBox(const MeshT& mesh) {
     }
 }
 
+bool is_tet_mesh(const PolyhedralMesh& _mesh);
+
+bool is_hex_mesh(const PolyhedralMesh& _mesh);
+
 }

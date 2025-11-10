@@ -2,45 +2,27 @@
 //#define GL_SILENCE_DEPRECATION
 
 #include "AxoPlotl/algorithms/marching_cubes.h"
+#include "AxoPlotl/commons/ovm.h"
 #include "AxoPlotl/geometry/implicit_functions.h"
-#include "AxoPlotl/geometry/ovm.h"
+#include "AxoPlotl/interface/polyscope_register_ovm_mesh.h"
 #include "AxoPlotl/interface/request_explicit_function.h"
 #include "GLFW/glfw3.h"
 #include "polyscope/point_cloud.h"
 #include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
+#include "polyscope/volume_mesh.h"
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
 
-void add_mesh_ovm(const AxoPlotl::PolyhedralMesh& mesh, std::string name) {
-    std::vector<std::array<uint32_t,3>> tris;
-    tris.reserve(mesh.n_faces());
-    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
-        const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
-        for (uint32_t i = 1; i < vhs.size()-1; ++i) {
-            tris.push_back({
-                vhs[0].uidx(), vhs[i].uidx(), vhs[i+1].uidx()
-            });
-        }
-    }
-    if (tris.empty()) {
-        polyscope::PointCloud* pc = polyscope::registerPointCloud(name, mesh.vertex_positions());
-        if (mesh.n_vertex_props()>0) {
-            for (auto v_prop = mesh.vertex_props_begin(); v_prop != mesh.vertex_props_end(); ++v_prop) {
-                if ((*v_prop)->typeNameWrapper() == "double") {
-                    auto prop = mesh.get_vertex_property<double>((*v_prop)->name()).value();
-                    pc->addScalarQuantity((*v_prop)->name(), prop);
-                } else if ((*v_prop)->typeNameWrapper() == "int") {
-                    auto prop = mesh.get_vertex_property<int>((*v_prop)->name()).value();
-                    pc->addScalarQuantity((*v_prop)->name(), prop);
-                } else if ((*v_prop)->typeNameWrapper() == "vec3d") {
-                    auto prop = mesh.get_vertex_property<OpenVolumeMesh::Vec3d>((*v_prop)->name()).value();
-                    pc->addVectorQuantity((*v_prop)->name(), prop);
-                }
-            }
-        }
+void add_mesh_ovm(const std::string& name, const AxoPlotl::PolyhedralMesh& mesh) {
+    if (mesh.n_cells() > 0) {
+        AxoPlotl::Interface::register_volume_mesh(name, mesh);
+    } else if (mesh.n_faces() > 0) {
+        AxoPlotl::Interface::register_surface_mesh(name, mesh);
+    } else if (mesh.n_edges() > 0) {
+        AxoPlotl::Interface::register_curve_network(name, mesh);
     } else {
-        polyscope::registerSurfaceMesh(name, mesh.vertex_positions(), tris);
+        AxoPlotl::Interface::register_point_cloud(name, mesh);
     }
 };
 
@@ -286,7 +268,7 @@ int main()
             AxoPlotl::IO::loadMesh(
                 std::filesystem::path(std::filesystem::path(paths[i])),
                 mesh);
-            add_mesh_ovm(mesh, std::filesystem::path(paths[i]).filename());
+            add_mesh_ovm(std::filesystem::path(paths[i]).filename(), mesh);
         }
     });
 

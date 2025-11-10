@@ -47,7 +47,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/FileUtils.h
     src/AxoPlotl/IO/JSONFileAccessor.h
     src/AxoPlotl/commons/glm.h
-    # src/AxoPlotl/geometry/ovm.h
+    src/AxoPlotl/commons/ovm.h
     # src/AxoPlotl/geometry/eigen.h
     src/AxoPlotl/IO/OBJFileAccessor.cpp
     src/AxoPlotl/IO/PLYFileAccessor.h
@@ -62,6 +62,9 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/AABB.h
     src/AxoPlotl/geometry/implicit_functions.cpp
     src/AxoPlotl/interface/request_explicit_function.h
+    src/AxoPlotl/commons/ovm.cpp
+    src/AxoPlotl/interface/polyscope_register_ovm_mesh.h
+    src/AxoPlotl/interface/polyscope_register_ovm_mesh.cpp
 )
 
 #=========================
