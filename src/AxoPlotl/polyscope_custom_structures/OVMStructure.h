@@ -5,6 +5,7 @@
 #include "polyscope/point_cloud.h"
 #include "polyscope/structure.h"
 #include "polyscope/surface_mesh.h"
+#include "polyscope/volume_mesh.h"
 
 #include <Eigen/Core>
 
@@ -55,16 +56,22 @@ public:
     }
 
     inline size_t n_faces() const {
-        return faces_surface_mesh_? faces_surface_mesh_->nFaces() : 0;
+        return halffaces_surface_mesh_? (halffaces_surface_mesh_->nFaces()/2) : 0;
+    }
+
+    inline size_t n_cells() const {
+        return cells_volume_mesh_? cells_volume_mesh_->nCells() : 0;
     }
 
 private:
     std::unique_ptr<PointCloud> vertices_point_cloud_;
     std::unique_ptr<CurveNetwork> edges_curve_network_;
-    std::unique_ptr<SurfaceMesh> faces_surface_mesh_;
+    std::unique_ptr<SurfaceMesh> halffaces_surface_mesh_;
+    std::unique_ptr<VolumeMesh> cells_volume_mesh_;
 
     float vertex_radius_;
     float edge_radius_;
+    float cell_scale_ = 0.8f;
 };
 
 OVMStructure* registerOVMStructure(const std::string& name, const AxoPlotl::PolyhedralMesh& _mesh);

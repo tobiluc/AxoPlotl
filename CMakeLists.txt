@@ -30,8 +30,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
 
-    src/AxoPlotl/geometry/explicit_functions.cpp
-    src/AxoPlotl/geometry/explicit_functions.h
+
+
 
     src/AxoPlotl/utils/Memory.h
     src/AxoPlotl/utils/Memory.cpp
@@ -58,16 +58,20 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
     src/AxoPlotl/IO/MESHFileAccessor.h
     src/AxoPlotl/IO/MESHFileAccessor.cpp
-    src/AxoPlotl/geometry/implicit_functions.h
+
     src/AxoPlotl/geometry/AABB.h
-    src/AxoPlotl/geometry/implicit_functions.cpp
+
     src/AxoPlotl/interface/request_explicit_function.h
     src/AxoPlotl/commons/ovm.cpp
     src/AxoPlotl/interface/polyscope_register_ovm_mesh.h
     src/AxoPlotl/interface/polyscope_register_ovm_mesh.cpp
     src/AxoPlotl/interface/imgui_file_dialog.h
-    src/AxoPlotl/polyscope_custom_structures/TestStructure.h
-    src/AxoPlotl/polyscope_custom_structures/TestStructure.cpp
+    src/AxoPlotl/polyscope_custom_structures/OVMStructure.h
+    src/AxoPlotl/polyscope_custom_structures/OVMStructure.cpp
+    src/AxoPlotl/polyscope_custom_structures/ExplicitSurfaceStructure.h
+    src/AxoPlotl/polyscope_custom_structures/ExplicitSurfaceStructure.cpp
+    src/AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.h
+    src/AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.cpp
 
 
 )

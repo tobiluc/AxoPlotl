@@ -1,46 +1,16 @@
-//#define GLFW_INCLUDE_NONE
-//#define GL_SILENCE_DEPRECATION
-//#define IMGUI_INCLUDE
-
-#include "AxoPlotl/IO/OVMFileAccessor.h"
-#include "AxoPlotl/algorithms/marching_cubes.h"
 #include "AxoPlotl/commons/ovm.h"
-#include "AxoPlotl/geometry/implicit_functions.h"
 #include "AxoPlotl/interface/imgui_file_dialog.h"
-#include "AxoPlotl/interface/polyscope_register_ovm_mesh.h"
-#include "AxoPlotl/interface/request_explicit_function.h"
+#include "AxoPlotl/polyscope_custom_structures/ExplicitSurfaceStructure.h"
+#include "AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.h"
 #include "GLFW/glfw3.h"
-#include "polyscope/point_cloud.h"
 #include "polyscope/polyscope.h"
 #include "polyscope/surface_mesh.h"
-#include "polyscope/volume_mesh.h"
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
-#include <AxoPlotl/polyscope_custom_structures/TestStructure.h>
-
-void add_mesh_ovm(const std::string& name, const AxoPlotl::PolyhedralMesh& mesh) {
-    // if (mesh.n_cells() > 0) {
-    //     AxoPlotl::Interface::register_volume_mesh("DUMMY", mesh);
-    // } else if (mesh.n_faces() > 0) {
-    //     AxoPlotl::Interface::register_surface_mesh("DUMMY", mesh);
-    // } else if (mesh.n_edges() > 0) {
-    //     AxoPlotl::Interface::register_curve_network("DUMMY", mesh);
-    // } else {
-    //     AxoPlotl::Interface::register_point_cloud("DUMMY", mesh);
-    // }
-    polyscope::registerOVMStructure(name, mesh);
-};
+#include <AxoPlotl/polyscope_custom_structures/OVMStructure.h>
 
 int main()
 {
-    // AxoPlotl::PolyhedralMesh tmp;
-    // AxoPlotl::IO::loadMeshOVM("/Users/tobiaskohler/Uni/IGRec/IGRec-Dataset/Output/IGRec_Point_Cloud.ovmb", tmp);
-    // polyscope::OVMStructure("TMP", tmp);
-    // return 0;
-
-    //AxoPlotl::Runner ap;
-    //ap.run();
-
     polyscope::init();
     GLFWwindow* window = glfwGetCurrentContext();
     if (!window) {
@@ -52,61 +22,6 @@ int main()
     // It seems to have to do with scaling
     polyscope::registerPointCloud("dummy", std::vector<glm::vec3>{
     {-1,-1,-1}, {1,1,1}});
-
-
-    char test_in_x[512];
-    char test_in_y[512];
-    char test_in_z[512];
-
-    auto add_implicit_function = [&](const AxoPlotl::Geometry::ImplicitSurfaceFunction& func, std::string name) {
-        std::vector<glm::vec3> pts;
-        std::vector<std::array<uint32_t,3>> tris;
-        AxoPlotl::Algo::MarchingCubes::Settings cfg;
-        cfg.bounds = func.bounds;
-        AxoPlotl::Algo::MarchingCubes::generateAdaptive(func.f, pts, tris, cfg);
-        polyscope::registerSurfaceMesh(name, pts, tris);
-    };
-
-    auto add_explicit_surface_function = [&](const std::string& name,
-            const AxoPlotl::Geometry::ExplicitSurfaceFunction& func,
-            const uint32_t resolution = 32) {
-        std::vector<glm::vec3> pts;
-        pts.reserve((resolution+1)*(resolution+1));
-        std::vector<std::array<uint32_t,3>> tris;
-        tris.reserve(2*(resolution+1)*(resolution+1));
-
-        // Generate Vertex Positions
-        float s, t;
-        for (int i = 0; i <= resolution; ++i) {
-            s = func.uMin + i * (func.uMax - func.uMin) / resolution;
-            for (int j = 0; j <= resolution; ++j) {
-                t = func.vMin + j * (func.vMax - func.vMin) / resolution;
-                pts.push_back(func(s, t));
-            }
-        }
-
-        // Generate Triangles
-        for (int i = 0; i < resolution; ++i) {
-            for (int j = 0; j < resolution; ++j) {
-                uint32_t row1 = i * (resolution + 1);
-                uint32_t row2 = (i + 1) * (resolution + 1);
-
-                tris.push_back({
-                    (row1 + j + 0),
-                    (row2 + j + 0),
-                    (row2 + j + 1)
-                });
-
-                tris.push_back({
-                    (row2 + j + 1),
-                    (row1 + j + 1),
-                    (row1 + j + 0)
-                });
-            }
-        }
-
-        polyscope::registerSurfaceMesh(name, pts, tris);
-    };
 
     polyscope::state::userCallback = [&]() {
 
@@ -148,23 +63,28 @@ int main()
                     if (ImGui::BeginMenu("Explicit")) {
 
                         if (ImGui::MenuItem("Empty")) {
-                            // TODO
+                            polyscope::registerExplicitSurfaceStructure("Explicit Surface");
                         }
                         ImGui::Separator();
 
                         if (ImGui::MenuItem("Sphere")) {
-                            add_explicit_surface_function("Sphere",
-                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::sphere());
+                            polyscope::registerExplicitSurfaceStructure("Explicit Sphere",
+                                "sin(u)*cos(v)", "cos(u)", "sin(u)*sin(v)",
+                                {0, M_PI}, {0, 2*M_PI});
                         }
 
                         if (ImGui::MenuItem("Torus")) {
-                            add_explicit_surface_function("Sphere",
-                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::torus());
+                            polyscope::registerExplicitSurfaceStructure("Explicit Torus",
+                                "(2 + sin(u))*cos(v)", "(2 + sin(u))*sin(v)", "cos(u)",
+                                {0, 2*M_PI}, {0, 2*M_PI});
                         }
 
                         if (ImGui::MenuItem("Moebius Strip")) {
-                            add_explicit_surface_function("Moebius Strip",
-                                AxoPlotl::Geometry::ExplicitSurfaceFunctionBuilder::moebiusStrip());
+                            polyscope::registerExplicitSurfaceStructure("Explicit Moebius Strip",
+                                "(1 + 0.5*v*cos(0.5*u)) * cos(u)",
+                                "(1 + 0.5*v*cos(0.5*u)) * sin(u)",
+                                "0.5*v * sin(0.5*u)",
+                                {0, 2*M_PI}, {-1,1});
                         }
 
                         ImGui::EndMenu(); // !Explicit
@@ -172,48 +92,51 @@ int main()
 
                     if (ImGui::BeginMenu("Implicit")) {
 
+                        if (ImGui::MenuItem("Empty")) {
+                            polyscope::registerImplicitSurfaceStructure("Implicit Surface");
+                        }
                         ImGui::Separator();
 
                         if (ImGui::MenuItem("Sphere")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::sphere(),
-                                "Sphere");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Sphere",
+                            "x*x + y*y + z*z - 1",
+                            {-2,2}, {-2,2}, {-2,2});
                         }
 
                         if (ImGui::MenuItem("Cube")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::cube(),
-                                "Cube");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Cube",
+                                "max(abs(x),abs(y),abs(z)) - 1",
+                                {-2,2}, {-2,2}, {-2,2});
                         }
 
                         if (ImGui::MenuItem("Torus")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::torus(),
-                                "Torus");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Torus",
+                                "(2 - (x*x+z*z)^0.5)^2 + y^2 - 1",
+                                {-2,2}, {-2,2}, {-2,2});
                         }
 
                         if (ImGui::MenuItem("Gyroid")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::gyroid(),
-                                "Gyroid");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Gyroid",
+                                "sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)",
+                                {-10,10}, {-10,10}, {-10,10});
                         }
 
                         if (ImGui::MenuItem("Heart")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::heart(),
-                                "Heart");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Heart",
+                                "(x*x + (9.0/4.0)*z*z + y*y - 1)^3 - x*x*y*y*y - (9.0/80.0)*y*y*y*z*z",
+                                {-2,2}, {-2,2}, {-2,2});
                         }
 
                         if (ImGui::MenuItem("Wineglass")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::wineglass(),
-                                "Wineglass");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Wineglass",
+                                "x^2 + z^2 - (ln(y + 3.2))^2 - 0.02",
+                                {-2,2}, {-3,3}, {-2,2});
                         }
 
                         if (ImGui::MenuItem("Test")) {
-                            add_implicit_function(
-                                AxoPlotl::Geometry::ImplicitSurfaceFunctionBuilder::test(),
-                                "Test");
+                            polyscope::registerImplicitSurfaceStructure("Implicit Test",
+                                "(x-2)*(x-2)*(x+2)*(x+2) + (y-2)*(y-2)*(y+2)*(y+2) + (z-2)*(z-2)*(z+2)*(z+2) + 3*(x*x*y*y + x*x*z*z + y*y*z*z) + 6*x*y*z - 10*(x*x+y*y+z*z) + 22",
+                                {-10,10}, {-10,10}, {-10,10});
                         }
 
                         ImGui::EndMenu(); // !Implicit
@@ -252,28 +175,12 @@ int main()
             ImGui::EndMainMenuBar();
         }
 
-        // --- your ImGui code here ---
         auto load_path = AxoPlotl::Interface::imgui_file_dialog_get();
         if (load_path.has_value()) {
             AxoPlotl::PolyhedralMesh mesh;
             if (AxoPlotl::IO::loadMesh(load_path.value(), mesh)) {
-                add_mesh_ovm(load_path.value().filename(), mesh);
+                polyscope::registerOVMStructure(load_path.value().filename(), mesh);
             }
-        }
-
-        if (ImGui::Button("Say: Hello World")) {
-            std::cout << "Hello World" << std::endl;
-        }
-
-        ImGui::Separator();
-        ImGui::Text("Lorem Ipsum");
-        static float val = 0.5f;
-        ImGui::SliderFloat("Cool Slider", &val, 0.f, 1.f);
-
-        std::vector<glm::vec3> points;
-        std::vector<std::array<uint32_t,3>> triangles;
-        if (AxoPlotl::Interface::request_input_xyz(test_in_x, test_in_y, test_in_z, points, triangles)) {
-            polyscope::registerSurfaceMesh("TEST_EXPLICIT_SURFACE", points, triangles);
         }
     };
 
@@ -287,7 +194,7 @@ int main()
             AxoPlotl::IO::loadMesh(
                 std::filesystem::path(std::filesystem::path(paths[i])),
                 mesh);
-            add_mesh_ovm(std::filesystem::path(paths[i]).filename(), mesh);
+            polyscope::registerOVMStructure(std::filesystem::path(paths[i]).filename(), mesh);
         }
     });
 
