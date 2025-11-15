@@ -1,9 +1,12 @@
 //#define GLFW_INCLUDE_NONE
 //#define GL_SILENCE_DEPRECATION
+//#define IMGUI_INCLUDE
 
+#include "AxoPlotl/IO/OVMFileAccessor.h"
 #include "AxoPlotl/algorithms/marching_cubes.h"
 #include "AxoPlotl/commons/ovm.h"
 #include "AxoPlotl/geometry/implicit_functions.h"
+#include "AxoPlotl/interface/imgui_file_dialog.h"
 #include "AxoPlotl/interface/polyscope_register_ovm_mesh.h"
 #include "AxoPlotl/interface/request_explicit_function.h"
 #include "GLFW/glfw3.h"
@@ -13,21 +16,28 @@
 #include "polyscope/volume_mesh.h"
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
+#include <AxoPlotl/polyscope_custom_structures/TestStructure.h>
 
 void add_mesh_ovm(const std::string& name, const AxoPlotl::PolyhedralMesh& mesh) {
-    if (mesh.n_cells() > 0) {
-        AxoPlotl::Interface::register_volume_mesh(name, mesh);
-    } else if (mesh.n_faces() > 0) {
-        AxoPlotl::Interface::register_surface_mesh(name, mesh);
-    } else if (mesh.n_edges() > 0) {
-        AxoPlotl::Interface::register_curve_network(name, mesh);
-    } else {
-        AxoPlotl::Interface::register_point_cloud(name, mesh);
-    }
+    // if (mesh.n_cells() > 0) {
+    //     AxoPlotl::Interface::register_volume_mesh("DUMMY", mesh);
+    // } else if (mesh.n_faces() > 0) {
+    //     AxoPlotl::Interface::register_surface_mesh("DUMMY", mesh);
+    // } else if (mesh.n_edges() > 0) {
+    //     AxoPlotl::Interface::register_curve_network("DUMMY", mesh);
+    // } else {
+    //     AxoPlotl::Interface::register_point_cloud("DUMMY", mesh);
+    // }
+    polyscope::registerOVMStructure(name, mesh);
 };
 
 int main()
 {
+    // AxoPlotl::PolyhedralMesh tmp;
+    // AxoPlotl::IO::loadMeshOVM("/Users/tobiaskohler/Uni/IGRec/IGRec-Dataset/Output/IGRec_Point_Cloud.ovmb", tmp);
+    // polyscope::OVMStructure("TMP", tmp);
+    // return 0;
+
     //AxoPlotl::Runner ap;
     //ap.run();
 
@@ -37,6 +47,12 @@ int main()
         std::cerr << "No current GLFW context after polyscope::init()\n";
         return -1;
     }
+
+    // TODO: OVM Mesh is invisible when not having other Meshes... Why?
+    // It seems to have to do with scaling
+    polyscope::registerPointCloud("dummy", std::vector<glm::vec3>{
+    {-1,-1,-1}, {1,1,1}});
+
 
     char test_in_x[512];
     char test_in_y[512];
@@ -220,13 +236,8 @@ int main()
                 }
 
                 if (ImGui::BeginMenu("Mesh")) {
-
                     if (ImGui::MenuItem("Load from File")) {
-                        // AxoPlotl::PolyhedralMesh mesh;
-                        // std::filesystem::path path;
-                        // if (AxoPlotl::IO::loadMesh(path, mesh)) {
-                        //     add_mesh_ovm(mesh, path.filename());
-                        // }
+                        AxoPlotl::Interface::imgui_file_dialog_open("Mesh files (*.obj *.ovm *.ovmb *ply){.obj,.ovm,.ovmb,.ply}");
                     }
                     ImGui::EndMenu(); // !Mesh
                 }
@@ -242,6 +253,14 @@ int main()
         }
 
         // --- your ImGui code here ---
+        auto load_path = AxoPlotl::Interface::imgui_file_dialog_get();
+        if (load_path.has_value()) {
+            AxoPlotl::PolyhedralMesh mesh;
+            if (AxoPlotl::IO::loadMesh(load_path.value(), mesh)) {
+                add_mesh_ovm(load_path.value().filename(), mesh);
+            }
+        }
+
         if (ImGui::Button("Say: Hello World")) {
             std::cout << "Hello World" << std::endl;
         }

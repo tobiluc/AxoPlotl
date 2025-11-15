@@ -65,6 +65,11 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/commons/ovm.cpp
     src/AxoPlotl/interface/polyscope_register_ovm_mesh.h
     src/AxoPlotl/interface/polyscope_register_ovm_mesh.cpp
+    src/AxoPlotl/interface/imgui_file_dialog.h
+    src/AxoPlotl/polyscope_custom_structures/TestStructure.h
+    src/AxoPlotl/polyscope_custom_structures/TestStructure.cpp
+
+
 )
 
 #=========================
@@ -106,93 +111,6 @@ if(NOT TARGET Eigen3::Eigen)
     endif()
 endif()
 
-
-#=========================
-# GLFW
-#=========================
-include(FetchContent) 
-set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
-set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
-
-if (NOT TARGET glfw)
-    message(STATUS "Fetching glfw")
-    set(GLFW_BUILD_EXAMPLES OFF)
-    set(GLFW_BUILD_TESTS OFF)
-    set(GLFW_BUILD_DOCS OFF)
-    set(GLFW_INSTALL OFF)
-    FetchContent_Declare(glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw
-    GIT_TAG        3.3.8
-    SOURCE_DIR "${EXTERNAL_DIR}/glfw"
-    )
-FetchContent_MakeAvailable(glfw)
-endif()
-
-#=========================
-# GLM
-#=========================
-if (NOT TARGET glm)
-    message(STATUS "Fetching glm")
-    FetchContent_Declare(glm
-        GIT_REPOSITORY https://github.com/g-truc/glm.git
-        GIT_TAG        0.9.9.8
-        SOURCE_DIR "${EXTERNAL_DIR}/glm"
-    )
-    FetchContent_MakeAvailable(glm)
-endif()
-
-#=========================
-# Glad
-#=========================
-if (NOT TARGET glad)
-    message(STATUS "Fetching glad")
-    FetchContent_Declare(glad
-        GIT_REPOSITORY https://github.com/Oceanic13/glad.git
-        GIT_TAG "main"
-        SOURCE_DIR "${EXTERNAL_DIR}/glad"
-    )
-    FetchContent_MakeAvailable(glad)
-endif()
-
-#=========================
-# OpenGL
-#=========================
-find_package(OpenGL REQUIRED)
-
-#=========================
-# ImGui
-#=========================
-# if (NOT TARGET ImGui)
-#     message(STATUS "Fetching ImGui")
-#     FetchContent_Declare(ImGui
-#         GIT_REPOSITORY https://github.com/ocornut/imgui.git
-#         SOURCE_DIR "${EXTERNAL_DIR}/ImGui"
-#     )
-#     FetchContent_MakeAvailable(ImGui)
-#     add_library(ImGui STATIC
-#         ${IMGUI_SRC_FILES}
-#         ${EXTERNAL_DIR}/ImGui/imgui.cpp
-#         ${EXTERNAL_DIR}/ImGui/imgui_demo.cpp
-#         ${EXTERNAL_DIR}/ImGui/imgui_draw.cpp
-#         ${EXTERNAL_DIR}/ImGui/imgui_tables.cpp
-#         ${EXTERNAL_DIR}/ImGui/imgui_widgets.cpp
-#         ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_glfw.cpp
-#         ${EXTERNAL_DIR}/ImGui/backends/imgui_impl_opengl3.cpp
-#     )
-#     target_include_directories(ImGui PUBLIC ${EXTERNAL_DIR}/ImGui)
-#     target_link_libraries(ImGui PUBLIC glfw OpenGL::GL)
-# endif()
-# if (NOT TARGET ImGuiFileDialog)
-#     message(STATUS "Fetching ImGuiFileDialog")
-#     FetchContent_Declare(ImGuiFileDialog
-#         GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
-#         SOURCE_DIR "${EXTERNAL_DIR}/ImGuiFileDialog"
-#     )
-#     FetchContent_MakeAvailable(ImGuiFileDialog)
-
-# endif()
-
-
 #=========================
 # OVM
 #=========================
@@ -231,22 +149,33 @@ if (NOT TARGET polyscope)
 endif()
 
 #=========================
+# ImGui File Dialog
+#=========================
+if (NOT TARGET ImGuiFileDialog)
+    message(STATUS "Fetching ImGuiFileDialog")
+    FetchContent_Declare(ImGuiFileDialog
+        GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog.git
+        SOURCE_DIR "${EXTERNAL_DIR}/ImGuiFileDialog"
+    )
+    FetchContent_MakeAvailable(ImGuiFileDialog)
+endif()
+
+# Tell ImGuiFileDialog where to find imgui.h (dependency of polyscope)
+target_include_directories(ImGuiFileDialog PRIVATE
+    ${polyscope_SOURCE_DIR}/deps/imgui/imgui
+)
+
+#=========================
 # Link
 #=========================
 target_link_libraries(${PROJECT_NAME} PUBLIC
-glad
-#glfw
-#OpenGL::GL
-#OpenMP::OpenMP_CXX
-#glm
+OpenMP::OpenMP_CXX
 Eigen3::Eigen
 OpenVolumeMesh::OpenVolumeMesh
-#ImGui
-# ImGuiFileDialog
+ImGuiFileDialog
 nlohmann_json::nlohmann_json
 polyscope
 )
-# target_link_libraries(ImGuiFileDialog ImGui)
 
 #=========================
 # Define what to include
@@ -268,15 +197,10 @@ add_executable(${PROJECT_NAME}-Tests tests/tests.cpp)
 target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
     gtest
     gtest_main
-    #glad
-    #glfw
-    #OpenGL::GL
-    #OpenMP::OpenMP_CXX
-    #glm
-    #OpenVolumeMesh::OpenVolumeMesh
-    #ImGui
-    #ImGuiFileDialog
-    #nlohmann_json::nlohmann_json
+    OpenMP::OpenMP_CXX
+    OpenVolumeMesh::OpenVolumeMesh
+    ImGuiFileDialog
+    nlohmann_json::nlohmann_json
 )
 target_include_directories(${PROJECT_NAME}-Tests PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>

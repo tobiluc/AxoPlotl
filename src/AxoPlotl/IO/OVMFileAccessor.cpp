@@ -1,77 +1,22 @@
 #include "OVMFileAccessor.h"
 #include <iomanip>
+#include <Eigen/Core>
+#include <Eigen/LU>
 #include "OpenVolumeMesh/IO/ovmb_write.hh"
+#include "OpenVolumeMesh/IO/ovmb_read.hh"
 #include "OpenVolumeMesh/IO/PropertyCodecsEigen.hh"
-
-namespace OpenVolumeMesh {
-
-//template <> const std::string typeName<IGRec::Eig::Mat3x3d>() { return "Matrix3x3d"; }
-
-}
+#include "OpenVolumeMesh/IO/PropertyCodecs.hh"
 
 namespace AxoPlotl::IO
 {
 
-// bool loadMeshOVM(const std::string& filename, PolyhedralMesh& mesh)
-// {
-//     OVM::IO::FileManager fm;
-//     return fm.readFile(filename, mesh);
-// }
-
-// bool loadMeshOVMB(const std::string& filename, PolyhedralMesh& mesh)
-// {
-//     auto codecs = OVM::IO::g_default_property_codecs;
-//     //OVM::IO::register_eigen_codecs(codecs);
-//     auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
-//     if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
-//     return true;
-// }
-
-// bool readTetMesh(const std::string& filename, TetrahedralMesh& mesh, FileFormat ext)
-// {
-//     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
-//     if (ext == FileFormat::OVMA)
-//     {
-//         OVM::IO::FileManager fm;
-//         return fm.readFile(filename, mesh);
-//     }
-//     else if (ext == FileFormat::OVMB)
-//     {
-//         auto codecs = OVM::IO::g_default_property_codecs;
-//         auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
-//         if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
-
-//         return true;
-//     }
-//     else
-//     {
-//         std::cerr << "Unsupported File Format. Cannot read Input from: " << filename << std::endl;
-//         return false;
-//     }
-// }
-
-// bool readHexMesh(const std::string& filename, HexahedralMesh& mesh, FileFormat ext)
-// {
-//     if (ext == FileFormat::INVALID) ext = getFileFormatFromName(filename);
-//     if (ext == FileFormat::OVMA)
-//     {
-//         OVM::IO::FileManager fm;
-//         return fm.readFile(filename, mesh);
-//     }
-//     else if (ext == FileFormat::OVMB)
-//     {
-//         auto codecs = OVM::IO::g_default_property_codecs;
-//         auto res = OVM::IO::ovmb_read(filename.c_str(), mesh, OVM::IO::ReadOptions(), codecs);
-//         if (res != OVM::IO::ReadResult::Ok) {std::cerr << OVM::IO::to_string(res) << std::endl; return false;}
-
-//         return true;
-//     }
-//     else
-//     {
-//         std::cerr << "Unsupported File Format. Cannot read Input from: " << filename << std::endl;
-//         return false;
-//     }
-// }
+OpenVolumeMesh::IO::PropertyCodecs ovm_property_codecs()
+{
+    using namespace OpenVolumeMesh::IO;
+    auto codecs = g_default_property_codecs;
+    OpenVolumeMesh::IO::register_eigen_codecs(codecs);
+    return codecs;
+}
 
 bool loadMeshOVM(const std::filesystem::path& path, PolyhedralMesh& mesh)
 {
@@ -80,8 +25,7 @@ bool loadMeshOVM(const std::filesystem::path& path, PolyhedralMesh& mesh)
         OVM::IO::FileManager fm;
         return fm.readFile(path, mesh);
     } else if (ext == ".ovmb") {
-        auto codecs = OVM::IO::g_default_property_codecs;
-        auto res = OVM::IO::ovmb_read(path, mesh, OVM::IO::ReadOptions(), codecs);
+        auto res = OVM::IO::ovmb_read(path, mesh, OVM::IO::ReadOptions(), ovm_property_codecs());
         if (res != OVM::IO::ReadResult::Ok) {
             std::cerr << OVM::IO::to_string(res) << std::endl;
             return false;
@@ -104,8 +48,7 @@ void writeMeshOVM(const std::filesystem::path& path, const PolyhedralMesh& mesh)
     } else if (ext == ".ovmb")
     {
         // Save Binary
-        auto codecs = OVM::IO::g_default_property_codecs;
-        auto res = OVM::IO::ovmb_write(path, mesh, OVM::IO::WriteOptions(), codecs);
+        auto res = OVM::IO::ovmb_write(path, mesh, OVM::IO::WriteOptions(), ovm_property_codecs());
         if (res != OVM::IO::WriteResult::Ok) std::cerr << OVM::IO::to_string(res) << std::endl;
     }
     std::cerr << "Unsupported File Format. Cannot write Input Tet Mesh to: " << path << std::endl;

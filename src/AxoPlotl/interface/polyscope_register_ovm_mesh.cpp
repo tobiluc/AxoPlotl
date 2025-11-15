@@ -51,7 +51,16 @@ polyscope::SurfaceMesh* Interface::register_surface_mesh(const std::string& _nam
             });
         }
     }
-    return polyscope::registerSurfaceMesh(_name, _mesh.vertex_positions(), tris);
+    auto* sm = polyscope::registerSurfaceMesh(_name, _mesh.vertex_positions(), tris);
+    if (_mesh.n_face_props()>0) {
+        for (auto f_prop = _mesh.face_props_begin(); f_prop != _mesh.face_props_begin(); ++f_prop) {
+            if ((*f_prop)->typeNameWrapper() == "int") {
+                auto prop = _mesh.get_face_property<int>((*f_prop)->name()).value();
+                sm->addFaceScalarQuantity((*f_prop)->name(), prop);
+            }
+        }
+    }
+    return sm;
 }
 
 polyscope::VolumeMesh* Interface::register_volume_mesh(const std::string& _name, const PolyhedralMesh& _mesh)
@@ -72,11 +81,15 @@ polyscope::VolumeMesh* Interface::register_volume_mesh(const std::string& _name,
         std::vector<std::array<uint32_t,8>> hex_indices;
         hex_indices.reserve(_mesh.n_cells());
         for (auto c_it = _mesh.c_iter(); c_it.is_valid(); ++c_it) {
-            int i = 0;
-            hex_indices.emplace_back();
+            std::vector<uint32_t> is;
+            is.reserve(8);
             for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
-                hex_indices.back()[i++] = cv_it->idx();
+                is.push_back(cv_it->uidx());
             }
+            hex_indices.push_back({
+                is[0], is[1], is[2], is[3],
+                is[4], is[7], is[6], is[5]
+            });
         }
         return polyscope::registerHexMesh(_name, _mesh.vertex_positions(), hex_indices);
     }
