@@ -4,59 +4,28 @@
 #include "AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.h"
 #include "GLFW/glfw3.h"
 #include "polyscope/polyscope.h"
-#include "polyscope/surface_mesh.h"
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
 #include <AxoPlotl/polyscope_custom_structures/OVMStructure.h>
 
 int main()
 {
+    // Init Polyscope
+    polyscope::options::programName = "AxoPlotl";
+    polyscope::options::verbosity = 1;
+    polyscope::options::usePrefsFile = false;
+    polyscope::options::autocenterStructures = false;
+    polyscope::options::autoscaleStructures = false;
+    polyscope::options::automaticallyComputeSceneExtents = true;
+    polyscope::view::setNavigateStyle(polyscope::NavigateStyle::Turntable);
     polyscope::init();
-    GLFWwindow* window = glfwGetCurrentContext();
-    if (!window) {
-        std::cerr << "No current GLFW context after polyscope::init()\n";
-        return -1;
-    }
 
-    // TODO: OVM Mesh is invisible when not having other Meshes... Why?
-    // It seems to have to do with scaling
-    polyscope::registerPointCloud("dummy", std::vector<glm::vec3>{
-    {-1,-1,-1}, {1,1,1}});
 
     polyscope::state::userCallback = [&]() {
 
         if (ImGui::BeginMainMenuBar()) {
 
             if (ImGui::BeginMenu("Add")) {
-
-                if (ImGui::BeginMenu("Simple")) {
-
-                    if (ImGui::MenuItem("Convex Polygon")) {
-                        std::vector<glm::vec3> pts;
-                        pts.push_back(glm::vec3{0,0,0});
-                        pts.push_back(glm::vec3{1,0,0});
-                        pts.push_back(glm::vec3{0,1,0});
-                        std::vector<std::array<uint32_t,3>> tris;
-                        tris.push_back({0,1,2});
-                        polyscope::registerSurfaceMesh("Triangle", pts, tris);
-                    }
-
-                    ImGui::EndMenu(); // !Simple
-                }
-
-                if (ImGui::BeginMenu("Curve")) {
-
-                    if (ImGui::MenuItem("Empty")) {
-                        // TODO
-                    }
-                    ImGui::Separator();
-
-                    if (ImGui::MenuItem("Butterfly")) {
-                        // TODO
-                    }
-
-                    ImGui::EndMenu(); // !Curve
-                }
 
                 if (ImGui::BeginMenu("Surface")) {
 
@@ -184,9 +153,14 @@ int main()
         }
     };
 
-    //-----------------
-    // Drop Files in
-    //-----------------
+    // Get GLFW Window
+    GLFWwindow* window = glfwGetCurrentContext();
+    if (!window) {
+        std::cerr << "No current GLFW context after polyscope::init()\n";
+        return -1;
+    }
+
+    // File Dop In
     glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char** paths) {
 
         for (int i = 0; i < count; ++i) {
@@ -198,6 +172,9 @@ int main()
         }
     });
 
-    // View the 3D UI
-    polyscope::show();
+    // Main Loop
+    while(!polyscope::windowRequestsClose())
+    {
+        polyscope::frameTick();
+    }
 }

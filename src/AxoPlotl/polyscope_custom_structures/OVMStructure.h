@@ -69,8 +69,8 @@ private:
     std::unique_ptr<SurfaceMesh> halffaces_surface_mesh_;
     std::unique_ptr<VolumeMesh> cells_volume_mesh_;
 
-    float vertex_radius_;
-    float edge_radius_;
+    float vertex_radius_ = 0.005f;
+    float edge_radius_ = 0.005f;
     float cell_scale_ = 0.8f;
 };
 

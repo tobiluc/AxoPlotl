@@ -188,6 +188,8 @@ ExplicitSurfaceStructure* registerExplicitSurfaceStructure(
     const std::pair<float,float> _v_range,
     const uint32_t _resolution)
 {
+    checkInitialized();
+
     auto* s = new polyscope::ExplicitSurfaceStructure(
         _name, _input_x, _input_y, _input_z,
         _u_range, _v_range, _resolution);

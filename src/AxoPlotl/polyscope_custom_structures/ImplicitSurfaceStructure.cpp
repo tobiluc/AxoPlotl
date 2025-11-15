@@ -153,6 +153,8 @@ ImplicitSurfaceStructure* registerImplicitSurfaceStructure(
     const uint32_t _resolution,
     const uint32_t _adaptive_depth)
 {
+    checkInitialized();
+
     auto* s = new polyscope::ImplicitSurfaceStructure(
         _name, _input,
         _x_range, _y_range, _z_range,
