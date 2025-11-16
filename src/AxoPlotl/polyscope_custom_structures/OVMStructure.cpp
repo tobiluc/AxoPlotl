@@ -116,8 +116,14 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
         // Transfer edge properties
         for (auto e_prop = _mesh.edge_props_begin(); e_prop != _mesh.edge_props_end(); ++e_prop) {
             std::string type_name = prop_type_name(*e_prop);
-            if (type_name == "int") {
+            if (type_name == "bool") {
+                auto prop = _mesh.get_edge_property<bool>((*e_prop)->name()).value();
+                edges_curve_network_->addEdgeScalarQuantity((*e_prop)->name(), prop);
+            } else if (type_name == "int") {
                 auto prop = _mesh.get_edge_property<int>((*e_prop)->name()).value();
+                edges_curve_network_->addEdgeScalarQuantity((*e_prop)->name(), prop);
+            } else if (type_name == "double") {
+                auto prop = _mesh.get_edge_property<double>((*e_prop)->name()).value();
                 edges_curve_network_->addEdgeScalarQuantity((*e_prop)->name(), prop);
             }
         }
@@ -145,6 +151,9 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
             } else if (type_name == "int") {
                 auto prop = _mesh.get_halfface_property<int>((*hf_prop)->name()).value();
                 halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
+            } else if (type_name == "double") {
+                auto prop = _mesh.get_halfface_property<double>((*hf_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
             }
         }
         for (auto f_prop = _mesh.face_props_begin(); f_prop != _mesh.face_props_end(); ++f_prop) {
@@ -154,6 +163,9 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
                 halffaces_surface_mesh_->addFaceScalarQuantity((*f_prop)->name(), standardize_face_property(_mesh, prop));
             } else if (type_name == "int") {
                 auto prop = _mesh.get_face_property<int>((*f_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*f_prop)->name(), standardize_face_property(_mesh, prop));
+            } else if (type_name == "double") {
+                auto prop = _mesh.get_face_property<double>((*f_prop)->name()).value();
                 halffaces_surface_mesh_->addFaceScalarQuantity((*f_prop)->name(), standardize_face_property(_mesh, prop));
             }
         }
@@ -206,9 +218,47 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
 // Build the imgui display
 void OVMStructure::buildCustomUI()
 {
+    bool b;
+
     //ImGui::Text("Hello World, I am an Open Volume Mesh :)");
     ImGui::Text("#P = %zu, #E = %zu, #F = %zu, #C = %zu",
         n_vertices(), n_edges(), n_faces(), n_cells());
+    if (vertices_point_cloud_) {
+        ImGui::Text("P");
+        ImGui::SameLine();
+        ImGui::PushID("enable_vertices");
+        b = vertices_point_cloud_->isEnabled();
+        if (ImGui::Checkbox("", &b)) {vertices_point_cloud_->setEnabled(b);}
+        ImGui::PopID();
+    }
+    if (edges_curve_network_) {
+        ImGui::SameLine();
+        ImGui::Text("E");
+        ImGui::SameLine();
+        ImGui::PushID("enable_edges");
+        b = edges_curve_network_->isEnabled();
+        if (ImGui::Checkbox("", &b)) {edges_curve_network_->setEnabled(b);}
+        ImGui::PopID();
+    }
+    if (halffaces_surface_mesh_) {
+        ImGui::SameLine();
+        ImGui::Text("F");
+        ImGui::SameLine();
+        ImGui::PushID("enable_faces");
+        b = halffaces_surface_mesh_->isEnabled();
+        if (ImGui::Checkbox("", &b)) {halffaces_surface_mesh_->setEnabled(b);}
+        ImGui::PopID();
+    }
+    if (cells_volume_mesh_) {
+        ImGui::SameLine();
+        ImGui::Text("C");
+        ImGui::SameLine();
+        ImGui::PushID("enable_cells");
+        b = cells_volume_mesh_->isEnabled();
+        if (ImGui::Checkbox("", &b)) {cells_volume_mesh_->setEnabled(b);}
+        ImGui::PopID();
+    }
+
 
     if (ImGui::Button("Zoom to Object")) {
         glm::vec3 p = polyscope::view::getCameraWorldPosition();
@@ -222,13 +272,8 @@ void OVMStructure::buildCustomUI()
 
 void OVMStructure::buildCustomOptionsUI()
 {
-    bool b;
     if (n_vertices() && ImGui::CollapsingHeader("Vertex Options")) {
         ImGui::PushID("vertices");
-        b = vertices_point_cloud_->isEnabled();
-        if (ImGui::Checkbox("Enable", &b)) {
-            vertices_point_cloud_->setEnabled(b);
-        }
         if (ImGui::SliderFloat("Vertex Radius", &vertex_radius_, 0.f, 0.05f)) {
             vertices_point_cloud_->setPointRadius(vertex_radius_, false);
         }
@@ -236,10 +281,6 @@ void OVMStructure::buildCustomOptionsUI()
     }
     if (n_edges() && ImGui::CollapsingHeader("Edge Options")) {
         ImGui::PushID("edges");
-        b = edges_curve_network_->isEnabled();
-        if (ImGui::Checkbox("Enable", &b)) {
-            edges_curve_network_->setEnabled(b);
-        }
         if (ImGui::SliderFloat("Edge Radius", &edge_radius_, 0.f, 0.05f)) {
             edges_curve_network_->setRadius(edge_radius_, false);
         }
@@ -247,18 +288,10 @@ void OVMStructure::buildCustomOptionsUI()
     }
     if (n_faces() && ImGui::CollapsingHeader("Face Options")) {
         ImGui::PushID("faces");
-        b = halffaces_surface_mesh_->isEnabled();
-        if (ImGui::Checkbox("Enable", &b)) {
-            halffaces_surface_mesh_->setEnabled(b);
-        }
         ImGui::PopID();
     }
     if (n_cells() && ImGui::CollapsingHeader("Cell Options")) {
         ImGui::PushID("cells");
-        b = cells_volume_mesh_->isEnabled();
-        if (ImGui::Checkbox("Enable", &b)) {
-            cells_volume_mesh_->setEnabled(b);
-        }
         if (ImGui::SliderFloat("Cell Scale", &cell_scale_, 0.f, 1.0f)) {
             // TODO: We probably want to set some uniform
             // and use a custom shader for cell scales

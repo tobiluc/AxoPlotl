@@ -72,6 +72,10 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/polyscope_custom_structures/ExplicitSurfaceStructure.cpp
     src/AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.h
     src/AxoPlotl/polyscope_custom_structures/ImplicitSurfaceStructure.cpp
+    src/AxoPlotl/polyscope_custom_structures/PolyscopeOVM.h
+    src/AxoPlotl/polyscope_custom_structures/PolyscopeOVM.cpp
+    src/AxoPlotl/polyscope_custom_structures/PolyscopeOVMQuantity.h
+    src/AxoPlotl/polyscope_custom_structures/PolyscopeOVMQuantity.cpp
 
 
 )

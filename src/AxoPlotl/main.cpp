@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
 #include <AxoPlotl/polyscope_custom_structures/OVMStructure.h>
+#include <AxoPlotl/polyscope_custom_structures/PolyscopeOVM.h>
 
 int main()
 {
@@ -20,6 +21,10 @@ int main()
     polyscope::view::setNavigateStyle(polyscope::NavigateStyle::Turntable);
 
     polyscope::init();
+
+    // polyscope::OVM::PolyhedralMesh tmp;
+    // AxoPlotl::IO::loadMesh("/Users/tobiaskohler/Uni/IGRec/IGRec-Dataset/Output/IGRec_Domain_Volume.ovmb", tmp);
+    // polyscope::register_polyscope_ovm("TEST", tmp);
 
     polyscope::state::userCallback = [&]() {
 
