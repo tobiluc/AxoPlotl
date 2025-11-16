@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <AxoPlotl/IO/FileAccessor.h>
 #include <AxoPlotl/polyscope_custom_structures/OVMStructure.h>
-#include <AxoPlotl/polyscope_custom_structures/PolyscopeOVM.h>
+#include <AxoPlotl/experimental/PolyscopeOVM.h>
 
 int main()
 {

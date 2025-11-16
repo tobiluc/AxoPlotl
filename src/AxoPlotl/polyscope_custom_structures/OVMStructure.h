@@ -24,18 +24,19 @@ public:
     // === Member functions ===
 
     // Construct a new structure
-    OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralMesh& _mesh);
-
+    void extracted();
+    OVMStructure(const std::string &_name, const AxoPlotl::PolyhedralMesh &_mesh);
+    
     // === Overrides
-
+    
     // Build the imgui display
     virtual void buildCustomUI() override;
     virtual void buildCustomOptionsUI() override;
-    virtual void buildPickUI(const PickResult& result) override;
-
+    virtual void buildPickUI(const PickResult &result) override;
+    
     virtual void buildQuantitiesUI() override;
     virtual void buildStructureOptionsUI() override;
-
+    
     // Standard structure overrides
     virtual void draw() override;
     virtual void drawDelayed() override;
@@ -44,11 +45,11 @@ public:
     virtual void updateObjectSpaceBounds() override;
     virtual std::string typeName() override;
     virtual void refresh() override;
-
-    Structure* setEnabled(bool newEnabled) override;
-
+    
+    Structure *setEnabled(bool newEnabled) override;
+    
     inline size_t n_vertices() const {
-        return vertices_point_cloud_? vertices_point_cloud_->nPoints() : 0;
+        return vertices_point_cloud_ ? vertices_point_cloud_->nPoints() : 0;
     }
 
     inline size_t n_edges() const {
