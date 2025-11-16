@@ -5,7 +5,7 @@
 namespace polyscope
 {
 
-std::string my_typename = "Explicit Surface";
+std::string explicit_surface_typename = "Explicit Surface";
 
 ExplicitSurfaceStructure::ExplicitSurfaceStructure(
         const std::string& _name,
@@ -16,7 +16,7 @@ ExplicitSurfaceStructure::ExplicitSurfaceStructure(
         const std::pair<float,float> _v_range,
         const uint32_t _resolution)
     :
-    QuantityStructure<ExplicitSurfaceStructure>(_name, my_typename),
+    QuantityStructure<ExplicitSurfaceStructure>(_name, explicit_surface_typename),
     u_range_(_u_range),
     v_range_(_v_range),
     resolution_(_resolution)
@@ -28,20 +28,16 @@ void ExplicitSurfaceStructure::buildCustomUI()
 {
     // Input
     ImGui::NewLine();
-    ImGui::Text("x(t) = ");
+    ImGui::Text("x(u,v) = ");
     ImGui::SameLine();
     if (ImGui::InputText("##x", input_x_, sizeof(input_x_))) {regenerate();} // x changed
-    ImGui::Text("y(t) = ");
+    ImGui::Text("y(u,v) = ");
     ImGui::SameLine();
     if (ImGui::InputText("##y", input_y_, sizeof(input_y_))) {regenerate();}// y changed
-    ImGui::Text("z(t) = ");
+    ImGui::Text("z(u,v) = ");
     ImGui::SameLine();
     if (ImGui::InputText("##z", input_z_, sizeof(input_z_))) {regenerate();}// z changed
 
-    // Update
-    // if (ImGui::Button("Generate")) {
-    //     regenerate();
-    // }
 }
 
 void ExplicitSurfaceStructure::buildCustomOptionsUI()
@@ -87,7 +83,7 @@ void ExplicitSurfaceStructure::updateObjectSpaceBounds() {
 }
 
 std::string ExplicitSurfaceStructure::typeName() {
-    return my_typename;
+    return explicit_surface_typename;
 }
 
 void ExplicitSurfaceStructure::refresh() {
@@ -96,6 +92,8 @@ void ExplicitSurfaceStructure::refresh() {
 
 void ExplicitSurfaceStructure::regenerate()
 {
+    std::cout << "Regenerate " << name << std::endl;
+
     // Parse Input Text
     auto tokens_x = AxoPlotl::Parsing::tokenize(input_x_);
     auto tokens_y = AxoPlotl::Parsing::tokenize(input_y_);
@@ -134,7 +132,8 @@ void ExplicitSurfaceStructure::regenerate()
         for (int j = 0; j <= resolution_; ++j) {
             t = v_range_.first + j * (v_range_.second - v_range_.first) / resolution_;
             points.push_back(f(s, t));
-            uvs.push_back({(float)i/resolution_, float(j)/resolution_});
+            //uvs.push_back({(float)i/resolution_, float(j)/resolution_});
+            uvs.push_back({s,t});
         }
     }
 
@@ -156,7 +155,9 @@ void ExplicitSurfaceStructure::regenerate()
     }
 
     mesh_ = std::make_unique<SurfaceMesh>(name, points, quads);
-    mesh_->addVertexParameterizationQuantity("UV", uvs)->setEnabled(true);
+    mesh_->addVertexParameterizationQuantity("UV", uvs, ParamCoordsType::WORLD)->setEnabled(true);
+    objectSpaceBoundingBox = mesh_->boundingBox();
+    objectSpaceLengthScale = mesh_->lengthScale();
 }
 
 void ExplicitSurfaceStructure::regenerate(const std::string& _input_x,

@@ -63,6 +63,10 @@ public:
         return cells_volume_mesh_? cells_volume_mesh_->nCells() : 0;
     }
 
+    //------------------------
+    // Quantities/Properties
+    //------------------------
+
 private:
     std::unique_ptr<PointCloud> vertices_point_cloud_;
     std::unique_ptr<CurveNetwork> edges_curve_network_;

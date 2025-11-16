@@ -10,17 +10,11 @@
 #include <OpenVolumeMesh/Mesh/TetrahedralGeometryKernel.hh>
 #include <OpenVolumeMesh/Core/GeometryKernel.hh>
 #include <OpenVolumeMesh/Mesh/HexahedralMeshTopologyKernel.hh>
+#include <Eigen/Core>
 
 namespace AxoPlotl
 {
-
 namespace OVM = OpenVolumeMesh;
-using VertexHandle = OVM::VertexHandle;
-using EdgeHandle = OVM::EdgeHandle;
-using HalfEdgeHandle = OVM::HalfEdgeHandle;
-using FaceHandle = OVM::FaceHandle;
-using HalfFaceHandle = OVM::HalfFaceHandle;
-using CellHandle = OVM::CellHandle;
 using TetrahedralMesh = OVM::TetrahedralGeometryKernel<OVM::Vec3d, OpenVolumeMesh::TetrahedralMeshTopologyKernel>;
 using PolyhedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::TopologyKernel>;
 using HexahedralMesh = OVM::GeometryKernel<OVM::Vec3d, OpenVolumeMesh::HexahedralMeshTopologyKernel>;
@@ -33,6 +27,7 @@ auto entity_iter(const PolyhedralMesh& mesh) {
     if constexpr (std::is_same_v<Handle, OVM::CH>) {return mesh.c_iter();}
     if constexpr (std::is_same_v<Handle, OVM::HEH>) {return mesh.he_iter();}
     if constexpr (std::is_same_v<Handle, OVM::HFH>) {return mesh.hf_iter();}
+    assert(false);
 }
 
 

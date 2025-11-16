@@ -18,8 +18,8 @@ int main()
     polyscope::options::autoscaleStructures = false;
     polyscope::options::automaticallyComputeSceneExtents = true;
     polyscope::view::setNavigateStyle(polyscope::NavigateStyle::Turntable);
-    polyscope::init();
 
+    polyscope::init();
 
     polyscope::state::userCallback = [&]() {
 

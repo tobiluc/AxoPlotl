@@ -61,10 +61,10 @@ add_executable(${PROJECT_NAME}
 
     src/AxoPlotl/geometry/AABB.h
 
-    src/AxoPlotl/interface/request_explicit_function.h
+
     src/AxoPlotl/commons/ovm.cpp
-    src/AxoPlotl/interface/polyscope_register_ovm_mesh.h
-    src/AxoPlotl/interface/polyscope_register_ovm_mesh.cpp
+
+
     src/AxoPlotl/interface/imgui_file_dialog.h
     src/AxoPlotl/polyscope_custom_structures/OVMStructure.h
     src/AxoPlotl/polyscope_custom_structures/OVMStructure.cpp

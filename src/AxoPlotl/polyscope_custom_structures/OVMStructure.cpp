@@ -1,24 +1,34 @@
 #include "OVMStructure.h"
 #include <Eigen/Core>
 
-// namespace OpenVolumeMesh
-// {
-// template <> const std::string typeName<Eigen::Matrix3d>() { return "mat3x3d"; }
-// template <> const std::string entityTypeName<Eigen::Vector3d>() {return "vec3d";};
-// }
-
 namespace polyscope
 {
 
 std::string ovm_typename = "OpenVolumeMesh";
 
-std::string prop_type_name(OpenVolumeMesh::PropertyStorageBase* _p) {
+// hacky
+std::string prop_type_name(const OpenVolumeMesh::PropertyStorageBase* _p) {
     if (_p->internal_type_name() == typeid(Eigen::Matrix3d).name()) {
         return "eigen_mat3x3d";
     } else if (_p->internal_type_name() == typeid(Eigen::Vector3d).name()) {
         return "eigen_vec3d";
     }
     return _p->typeNameWrapper();
+}
+
+/// Duplicate to attach to both halffaces
+template<typename T>
+std::vector<T> standardize_face_property(const AxoPlotl::PolyhedralMesh& _mesh,
+    const OpenVolumeMesh::FacePropertyPtr<T>& _p)
+{
+    std::vector<T> data;
+    data.reserve(_mesh.n_halffaces());
+    for (auto f_it = _mesh.f_iter(); f_it.is_valid(); ++f_it) {
+        const T& t = _p.at(*f_it);
+        data.emplace_back(t);
+        data.emplace_back(t);
+    }
+    return data;
 }
 
 OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralMesh& _mesh)
@@ -47,44 +57,43 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
     // Prepare Vertices Point Cloud
     if (_mesh.n_vertices() > 0) {
         vertices_point_cloud_ = std::make_unique<PointCloud>(name, points_data_);
-        vertices_point_cloud_->setPointRadius(0.002f, true);
+        vertices_point_cloud_->setPointRadius(0.002f*objectSpaceLengthScale, false);
         vertex_radius_ = vertices_point_cloud_->getPointRadius();
 
-        if (_mesh.n_vertex_props()>0) {
-            for (auto v_prop = _mesh.vertex_props_begin(); v_prop != _mesh.vertex_props_end(); ++v_prop) {
+        // Transfer vertex properties
+        for (auto v_prop = _mesh.vertex_props_begin(); v_prop != _mesh.vertex_props_end(); ++v_prop) {
 
-                // hack for eigen
-                std::string type_name = prop_type_name(*v_prop);
+            // hack for eigen
+            std::string type_name = prop_type_name(*v_prop);
 
-                if (type_name == "bool") {
-                    auto prop = _mesh.get_vertex_property<bool>((*v_prop)->name()).value();
-                    vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
-                } else if (type_name == "double") {
-                    auto prop = _mesh.get_vertex_property<double>((*v_prop)->name()).value();
-                    vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
-                } else if (type_name == "int") {
-                    auto prop = _mesh.get_vertex_property<int>((*v_prop)->name()).value();
-                    vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
-                } else if (type_name == "vec3d") {
-                    auto prop = _mesh.get_vertex_property<OpenVolumeMesh::Vec3d>((*v_prop)->name()).value();
-                    vertices_point_cloud_->addVectorQuantity((*v_prop)->name(), prop);
-                } else if (type_name == "eigen_vec3d") {
-                    auto prop = _mesh.get_vertex_property<Eigen::Vector3d>((*v_prop)->name()).value();
-                    vertices_point_cloud_->addVectorQuantity((*v_prop)->name(), prop);
-                } else if (type_name == "eigen_mat3x3d") {
-                    auto prop = _mesh.get_vertex_property<Eigen::Matrix3d>((*v_prop)->name()).value();
-                    std::array<std::vector<Eigen::Vector3d>,3> cols;
-                    for (auto v_it = _mesh.v_iter(); v_it.is_valid(); ++v_it) {
-                        for (int i = 0; i < 3; ++i) {
-                            cols[i].push_back(prop[*v_it].col(i));
-                        }
+            if (type_name == "bool") {
+                auto prop = _mesh.get_vertex_property<bool>((*v_prop)->name()).value();
+                vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
+            } else if (type_name == "double") {
+                auto prop = _mesh.get_vertex_property<double>((*v_prop)->name()).value();
+                vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
+            } else if (type_name == "int") {
+                auto prop = _mesh.get_vertex_property<int>((*v_prop)->name()).value();
+                vertices_point_cloud_->addScalarQuantity((*v_prop)->name(), prop);
+            } else if (type_name == "vec3d") {
+                auto prop = _mesh.get_vertex_property<OpenVolumeMesh::Vec3d>((*v_prop)->name()).value();
+                vertices_point_cloud_->addVectorQuantity((*v_prop)->name(), prop);
+            } else if (type_name == "eigen_vec3d") {
+                auto prop = _mesh.get_vertex_property<Eigen::Vector3d>((*v_prop)->name()).value();
+                vertices_point_cloud_->addVectorQuantity((*v_prop)->name(), prop);
+            } else if (type_name == "eigen_mat3x3d") {
+                auto prop = _mesh.get_vertex_property<Eigen::Matrix3d>((*v_prop)->name()).value();
+                std::array<std::vector<Eigen::Vector3d>,3> cols;
+                for (auto v_it = _mesh.v_iter(); v_it.is_valid(); ++v_it) {
+                    for (int i = 0; i < 3; ++i) {
+                        cols[i].push_back(prop[*v_it].col(i));
                     }
-                    vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (x)", cols[0]);
-                    vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (y)", cols[1]);
-                    vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (z)", cols[2]);
-                } else {
-                    std::cerr << "Skipped Property " << (*v_prop)->name() << std::endl;
                 }
+                vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (x)", cols[0]);
+                vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (y)", cols[1]);
+                vertices_point_cloud_->addVectorQuantity((*v_prop)->name()+" (z)", cols[2]);
+            } else {
+                std::cerr << "Skipped Property " << (*v_prop)->name() << std::endl;
             }
         }
     }
@@ -101,16 +110,15 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
             });
         }
         edges_curve_network_ = std::make_unique<CurveNetwork>(name, points_data_, edges);
-        edges_curve_network_->setRadius(0.001f, true);
+        edges_curve_network_->setRadius(0.001f*objectSpaceLengthScale, false);
         edge_radius_ = edges_curve_network_->getRadius();
 
-        if (_mesh.n_edge_props()>0) {
-            for (auto e_prop = _mesh.edge_props_begin(); e_prop != _mesh.edge_props_end(); ++e_prop) {
-                std::string type_name = prop_type_name(*e_prop);
-                if (type_name == "int") {
-                    auto prop = _mesh.get_edge_property<int>((*e_prop)->name()).value();
-                    edges_curve_network_->addEdgeScalarQuantity((*e_prop)->name(), prop);
-                }
+        // Transfer edge properties
+        for (auto e_prop = _mesh.edge_props_begin(); e_prop != _mesh.edge_props_end(); ++e_prop) {
+            std::string type_name = prop_type_name(*e_prop);
+            if (type_name == "int") {
+                auto prop = _mesh.get_edge_property<int>((*e_prop)->name()).value();
+                edges_curve_network_->addEdgeScalarQuantity((*e_prop)->name(), prop);
             }
         }
     }
@@ -128,16 +136,25 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
         halffaces_surface_mesh_ = std::make_unique<SurfaceMesh>(name, points_data_, halffaces);
         halffaces_surface_mesh_->setBackFacePolicy(BackFacePolicy::Cull);
 
-        if (_mesh.n_halfface_props() > 0) {
-            for (auto hf_prop = _mesh.halfface_props_begin(); hf_prop != _mesh.halfface_props_end(); ++hf_prop) {
-                std::string type_name = prop_type_name(*hf_prop);
-                if (type_name == "bool") {
-                    auto prop = _mesh.get_halfface_property<bool>((*hf_prop)->name()).value();
-                    halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
-                } else if (type_name == "int") {
-                    auto prop = _mesh.get_halfface_property<int>((*hf_prop)->name()).value();
-                    halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
-                }
+        // Transfer halfface and face properties
+        for (auto hf_prop = _mesh.halfface_props_begin(); hf_prop != _mesh.halfface_props_end(); ++hf_prop) {
+            std::string type_name = prop_type_name(*hf_prop);
+            if (type_name == "bool") {
+                auto prop = _mesh.get_halfface_property<bool>((*hf_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
+            } else if (type_name == "int") {
+                auto prop = _mesh.get_halfface_property<int>((*hf_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*hf_prop)->name(), prop);
+            }
+        }
+        for (auto f_prop = _mesh.face_props_begin(); f_prop != _mesh.face_props_end(); ++f_prop) {
+            std::string type_name = prop_type_name(*f_prop);
+            if (type_name == "bool") {
+                auto prop = _mesh.get_face_property<bool>((*f_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*f_prop)->name(), standardize_face_property(_mesh, prop));
+            } else if (type_name == "int") {
+                auto prop = _mesh.get_face_property<int>((*f_prop)->name()).value();
+                halffaces_surface_mesh_->addFaceScalarQuantity((*f_prop)->name(), standardize_face_property(_mesh, prop));
             }
         }
     }
@@ -167,22 +184,20 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
 
         cells_volume_mesh_ = std::make_unique<VolumeMesh>(name, corner_positions, standardizeVectorArray<std::array<uint32_t, 8>, 8>(cells));
 
-        if (_mesh.n_cell_props() > 0) {
+        // Transfer cell properties
+        for (auto c_prop = _mesh.cell_props_begin(); c_prop != _mesh.cell_props_end(); ++c_prop) {
 
-            for (auto c_prop = _mesh.cell_props_begin(); c_prop != _mesh.cell_props_end(); ++c_prop) {
+            std::string type_name = prop_type_name(*c_prop);
 
-                std::string type_name = prop_type_name(*c_prop);
-
-                if (type_name == "bool") {
-                    auto prop = _mesh.get_cell_property<bool>((*c_prop)->name()).value();
-                    cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
-                } else if (type_name == "int") {
-                    auto prop = _mesh.get_cell_property<int>((*c_prop)->name()).value();
-                    cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
-                } else if (type_name == "double") {
-                    auto prop = _mesh.get_cell_property<double>((*c_prop)->name()).value();
-                    cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
-                }
+            if (type_name == "bool") {
+                auto prop = _mesh.get_cell_property<bool>((*c_prop)->name()).value();
+                cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
+            } else if (type_name == "int") {
+                auto prop = _mesh.get_cell_property<int>((*c_prop)->name()).value();
+                cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
+            } else if (type_name == "double") {
+                auto prop = _mesh.get_cell_property<double>((*c_prop)->name()).value();
+                cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
             }
         }
     }

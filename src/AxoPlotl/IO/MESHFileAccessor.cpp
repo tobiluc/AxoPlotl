@@ -58,7 +58,7 @@ bool AxoPlotl::IO::loadMeshMESH(const std::filesystem::path& filepath, Polyhedra
             in >> num_hexes;
             mesh.reserve_cells(num_hexes);
             for (int i = 0; i < num_hexes; ++i) {
-                std::vector<VertexHandle> vhs;
+                std::vector<OVM::VH> vhs;
                 for (int j = 0; j < 8; ++j) {
                     int v;
                     in >> v;

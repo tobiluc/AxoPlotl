@@ -48,7 +48,7 @@ void ImplicitSurfaceStructure::buildCustomOptionsUI()
     }
 
     // Resolution
-    if (ImGui::SliderInt("Resolution", &resolution_, 1, 128)) {
+    if (ImGui::SliderInt("Resolution", &resolution_, 1, 12)) {
         regenerate();
     }
     if (ImGui::SliderInt("Adaptive Depth", &adaptive_depth_, 0, 5)) {
@@ -128,6 +128,8 @@ void ImplicitSurfaceStructure::regenerate()
     std::vector<uint32_t>& faceIndsStart = std::get<1>(nestedListTup);
 
     mesh_ = std::make_unique<SurfaceMesh>(name, pts, faceIndsEntries, faceIndsStart);
+    objectSpaceBoundingBox = mesh_->boundingBox();
+    objectSpaceLengthScale = mesh_->lengthScale();
 }
 
 void ImplicitSurfaceStructure::regenerate(const std::string& _input)
