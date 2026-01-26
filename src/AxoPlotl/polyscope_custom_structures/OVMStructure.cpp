@@ -212,6 +212,19 @@ OVMStructure::OVMStructure(const std::string& _name, const AxoPlotl::PolyhedralM
                 cells_volume_mesh_->addCellScalarQuantity((*c_prop)->name(), prop);
             }
         }
+
+        // Transfer automatic cell properties
+        std::vector<double> c_volumes(n_cells());
+        for (int i = 0; i < n_cells(); ++i) {
+            OpenVolumeMesh::CH ch(i);
+            auto cv_it = _mesh.cv_iter(ch);
+            auto a = _mesh.vertex(*(cv_it++));
+            auto b = _mesh.vertex(*(cv_it++));
+            auto c = _mesh.vertex(*(cv_it++));
+            auto d = _mesh.vertex(*(cv_it++));
+            c_volumes[i] = (c-a).cross(d-a).dot(b-a) / 6.0;
+        }
+        cells_volume_mesh_->addCellScalarQuantity("c_volume", c_volumes);
     }
 }
 

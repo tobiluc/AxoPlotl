@@ -1,6 +1,5 @@
 #include "ExplicitSurfaceStructure.h"
-#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
-#include "AxoPlotl/algorithms/parsing/tokens.h"
+#include "ibex/ibex.hpp"
 
 namespace polyscope
 {
@@ -95,29 +94,26 @@ void ExplicitSurfaceStructure::regenerate()
     std::cout << "Regenerate " << name << std::endl;
 
     // Parse Input Text
-    auto tokens_x = AxoPlotl::Parsing::tokenize(input_x_);
-    auto tokens_y = AxoPlotl::Parsing::tokenize(input_y_);
-    auto tokens_z = AxoPlotl::Parsing::tokenize(input_z_);
+    auto tokens_x = ibex::tokenize(input_x_);
+    auto tokens_y = ibex::tokenize(input_y_);
+    auto tokens_z = ibex::tokenize(input_z_);
 
-    AxoPlotl::Parsing::RPN rpn_x;
-    AxoPlotl::Parsing::reversePolish(tokens_x, rpn_x);
-    AxoPlotl::Parsing::RPN rpn_y;
-    AxoPlotl::Parsing::reversePolish(tokens_y, rpn_y);
-    AxoPlotl::Parsing::RPN rpn_z;
-    AxoPlotl::Parsing::reversePolish(tokens_z, rpn_z);
+    auto rpn_x = ibex::generate_postfix(tokens_x);
+    auto rpn_y = ibex::generate_postfix(tokens_y);
+    auto rpn_z = ibex::generate_postfix(tokens_z);
 
     auto f = [&](float u, float v) {
-        AxoPlotl::Parsing::Variables vars;
-        AxoPlotl::Parsing::Functions funcs;
-        AxoPlotl::Parsing::registerCommons(vars, funcs);
+        ibex::Variables vars;
+        ibex::Functions funcs;
+        ibex::register_commons(vars, funcs);
 
         vars["u"] = u;
         vars["v"] = v;
 
         return glm::vec3(
-            AxoPlotl::Parsing::evaluate(rpn_x, vars, funcs),
-            AxoPlotl::Parsing::evaluate(rpn_y, vars, funcs),
-            AxoPlotl::Parsing::evaluate(rpn_z, vars, funcs)
+            ibex::evaluate(rpn_x, vars, funcs),
+            ibex::evaluate(rpn_y, vars, funcs),
+            ibex::evaluate(rpn_z, vars, funcs)
         );
     };
 

@@ -1,6 +1,5 @@
 #include "ImplicitSurfaceStructure.h"
-#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
-#include "AxoPlotl/algorithms/parsing/tokens.h"
+#include "ibex/ibex.hpp"
 #include <AxoPlotl/algorithms/marching_cubes.h>
 
 namespace polyscope
@@ -93,19 +92,18 @@ void ImplicitSurfaceStructure::refresh() {
 void ImplicitSurfaceStructure::regenerate()
 {
     // Parse Input Text
-    auto tokens = AxoPlotl::Parsing::tokenize(input_);
+    auto tokens = ibex::tokenize(input_);
 
-    AxoPlotl::Parsing::RPN rpn;
-    AxoPlotl::Parsing::reversePolish(tokens, rpn);
-    AxoPlotl::Parsing::Variables vars;
-    AxoPlotl::Parsing::Functions funcs;
-    AxoPlotl::Parsing::registerCommons(vars, funcs);
+    auto rpn = ibex::generate_postfix(tokens);
+    ibex::Variables vars;
+    ibex::Functions funcs;
+    ibex::register_commons(vars, funcs);
 
     auto f = [&](const glm::vec3& v) {
         vars["x"] = v.x;
         vars["y"] = v.y;
         vars["z"] = v.z;
-        return AxoPlotl::Parsing::evaluate(rpn, vars, funcs);
+        return ibex::evaluate(rpn, vars, funcs);
     };
 
     // Generate Mesh

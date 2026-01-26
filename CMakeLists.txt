@@ -1,8 +1,9 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
-cmake_policy(VERSION 3.18.0)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_policy(VERSION 3.5.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 project(AxoPlotl VERSION 0.1.0 LANGUAGES C CXX)
 
@@ -25,8 +26,6 @@ add_executable(${PROJECT_NAME}
     # src/AxoPlotl/commons/stb_image.h
     # src/AxoPlotl/utils/Utils.h
 
-    src/AxoPlotl/algorithms/parsing/tokens.h
-    src/AxoPlotl/algorithms/parsing/tokens.cpp
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
 
@@ -54,8 +53,6 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/PLYFileAccessor.cpp
     src/AxoPlotl/IO/FileAccessor.h
     src/AxoPlotl/IO/FileAccessor.cpp
-    src/AxoPlotl/algorithms/parsing/reverse_polish.h
-    src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
     src/AxoPlotl/IO/MESHFileAccessor.h
     src/AxoPlotl/IO/MESHFileAccessor.cpp
 
@@ -86,14 +83,14 @@ add_executable(${PROJECT_NAME}
 #=========================
 # OpenMP
 #=========================
-if(APPLE)
-    set(OpenMP_ROOT "/opt/homebrew/opt/libomp") # this is a bit of a hack
-endif()
-find_package(OpenMP COMPONENTS CXX REQUIRED)
-if(OpenMP_CXX_FOUND)
-    target_compile_options(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
-endif()
+# if(APPLE)
+#     set(OpenMP_ROOT "/opt/homebrew/opt/libomp") # this is a bit of a hack
+# endif()
+# find_package(OpenMP COMPONENTS CXX REQUIRED)
+# if(OpenMP_CXX_FOUND)
+#     target_compile_options(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
+#     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+# endif()
 
 #=========================
 # Init Fetch Content
@@ -160,6 +157,19 @@ if (NOT TARGET polyscope)
 endif()
 
 #=========================
+# ibes
+#=========================
+if (NOT TARGET ibex)
+    message(STATUS "Fetching ibex")
+    FetchContent_Declare(ibex
+        GIT_REPOSITORY https://github.com/tobiluc/ibex.git
+        GIT_TAG main
+        SOURCE_DIR "${EXTERNAL_DIR}/ibex"
+        )
+    FetchContent_MakeAvailable(ibex)
+endif()
+
+#=========================
 # ImGui File Dialog
 #=========================
 if (NOT TARGET ImGuiFileDialog)
@@ -180,12 +190,13 @@ target_include_directories(ImGuiFileDialog PRIVATE
 # Link
 #=========================
 target_link_libraries(${PROJECT_NAME} PUBLIC
-OpenMP::OpenMP_CXX
+#OpenMP::OpenMP_CXX
 Eigen3::Eigen
 OpenVolumeMesh::OpenVolumeMesh
 ImGuiFileDialog
 nlohmann_json::nlohmann_json
 polyscope
+ibex
 )
 
 #=========================
@@ -208,7 +219,7 @@ add_executable(${PROJECT_NAME}-Tests tests/tests.cpp)
 target_link_libraries(${PROJECT_NAME}-Tests PRIVATE
     gtest
     gtest_main
-    OpenMP::OpenMP_CXX
+    #OpenMP::OpenMP_CXX
     OpenVolumeMesh::OpenVolumeMesh
     ImGuiFileDialog
     nlohmann_json::nlohmann_json
