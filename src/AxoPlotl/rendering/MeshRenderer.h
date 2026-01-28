@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "../utils/Typedefs.h"
 #include "AxoPlotl/commons/Color.h"
 #include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/geometry/ovm.h"

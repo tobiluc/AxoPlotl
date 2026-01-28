@@ -3,6 +3,7 @@ cmake_policy(VERSION 3.18.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 project(AxoPlotl VERSION 0.1.0 LANGUAGES C CXX)
 
@@ -20,6 +21,7 @@ add_executable(${PROJECT_NAME}
 
     src/AxoPlotl/commons/Camera.h
     src/AxoPlotl/commons/Camera.cpp
+    src/AxoPlotl/commons/stb_image.h
     src/AxoPlotl/rendering/PickingTexture.h
     src/AxoPlotl/rendering/PickingTexture.cpp
     src/AxoPlotl/rendering/Shader.h
@@ -32,23 +34,16 @@ add_executable(${PROJECT_NAME}
 
     src/AxoPlotl/rendering/MeshRenderer.h
 
-
     src/AxoPlotl/utils/Time.h
     src/AxoPlotl/utils/Time.cpp
 
     src/AxoPlotl/utils/MouseHandler.h
     src/AxoPlotl/utils/MouseHandler.cpp
-    src/AxoPlotl/algorithms/simplex_noise.h
-    src/AxoPlotl/algorithms/simplex_noise.cpp
-    src/AxoPlotl/commons/stb_image.h
-    src/AxoPlotl/utils/Typedefs.h
     src/AxoPlotl/utils/Utils.h
 
 
     src/AxoPlotl/commons/Color.h
     src/AxoPlotl/commons/Color.cpp
-    src/AxoPlotl/algorithms/parsing/tokens.h
-    src/AxoPlotl/algorithms/parsing/tokens.cpp
 
     src/AxoPlotl/algorithms/marching_cubes.h
     src/AxoPlotl/algorithms/marching_cubes.cpp
@@ -88,11 +83,9 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
     src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
     src/AxoPlotl/rendering/MeshRenderer.cpp
-    src/AxoPlotl/algorithms/parsing/reverse_polish.h
-    src/AxoPlotl/algorithms/parsing/reverse_polish.cpp
     src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
     src/AxoPlotl/rendering/property_visualization.h
-    src/AxoPlotl/geometry/eigen.h
+    # src/AxoPlotl/geometry/eigen.h
     src/AxoPlotl/rendering/redraw_frames.h
     src/AxoPlotl/rendering/redraw_frames.cpp
     src/AxoPlotl/IO/MESHFileAccessor.h
@@ -126,22 +119,34 @@ set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 #=========================
 # Eigen
 #=========================
-if(NOT TARGET Eigen3::Eigen)
-    FetchContent_Declare(Eigen3 SYSTEM
-        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-        GIT_TAG 3.4.0
-        GIT_SHALLOW TRUE
-        SOURCE_SUBDIR cmake
+# if(NOT TARGET Eigen3::Eigen)
+#     FetchContent_Declare(Eigen3 SYSTEM
+#         GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
+#         GIT_TAG 3.4.0
+#         GIT_SHALLOW TRUE
+#         SOURCE_SUBDIR cmake
+#     )
+#     FetchContent_MakeAvailable(Eigen3)
+
+#     add_library(Eigen3::Eigen INTERFACE IMPORTED)
+#     set_target_properties(Eigen3::Eigen PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${eigen3_SOURCE_DIR})
+#     if(OpenMP_CXX_FOUND)
+#         target_link_libraries(Eigen3::Eigen INTERFACE OpenMP::OpenMP_CXX)
+#     endif()
+# endif()
+
+#=========================
+# ibex
+#=========================
+if (NOT TARGET ibex)
+    message(STATUS "Fetching ibex")
+    FetchContent_Declare(ibex
+        GIT_REPOSITORY https://github.com/tobiluc/ibex.git
+        GIT_TAG main
+        SOURCE_DIR "${EXTERNAL_DIR}/ibex"
     )
-    FetchContent_MakeAvailable(Eigen3)
-
-    add_library(Eigen3::Eigen INTERFACE IMPORTED)
-    set_target_properties(Eigen3::Eigen PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${eigen3_SOURCE_DIR})
-    if(OpenMP_CXX_FOUND)
-        target_link_libraries(Eigen3::Eigen INTERFACE OpenMP::OpenMP_CXX)
-    endif()
+    FetchContent_MakeAvailable(ibex)
 endif()
-
 
 #=========================
 # GLFW
@@ -261,11 +266,12 @@ glfw
 OpenGL::GL
 OpenMP::OpenMP_CXX
 glm
-Eigen3::Eigen
+# Eigen3::Eigen
 OpenVolumeMesh::OpenVolumeMesh
 ImGui
 ImGuiFileDialog
 nlohmann_json::nlohmann_json
+ibex
 )
 target_link_libraries(ImGuiFileDialog ImGui)
 

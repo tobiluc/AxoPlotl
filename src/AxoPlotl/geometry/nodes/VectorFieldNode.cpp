@@ -1,5 +1,5 @@
 #include "VectorFieldNode.h"
-#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
+#include <ibex/ibex.hpp>
 
 namespace AxoPlotl
 {
@@ -65,29 +65,21 @@ void VectorFieldNode::renderUIBody(Scene* scene)
     //-------------------
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
-        auto tokens_x = Parsing::tokenize(input_buffer_x_);
-        auto tokens_y = Parsing::tokenize(input_buffer_y_);
-        auto tokens_z = Parsing::tokenize(input_buffer_z_);
-
-        Parsing::RPN rpn_x;
-        Parsing::reversePolish(tokens_x, rpn_x);
-        Parsing::RPN rpn_y;
-        Parsing::reversePolish(tokens_y, rpn_y);
-        Parsing::RPN rpn_z;
-        Parsing::reversePolish(tokens_z, rpn_z);
-        Parsing::Variables vars;
-        Parsing::Functions funcs;
-        Parsing::registerCommons(vars, funcs);
+        ibex::Functions funcs = ibex::common_functions();
+        ibex::Variables vars = ibex::common_variables();
+        auto rpn_x = ibex::generate_postfix(ibex::tokenize(input_buffer_x_));
+        auto rpn_y = ibex::generate_postfix(ibex::tokenize(input_buffer_y_));
+        auto rpn_z = ibex::generate_postfix(ibex::tokenize(input_buffer_z_));
 
         std::function<Vec3f(Vec3f)> func = [&](const Vec3f& p) {
             vars["x"] = p.x;
             vars["y"] = p.y;
             vars["z"] = p.z;
             return Vec3f(
-                Parsing::evaluate(rpn_x, vars, funcs),
-                Parsing::evaluate(rpn_y, vars, funcs),
-                Parsing::evaluate(rpn_z, vars, funcs)
-                );
+                ibex::eval_postfix(rpn_x, vars, funcs),
+                ibex::eval_postfix(rpn_y, vars, funcs),
+                ibex::eval_postfix(rpn_z, vars, funcs)
+            );
         };
 
         // Update renderer

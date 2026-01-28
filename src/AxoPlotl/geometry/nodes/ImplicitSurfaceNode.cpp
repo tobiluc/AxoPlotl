@@ -1,5 +1,5 @@
 #include "ImplicitSurfaceNode.h"
-#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
+#include <ibex/ibex.hpp>
 
 namespace AxoPlotl
 {
@@ -50,19 +50,15 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
     //-------------------
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
-        auto tokens = Parsing::tokenize(input_buffer_);
-
-        Parsing::RPN rpn;
-        Parsing::reversePolish(tokens, rpn);
-        Parsing::Variables vars;
-        Parsing::Functions funcs;
-        Parsing::registerCommons(vars, funcs);
+        ibex::Functions funcs = ibex::common_functions();
+        ibex::Variables vars = ibex::common_variables();
+        auto rpn = ibex::generate_postfix(ibex::tokenize(input_buffer_));
 
         auto func = [&](const Vec3f& v) {
             vars["x"] = v.x;
             vars["y"] = v.y;
             vars["z"] = v.z;
-            return Parsing::evaluate(rpn, vars, funcs);
+            return ibex::eval_postfix(rpn, vars, funcs);
         };
 
         // Update renderer

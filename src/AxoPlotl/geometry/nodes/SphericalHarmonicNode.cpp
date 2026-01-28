@@ -1,5 +1,5 @@
 #include "SphericalHarmonicNode.h"
-#include "AxoPlotl/algorithms/parsing/reverse_polish.h"
+#include <ibex/ibex.hpp>
 
 namespace AxoPlotl
 {
@@ -24,19 +24,15 @@ void SphericalHarmonicNode::renderUIBody(Scene* scene)
     //-------------------
     if (ImGui::Button("Confirm")) {
         // Parse Input Text
-        auto tokens = Parsing::tokenize(input_buffer_);
-
-        Parsing::RPN rpn;
-        Parsing::reversePolish(tokens, rpn);
-        Parsing::Variables vars;
-        Parsing::Functions funcs;
-        Parsing::registerCommons(vars, funcs);
+        ibex::Variables vars = ibex::common_variables();
+        ibex::Functions funcs = ibex::common_functions();
+        auto rpn = ibex::generate_postfix(ibex::tokenize(input_buffer_));
 
         std::function<float(Vec3f)> func = [&](const Vec3f& p) {
             vars["x"] = p.x;
             vars["y"] = p.y;
             vars["z"] = p.z;
-            return Parsing::evaluate(rpn, vars, funcs);
+            return ibex::eval_postfix(rpn, vars, funcs);
         };
 
         // Update renderer

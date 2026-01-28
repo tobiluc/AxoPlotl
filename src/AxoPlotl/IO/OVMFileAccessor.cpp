@@ -1,7 +1,6 @@
 #include "OVMFileAccessor.h"
 #include <iomanip>
 #include "OpenVolumeMesh/IO/ovmb_write.hh"
-#include "OpenVolumeMesh/IO/PropertyCodecsEigen.hh"
 
 namespace OpenVolumeMesh {
 

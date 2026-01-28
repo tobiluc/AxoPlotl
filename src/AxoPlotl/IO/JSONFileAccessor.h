@@ -3,7 +3,6 @@
 #include <nlohmann/json.hpp>
 #include "AxoPlotl/geometry/glm.h"
 #include "nlohmann/json_fwd.hpp"
-#include "AxoPlotl/utils/Typedefs.h"
 #include <iostream>
 #include <string>
 #include <ostream>

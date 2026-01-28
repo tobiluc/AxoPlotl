@@ -1,12 +1,10 @@
 #pragma once
 
-#include "AxoPlotl/geometry/eigen.h"
 #include "FileUtils.h"
 
 #include "AxoPlotl/geometry/ovm.h"
 #include "OpenVolumeMesh/IO/PropertyCodecs.hh"
 #include "OpenVolumeMesh/IO/ovmb_read.hh"
-#include <Eigen/Core>
 
 namespace OpenVolumeMesh {
 

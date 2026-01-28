@@ -15,8 +15,6 @@ public:
 
     void generateFromFile(const char* file);
 
-    void generateProcedural(int width, int height);
-
     void use(GLenum unit);
 };
 }
