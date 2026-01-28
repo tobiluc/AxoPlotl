@@ -2,6 +2,7 @@
 /.vscode
 /.cproject
 /.settings
+imgui.ini
 /CMakeLists.txt.user
 /build*/
 *.swp
