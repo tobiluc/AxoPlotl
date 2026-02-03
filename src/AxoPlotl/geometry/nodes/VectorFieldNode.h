@@ -38,6 +38,10 @@ public:
     void initRenderer(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
+
+    inline std::pair<Vec3f,Vec3f> getBBox() override {
+        return {Vec3f(field_.xMin,field_.yMin,field_.zMin),Vec3f(field_.xMax,field_.yMax,field_.zMax)};
+    }
 };
 
 }

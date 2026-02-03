@@ -12,6 +12,15 @@ void MeshNode::initRenderer(Scene* scene)
     GL::MeshRenderer::Data data;
     GL::MeshRenderer::createData(mesh_, data);
     mesh_renderer_.updateData(data);
+
+    // Compute Bounding Box
+    bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
+    for (uint32_t i = 0; i < data.pointAttribs.size(); ++i) {
+        for (int a = 0; a < 3; ++a) {
+            bbox_.first[a] = std::min(bbox_.first[a], data.pointAttribs[i].position[a]);
+            bbox_.second[a] = std::max(bbox_.second[a], data.pointAttribs[i].position[a]);
+        }
+    }
 }
 
 void MeshNode::visualizeSelectedProperty()

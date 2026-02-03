@@ -36,6 +36,8 @@ public:
     void initRenderer(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
+
+    std::pair<Vec3f,Vec3f> getBBox() override;
 };
 
 }

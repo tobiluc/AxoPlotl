@@ -45,7 +45,7 @@ public:
     /// Must be called before rendering
     virtual void initRenderer(Scene* scene) = 0;
 
-    //virtual std::pair<glm::vec3, glm::vec3> getBBox() = 0;
+    virtual std::pair<glm::vec3, glm::vec3> getBBox() = 0;
 
     inline void renderUI(Scene* scene) {
         ImGui::PushID(id_);

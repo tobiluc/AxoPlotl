@@ -33,6 +33,8 @@ public:
     void initRenderer(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
+
+    std::pair<glm::vec3, glm::vec3> getBBox() override;
 };
 
 }

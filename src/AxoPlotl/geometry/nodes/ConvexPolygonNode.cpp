@@ -56,4 +56,17 @@ void ConvexPolygonNode::renderUIBody(Scene* scene)
     }
 }
 
+std::pair<glm::vec3, glm::vec3> ConvexPolygonNode::getBBox()
+{
+    Vec3f min(std::numeric_limits<float>::infinity());
+    Vec3f max(-std::numeric_limits<float>::infinity());
+    for (uint32_t i = 0; i < vertices_.size(); ++i) {
+        for (int a = 0; a < 3; ++a) {
+            min[a] = std::min(min[a], vertices_[i][a]);
+            max[a] = std::max(max[a], vertices_[i][a]);
+        }
+    }
+    return {min, max};
+}
+
 }

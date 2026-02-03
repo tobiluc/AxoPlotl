@@ -69,4 +69,19 @@ void ExplicitCurveNode::initRenderer(Scene* scene)
     mesh_renderer_.updateData(data);
 }
 
+std::pair<glm::vec3, glm::vec3> ExplicitCurveNode::getBBox()
+{
+    Vec3f min(std::numeric_limits<float>::infinity());
+    Vec3f max(-std::numeric_limits<float>::infinity());
+    for (uint i = 0; i <= resolution_; ++i) {
+        float t = f_.tMin + i * (f_.tMax - f_.tMin) / resolution_;
+        Vec3f f = f_.f(t);
+        for (int a = 0; a < 3; ++a) {
+            min[a] = std::min(min[a], f[a]);
+            max[a] = std::max(max[a], f[a]);
+        }
+    }
+    return {min, max};
+}
+
 }

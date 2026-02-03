@@ -9,6 +9,7 @@ namespace AxoPlotl
 class MeshNode : public GeometryNode
 {
 private:
+    std::pair<Vec3f,Vec3f> bbox_;
     PolyhedralMesh mesh_;
     OVM::PropertyStorageBase* selected_psb_ = nullptr;
 
@@ -24,6 +25,10 @@ public:
     void initRenderer(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
+
+    inline std::pair<Vec3f,Vec3f> getBBox() override {
+        return bbox_;
+    }
 
     inline const PolyhedralMesh& mesh() const {return mesh_;}
 };

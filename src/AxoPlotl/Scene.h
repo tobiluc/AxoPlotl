@@ -108,6 +108,10 @@ public:
         return false;
     }
 
+    inline CameraSet& cameraSet() {
+        return camera_set_;
+    }
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Scene,
     camera_set_, clearColor_)
 };

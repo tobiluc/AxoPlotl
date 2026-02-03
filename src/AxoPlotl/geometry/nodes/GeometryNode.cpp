@@ -1,5 +1,6 @@
 #include "GeometryNode.h"
 #include "AxoPlotl/rendering/ImGuiRenderer.h"
+#include <AxoPlotl/Scene.h>
 
 namespace AxoPlotl
 {
@@ -54,6 +55,11 @@ void GeometryNode::renderUIHeader(Scene *scene)
         ImGui::InputText("Name", name_, sizeof(name_));
         ImGui::Text("PLT: %d, %d, %d", mesh_renderer_.n_points(), mesh_renderer_.n_lines(), mesh_renderer_.n_triangles());
         ImGui::Separator();
+
+        if (ImGui::Button("Zoom to Object")) {
+            const auto& bbox = getBBox();
+            scene->cameraSet().zoomToBox(bbox.first, bbox.second);
+        }
 
         // Transform
         if (ImGui::BeginMenu("Transform")) {
