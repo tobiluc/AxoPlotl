@@ -48,9 +48,9 @@ public:
         Color gobalTriangleColor = Color::GREEN;
         bool useGlobalTriangleColor = true;
 
-        Light light{.ambient = Color::LIGHTGRAY, .diffuse = Color::LIGHTGRAY, .specular = Color::DARKGRAY};
-        float outlineWidth = 1.0f;
-        Color outlineColor = Color::BLACK;
+        //Light light{.ambient = Color::LIGHTGRAY, .diffuse = Color::LIGHTGRAY, .specular = Color::DARKGRAY};
+        // float outlineWidth = 1.0f;
+        // Color outlineColor = Color::BLACK;
         bool wireframe = false;
     };
 

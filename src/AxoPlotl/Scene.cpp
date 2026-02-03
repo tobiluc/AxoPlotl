@@ -266,6 +266,27 @@ void Scene::renderUI(GLFWwindow *window)
             ImGui::EndMenu(); // !Edit
         }
 
+        if (ImGui::BeginMenu("View")) {
+
+
+            if (ImGui::BeginMenu("Camera")) {
+
+                if (ImGui::MenuItem("Reset")) {
+                    camera_set_.reset(window);
+                }
+
+                ImGui::Checkbox("Orthographic", &camera_set_.use_ortho);
+
+                ImGui::EndMenu(); // !Camera
+            }
+
+            ImGui::ColorEdit3("Background", &clearColor_[0]);
+
+            ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
+
+            ImGui::EndMenu(); // !View
+        }
+
         ImGui::EndMainMenuBar();
     }
 
@@ -291,15 +312,10 @@ void Scene::renderUI(GLFWwindow *window)
     ImGui::Begin("AxoPlotl Control Panel");
 
     // Define
-    ImGui::Text("Info");
-    ImGui::Text("%s", ("FPS " + std::to_string(Time::FRAMES_PER_SECOND)).c_str());
-    ImGui::Text("%s", ("MEM " + std::to_string(getMemoryUsageMB()) + " MB").c_str());
-
-    ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
-    if (ImGui::Button("Reset Camera")) {
-        camera_set_.reset(window);
-    }
-
+    ImGui::Text("%s, %s",
+        ("FPS " + std::to_string((int)Time::FRAMES_PER_SECOND)).c_str(),
+        ("MEM " + std::to_string((int)getMemoryUsageMB()) + " MB").c_str()
+    );
     ImGui::NewLine();
 
     //---------------------------
@@ -326,12 +342,6 @@ void Scene::renderUI(GLFWwindow *window)
 
         ImGui::EndPopup();
     }
-
-    //---------------------
-    // General Settings
-    //---------------------
-    ImGui::Checkbox("Orthographic", &camera_set_.use_ortho);
-    ImGui::ColorEdit3("Background", &clearColor_[0]);
 
     //---------------------
     // Geometry Objects

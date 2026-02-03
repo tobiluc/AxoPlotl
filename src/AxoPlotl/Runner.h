@@ -33,7 +33,7 @@ public:
 
     ~Runner();
 
-    void run();
+    void run(int argc, char** argv);
 };
 
 }

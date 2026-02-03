@@ -7,71 +7,29 @@ layout (location = 1) in vec4 v_color;
 layout (location = 2) in vec3 v_normal;
 layout (location = 3) in float v_face_index;
  
-uniform mat4 view_matrix;
 uniform mat4 model_view_projection_matrix;
-uniform mat3 normal_matrix;
 uniform float time;
 uniform bool use_global_color;
 uniform vec4 global_color;
 
 out vec4 v2f_color;
-out vec4 v2f_view_position; // in view space
-out vec3 v2f_view_normal;
 
 void main()
 {
 	vec3 pos = v_position;
 	gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
 
-	v2f_view_position = view_matrix * vec4(pos, 1.0);
-	v2f_view_normal = normalize(normal_matrix * v_normal);
-
-	if (use_global_color) {
-		v2f_color = global_color;
-	} else {
-		v2f_color = v_color;
-	}
+	if (use_global_color) {v2f_color = global_color;}
+	else {v2f_color = v_color;}
 } 
 
 #shader fragment
 #version 330 core
 out vec4 f_color;
 
-in vec4 v2f_view_position;
 in vec4 v2f_color;
-in vec3 v2f_view_normal;
-
-struct Light {
-    vec3 position;
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
-};
-uniform Light light;
-
-uniform float outline_width;
-uniform vec3 outline_color;
   
 void main()
 {
-
-	f_color = v2f_color;
-
-	float shininess = 0.5;
-
-	// Ambient
-    	vec3 ambient = light.ambient * f_color.xyz;
-
-	vec3 normal = normalize(v2f_view_normal);
-	vec3 direction_to_light = normalize(light.position - v2f_view_position.xyz); 
-
-	// Diffuse
-	vec3 diffuse = light.diffuse * max(dot(normal, direction_to_light), 0.0) * f_color.xyz;
-
-	// Specular
-	vec3 direction_to_camera = normalize(-v2f_view_position.xyz);
-	vec3 r = reflect(-direction_to_light, normal);
-	vec3 specular = light.specular * pow(max(dot(direction_to_camera, r), 0.0), shininess); 
-
-	f_color = vec4(ambient + diffuse + specular, v2f_color.a);
+	f_color = v2f_color; 
 }

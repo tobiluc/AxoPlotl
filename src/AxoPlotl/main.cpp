@@ -3,8 +3,8 @@
 
 #include <AxoPlotl/Runner.h>
 
-int main()
+int main(int argc, char** argv)
 {
     AxoPlotl::Runner ap;
-    ap.run();
+    ap.run(argc, argv);
 }

@@ -77,4 +77,15 @@ void OrthographicCamera::reset(GLFWwindow *window) {
     height = 10;
 }
 
+void PerspectiveCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)
+{
+    orbit_target = 0.5f*(min+max);
+    orbit_distance = glm::distance(max, min);
+}
+
+void OrthographicCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)
+{
+    //TODO
+}
+
 }

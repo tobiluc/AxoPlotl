@@ -307,14 +307,14 @@ void MeshRenderer::render(const Matrices &m)
         // Triangles
         Shader::FACES_SHADER.use();
 
-        Shader::FACES_SHADER.setMat4x4f("view_matrix", m.view_matrix);
+        // Shader::FACES_SHADER.setMat4x4f("view_matrix", m.view_matrix);
         Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        Shader::FACES_SHADER.setMat3x3f("normal_matrix", m.normal_matrix);
+        // Shader::FACES_SHADER.setMat3x3f("normal_matrix", m.normal_matrix);
 
-        Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
-        Shader::FACES_SHADER.setVec3f("light.ambient", settings_.light.ambient);
-        Shader::FACES_SHADER.setVec3f("light.diffuse", settings_.light.diffuse);
-        Shader::FACES_SHADER.setVec3f("light.specular", settings_.light.specular);
+        // Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
+        // Shader::FACES_SHADER.setVec3f("light.ambient", settings_.light.ambient);
+        // Shader::FACES_SHADER.setVec3f("light.diffuse", settings_.light.diffuse);
+        // Shader::FACES_SHADER.setVec3f("light.specular", settings_.light.specular);
 
         Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
         Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
@@ -323,8 +323,8 @@ void MeshRenderer::render(const Matrices &m)
 
         Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-        Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings_.outlineWidth);
-        Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings_.outlineColor);
+        // Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings_.outlineWidth);
+        // Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings_.outlineColor);
 
         Shader::FACES_SHADER.use();
 

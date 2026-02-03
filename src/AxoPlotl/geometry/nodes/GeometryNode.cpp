@@ -56,45 +56,50 @@ void GeometryNode::renderUIHeader(Scene *scene)
         ImGui::Separator();
 
         // Transform
-        ImGui::InputFloat4x4("Transform Matrix:", &transform_);
-        if (ImGui::Button("Reset Transform")) {transform_ = glm::mat4(1.0);} // Reset Transform
-        ImGui::Separator();
+        if (ImGui::BeginMenu("Transform")) {
+            ImGui::InputFloat4x4("Matrix:", &transform_);
+            if (ImGui::Button("Reset")) {transform_ = glm::mat4(1.0);} // Reset Transform
+            ImGui::EndMenu();
+        }
 
         // Material
         auto& settings = mesh_renderer_.settings();
 
         if (mesh_renderer_.n_points() > 0) {
-            ImGui::Text("Vertices");
-            ImGui::Checkbox("Show Vertices", &settings.renderPoints);
-            ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
-            ImGui::Checkbox("Enable Vertex Color", &settings.useGlobalPointColor);
-            ImGui::ColorEdit3("Vertex Color", &settings.globalPointColor[0]);
-            ImGui::Separator();
+            if (ImGui::BeginMenu("Vertices")) {
+                ImGui::Checkbox("Show Vertices", &settings.renderPoints);
+                ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
+                ImGui::Checkbox("Enable Vertex Color", &settings.useGlobalPointColor);
+                ImGui::ColorEdit3("Vertex Color", &settings.globalPointColor[0]);
+                ImGui::EndMenu();
+            }
         }
 
         if (mesh_renderer_.n_lines() > 0) {
-            ImGui::Text("Edges");
-            ImGui::Checkbox("Show Edges", &settings.renderLines);
-            ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
-            ImGui::Checkbox("Enable Edge Color", &settings.useGlobalLineColor);
-            ImGui::ColorEdit3("Edge Color", &settings.globalLineColor[0]);
-            ImGui::Separator();
+            if (ImGui::BeginMenu("Edges")) {
+                ImGui::Checkbox("Show Edges", &settings.renderLines);
+                ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
+                ImGui::Checkbox("Enable Edge Color", &settings.useGlobalLineColor);
+                ImGui::ColorEdit3("Edge Color", &settings.globalLineColor[0]);
+                ImGui::EndMenu();
+            }
         }
 
         if (mesh_renderer_.n_triangles() > 0) {
-            ImGui::Text("Faces");
-            ImGui::Checkbox("Show Faces", &settings.renderTriangles);
-            ImGui::Checkbox("Wireframe", &settings.wireframe);
-            ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
-            ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
-            ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
-            ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
-            ImGui::Separator();
+            if (ImGui::BeginMenu("Faces")) {
+                ImGui::Checkbox("Show Faces", &settings.renderTriangles);
+                ImGui::Checkbox("Wireframe", &settings.wireframe);
+                ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
+                ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
+                // ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
+                // ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
+                ImGui::EndMenu();
+            }
         }
 
-        ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
-        ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
-        ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
+        // ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
+        // ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
+        // ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
         ImGui::Separator();
 
         // Delete

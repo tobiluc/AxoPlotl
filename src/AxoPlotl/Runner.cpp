@@ -35,7 +35,7 @@ static void checkOpenGLError()
     }
 }
 
-void Runner::run()
+void Runner::run(int argc, char **argv)
 {
     //-------------------------------------
     // Initialize OpenGL for Rendering
@@ -46,6 +46,18 @@ void Runner::run()
     // Prepare the Scene
     //-------------------------------------
     scene_.init();
+
+    //----------------------------------------
+    // Load Meshes given as commandline args
+    //----------------------------------------
+    for (int i = 1; i < argc; ++i) {
+        PolyhedralMesh mesh;
+        std::filesystem::path path(argv[i]);
+        if (IO::loadMesh(path, mesh)) {
+            scene_.addMesh(mesh, std::filesystem::path(path).filename());
+        }
+    }
+
 
     //-----------------------
     // Set Global Shaders

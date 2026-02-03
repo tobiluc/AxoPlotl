@@ -33,6 +33,8 @@ public:
     virtual void update(GLFWwindow* window) = 0;
 
     virtual void reset(GLFWwindow* window) = 0;
+
+    virtual void zoomToBox(const glm::vec3& min, const glm::vec3& max) = 0;
 };
 
 class PerspectiveCamera : public BaseCamera
@@ -59,6 +61,8 @@ public:
 
     void reset(GLFWwindow* window) override;
 
+    void zoomToBox(const glm::vec3& min, const glm::vec3& max) override;
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveCamera, position, up,
 orbit_target, orbit_distance, yaw, pitch, fov)
 };
@@ -84,6 +88,8 @@ public:
 
     void reset(GLFWwindow* window) override;
 
+    void zoomToBox(const glm::vec3& min, const glm::vec3& max) override;
+
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(OrthographicCamera, position, height)
 };
 
@@ -101,6 +107,11 @@ struct CameraSet {
     inline void reset(GLFWwindow* window) {
         perspective.reset(window);
         orthographic.reset(window);
+    }
+
+    inline void zoomToBox(const glm::vec3& min, const glm::vec3& max) {
+        perspective.zoomToBox(min, max);
+        orthographic.zoomToBox(min, max);
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(CameraSet, perspective, orthographic, use_ortho)
