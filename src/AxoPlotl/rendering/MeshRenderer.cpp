@@ -319,10 +319,10 @@ void MeshRenderer::render(const Matrices &m)
         Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
         Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
 
-        Shader::FACES_OUTLINES_SHADER.use();
+        // Shader::FACES_OUTLINES_SHADER.use();
 
-        Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
+        // Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
+        // Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
         // Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings_.outlineWidth);
         // Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings_.outlineColor);
 

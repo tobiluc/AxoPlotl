@@ -85,7 +85,9 @@ void PerspectiveCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)
 
 void OrthographicCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)
 {
-    //TODO
+    position = 0.5f*(min+max);
+    position[2] = 1;
+    height = 1.5f*(max[1] - min[1]);
 }
 
 }
