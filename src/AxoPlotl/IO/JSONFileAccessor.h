@@ -11,31 +11,29 @@
 namespace AxoPlotl::IO
 {
 
-template<typename T>
-bool deserialize(const std::string& filename, T& obj) {
-    std::ifstream file(filename);
+inline bool load_json(const std::filesystem::path& _path, nlohmann::json& _j)
+{
+    std::ifstream file(_path);
     if (!file) {return false;}
     try {
-        nlohmann::json j;
-        file >> j;
-        obj = j.get<T>();
+        file >> _j;
         return true;
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return false;
     }
 }
 
-template<typename T>
-bool serialize(const std::string& filename, const T& obj) {
-    std::ofstream file(filename);
+inline bool save_json(const std::filesystem::path& _path, const nlohmann::json& _j)
+{
+    std::ofstream file(_path);
     if (!file) {return false;}
 
     try {
-        file << nlohmann::json(obj).dump(4);
+        file << _j.dump(4);
         return true;
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return false;
     }
 }

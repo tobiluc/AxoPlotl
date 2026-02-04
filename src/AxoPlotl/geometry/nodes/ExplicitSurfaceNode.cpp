@@ -93,27 +93,15 @@ void ExplicitSurfaceNode::initRenderer(Scene* scene)
         }
     }
     mesh_renderer_.updateData(data);
-}
 
-std::pair<Vec3f,Vec3f> ExplicitSurfaceNode::getBBox()
-{
-    Vec3f min(std::numeric_limits<float>::infinity());
-    Vec3f max(-std::numeric_limits<float>::infinity());
-    for (uint i = 0; i <= resolution_; ++i) {
-        float s, t;
-        for (int i = 0; i <= resolution_; ++i) {
-            s = f_.uMin + i * (f_.uMax - f_.uMin) / resolution_;
-            for (int j = 0; j <= resolution_; ++j) {
-                t = f_.vMin + j * (f_.vMax - f_.vMin) / resolution_;
-                Vec3f f = f_.f(s,t);
-                for (int a = 0; a < 3; ++a) {
-                    min[a] = std::min(min[a], f[a]);
-                    max[a] = std::max(max[a], f[a]);
-                }
-            }
+    // Compute Bounding Box
+    bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
+    for (uint32_t i = 0; i < data.pointAttribs.size(); ++i) {
+        for (int a = 0; a < 3; ++a) {
+            bbox_.first[a] = std::min(bbox_.first[a], data.pointAttribs[i].position[a]);
+            bbox_.second[a] = std::max(bbox_.second[a], data.pointAttribs[i].position[a]);
         }
     }
-    return {min, max};
 }
 
 }

@@ -27,7 +27,7 @@ protected:
 
     GL::MeshRenderer gizmoRenderer_;
     CameraSet camera_set_;
-    Color clearColor_ = Color::WHITE;
+    Color clear_color_ = Color::WHITE;
 
     PickingTexture pickingTexture_;
     PickingTexture::Pixel picked_ = {0,0,0};
@@ -92,28 +92,16 @@ public:
         Rendering::triggerRedraw();
     }
 
-    inline bool saveToFile(const std::string& filename) {
-        return IO::serialize(filename, *this);
-    }
+    bool saveToFile(const std::filesystem::path& filename);
 
-    inline bool loadFromFile(const std::string& filename) {
-        // Scene scene;
-        // if (IO::deserialize(filename, scene)) {
-        //     this->clearColor_ = scene.clearColor_;
-        //     // TODO
-        //     return true;
-        // } else {
-        //     return false;
-        // }
-        return false;
-    }
+    bool loadFromFile(const std::filesystem::path& filename);
 
     inline CameraSet& cameraSet() {
         return camera_set_;
     }
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE(Scene,
-    camera_set_, clearColor_)
+    camera_set_, clear_color_)
 };
 
 class TestScene : public Scene

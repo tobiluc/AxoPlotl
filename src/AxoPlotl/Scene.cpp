@@ -22,8 +22,6 @@ namespace AxoPlotl
 void Scene::init()
 {
     pickingTexture_ = PickingTexture(800, 600);
-
-
 }
 
 void Scene::update(GLFWwindow* window)
@@ -95,7 +93,7 @@ void Scene::render(GLFWwindow *window)
     }
 
     // Clear the Screen Colors and Depth Buffer
-    glClearColor(clearColor_[0], clearColor_[1], clearColor_[2], 1.0f);
+    glClearColor(clear_color_[0], clear_color_[1], clear_color_[2], 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
@@ -131,12 +129,21 @@ void Scene::renderUI(GLFWwindow *window)
     //-------------
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
+
             if (ImGui::MenuItem("Save Scene")) {
-                saveToFile("/Users/tobiaskohler/Projects/MeshViewer/res/scene.sce");
+                IGFD::FileDialogConfig config;
+                config.path = "..";
+                ImGuiFileDialog::Instance()->OpenDialog("SaveViewDlgKey", "Choose File",
+                                                        "(*.json){.json}", config);
             }
+
             if (ImGui::MenuItem("Load Scene")) {
-                loadFromFile("/Users/tobiaskohler/Projects/MeshViewer/res/scene.sce");
+                IGFD::FileDialogConfig config;
+                config.path = "..";
+                ImGuiFileDialog::Instance()->OpenDialog("LoadViewDlgKey", "Choose File",
+                                                        "(*.json){.json}", config);
             }
+
             ImGui::EndMenu(); // !File
         }
 
@@ -251,7 +258,7 @@ void Scene::renderUI(GLFWwindow *window)
 
                     IGFD::FileDialogConfig config;
                     config.path = "..";
-                    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
+                    ImGuiFileDialog::Instance()->OpenDialog("LoadMeshDlgKey", "Choose File",
                     "Mesh files (*.obj *.ovm *.ovmb *ply){.obj,.ovm,.ovmb,.ply}", config);
                 }
 
@@ -268,7 +275,6 @@ void Scene::renderUI(GLFWwindow *window)
 
         if (ImGui::BeginMenu("View")) {
 
-
             if (ImGui::BeginMenu("Camera")) {
 
                 if (ImGui::MenuItem("Reset")) {
@@ -280,7 +286,7 @@ void Scene::renderUI(GLFWwindow *window)
                 ImGui::EndMenu(); // !Camera
             }
 
-            ImGui::ColorEdit3("Background", &clearColor_[0]);
+            ImGui::ColorEdit3("Background", &clear_color_[0]);
 
             ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
 
@@ -290,10 +296,36 @@ void Scene::renderUI(GLFWwindow *window)
         ImGui::EndMainMenuBar();
     }
 
-    //-------------------------
-    // Load Mesh Filed Dialog
-    //-------------------------
-    if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+    // Save View File Dialog
+    if (ImGuiFileDialog::Instance()->Display("SaveViewDlgKey")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+            std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
+            //if (!IO::serialize(filepath, camera_set_)) {
+            if (!saveToFile(filepath)) {
+                ImGui::BeginPopup("##Error");
+                ImGui::Text("Could not save the view");
+                ImGui::EndPopup();
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    // Load View File Dialog
+    if (ImGuiFileDialog::Instance()->Display("LoadViewDlgKey")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
+            std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
+            //if (!IO::deserialize(filepath, camera_set_)) {
+            if (!loadFromFile(filepath)) {
+                ImGui::BeginPopup("##Error");
+                ImGui::Text("Could not load the view");
+                ImGui::EndPopup();
+            }
+        }
+        ImGuiFileDialog::Instance()->Close();
+    }
+
+    // Load Mesh File Dialog
+    if (ImGuiFileDialog::Instance()->Display("LoadMeshDlgKey")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
             PolyhedralMesh mesh;
@@ -301,7 +333,7 @@ void Scene::renderUI(GLFWwindow *window)
                 addMesh(mesh, std::filesystem::path(filepath).filename());
             } else {
                 ImGui::BeginPopup("##Error");
-                ImGui::Text("Could not load the mesh");
+                ImGui::Text("Could not save the mesh");
                 ImGui::EndPopup();
             }
         }
@@ -406,6 +438,20 @@ void TestScene::init()
     // PolyhedralMesh mesh2;
     // IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_point_cloud.ovmb", mesh2);
     // addMesh(mesh2, "Point Cloud");
+}
+
+bool Scene::saveToFile(const std::filesystem::path& filename) {
+    return IO::save_json(filename, nlohmann::json(*this));
+}
+
+bool Scene::loadFromFile(const std::filesystem::path &filename) {
+    nlohmann::json j;
+    if (IO::load_json(filename, j)) {
+        this->camera_set_ = std::move(j.at("camera_set_"));
+        this->clear_color_ = std::move(j.at("clear_color_"));
+        return true;
+    }
+    return false;
 }
 
 }

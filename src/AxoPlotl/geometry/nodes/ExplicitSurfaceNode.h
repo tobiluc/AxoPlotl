@@ -9,6 +9,7 @@ namespace AxoPlotl
 class ExplicitSurfaceNode : public GeometryNode
 {
 private:
+    std::pair<Vec3f,Vec3f> bbox_;
     ExplicitSurfaceFunction f_;
     ColorFunction2f color_;
     int resolution_ = 16;
@@ -37,7 +38,9 @@ public:
 
     void renderUIBody(Scene* scene) override;
 
-    std::pair<Vec3f,Vec3f> getBBox() override;
+    inline std::pair<Vec3f,Vec3f> getBBox() override {
+        return bbox_;
+    }
 };
 
 }
