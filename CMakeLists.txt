@@ -84,12 +84,13 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
     src/AxoPlotl/rendering/MeshRenderer.cpp
     src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
-    src/AxoPlotl/rendering/property_visualization.h
+
     # src/AxoPlotl/geometry/eigen.h
     src/AxoPlotl/rendering/redraw_frames.h
     src/AxoPlotl/rendering/redraw_frames.cpp
     src/AxoPlotl/IO/MESHFileAccessor.h
     src/AxoPlotl/IO/MESHFileAccessor.cpp
+    src/AxoPlotl/properties/property_filters.hpp
 
 
 

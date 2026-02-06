@@ -75,8 +75,6 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Vertices")) {
                 ImGui::Checkbox("Show Vertices", &settings.renderPoints);
                 ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
-                ImGui::Checkbox("Enable Vertex Color", &settings.useGlobalPointColor);
-                ImGui::ColorEdit3("Vertex Color", &settings.globalPointColor[0]);
                 ImGui::EndMenu();
             }
         }

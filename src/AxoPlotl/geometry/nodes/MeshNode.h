@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AxoPlotl/rendering/property_visualization.h"
+#include "AxoPlotl/properties/property_filters.hpp"
 #include "GeometryNode.h"
 
 namespace AxoPlotl
@@ -11,9 +11,8 @@ class MeshNode : public GeometryNode
 private:
     std::pair<Vec3f,Vec3f> bbox_;
     PolyhedralMesh mesh_;
-    OVM::PropertyStorageBase* selected_psb_ = nullptr;
-
-    void visualizeSelectedProperty();
+    std::optional<OpenVolumeMesh::PropertyStorageBase*> prop_;
+    std::shared_ptr<PropertyFilterBase> prop_filter;
 
 public:
     MeshNode(const PolyhedralMesh& _mesh, const std::string& _name="New Mesh", const glm::mat4& _transform = glm::mat4(1.0)) :

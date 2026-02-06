@@ -32,6 +32,14 @@ public:
         {}
     };
 
+    struct ScalarRangeConfig
+    {
+        float min_value = 0;
+        float max_value = 1;
+        Vec4f min_color = {0,0,1,1};
+        Vec4f max_color = {1,0,0,1};
+    };
+
     struct Settings
     {
         bool visible = true;
@@ -41,8 +49,8 @@ public:
         float pointSize = 5.0f;
         float lineWidth = 3.0f;
 
-        Color globalPointColor = Color::RED;
-        bool useGlobalPointColor = true;
+        ScalarRangeConfig scalar_property_range;
+
         Color globalLineColor = Color::BLUE;
         bool useGlobalLineColor = true;
         Color gobalTriangleColor = Color::GREEN;
@@ -108,6 +116,12 @@ public:
     MeshRenderer();
 
     ~MeshRenderer();
+
+    void updatePointsAttributes(const std::vector<VertexPointAttrib>& _p_attribs);
+
+    void updateLinesAttributes(const std::vector<VertexLineAttrib>& _l_attribs);
+
+    void updateTrianglesAttributes(const std::vector<VertexTriangleAttrib>& _t_attribs);
 
     void updateData(const Data& data);
 

@@ -127,6 +127,36 @@ void MeshRenderer::setupVertexAttributes()
     glBindVertexArray(0);
 }
 
+void MeshRenderer::updatePointsAttributes(const std::vector<VertexPointAttrib>& _p_attribs)
+{
+    glBindVertexArray(vao_points_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, _p_attribs.size() * sizeof(VertexPointAttrib), _p_attribs.data(), GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+}
+
+void MeshRenderer::updateLinesAttributes(const std::vector<VertexLineAttrib>& _l_attribs)
+{
+    glBindVertexArray(vao_lines_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, _l_attribs.size() * sizeof(VertexLineAttrib), _l_attribs.data(), GL_DYNAMIC_DRAW);
+    glBindVertexArray(0);
+}
+
+void MeshRenderer::updateTrianglesAttributes(const std::vector<VertexTriangleAttrib>& _t_attribs)
+{
+    glBindVertexArray(vao_triangles_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, _t_attribs.size() * sizeof(VertexTriangleAttrib), _t_attribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(vao_triangles_picking_);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, _t_attribs.size() * sizeof(VertexTriangleAttrib), _t_attribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+}
+
 void MeshRenderer::updateData(const Data& data)
 {
     if (!vao_points_ || !vao_lines_ || !vao_triangles_ || !vao_triangles_picking_) {
@@ -142,51 +172,32 @@ void MeshRenderer::updateData(const Data& data)
     // Triangles
     //-------------
     glBindVertexArray(vao_triangles_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_DYNAMIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
 
-    glBindVertexArray(0);
-
-    //----------------------
-    // Triangles (Picking)
-    //----------------------
     glBindVertexArray(vao_triangles_picking_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.triangleAttribs.size() * sizeof(VertexTriangleAttrib), data.triangleAttribs.data(), GL_DYNAMIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
 
-    glBindVertexArray(0);
+    updateTrianglesAttributes(data.triangleAttribs);
 
     //-----------
     // Lines
     //-----------
     glBindVertexArray(vao_lines_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.lineAttribs.size() * sizeof(VertexLineAttrib), data.lineAttribs.data(), GL_DYNAMIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.lineIndices.size() * sizeof(GLuint), data.lineIndices.data(), GL_DYNAMIC_DRAW);
 
-    glBindVertexArray(0);
+    updateLinesAttributes(data.lineAttribs);
 
     //-----------
     // Points
     //-----------
     glBindVertexArray(vao_points_);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
-    glBufferData(GL_ARRAY_BUFFER, data.pointAttribs.size() * sizeof(VertexPointAttrib), data.pointAttribs.data(), GL_DYNAMIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.pointIndices.size() * sizeof(GLuint), data.pointIndices.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, n_points_ * sizeof(GLuint), data.pointIndices.data(), GL_DYNAMIC_DRAW);
+
+    updatePointsAttributes(data.pointAttribs);
 
     glBindVertexArray(0);
 }
@@ -262,10 +273,10 @@ void MeshRenderer::render(const Matrices &m)
     {
         Shader::VERTICES_SHADER.use();
         Shader::VERTICES_SHADER.setFloat("point_size", settings_.pointSize);
+        Shader::VERTICES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
+        Shader::VERTICES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
+        Shader::VERTICES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-
-        Shader::VERTICES_SHADER.setBool("use_global_color", settings_.useGlobalPointColor);
-        Shader::VERTICES_SHADER.setVec4f("global_color", settings_.globalPointColor);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
