@@ -13,8 +13,8 @@ void ConvexPolygonNode::initRenderer(Scene* scene)
     GL::MeshRenderer::Data data;
     for (uint i = 0; i < vertices_.size(); ++i) {
         data.pointAttribs.push_back(GL::MeshRenderer::VertexPointAttrib{.position = vertices_[i], .color = Color::WHITE});
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position = vertices_[i], .color = Color::WHITE});
-        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{.position = vertices_[i], .color = Color::WHITE, .normal = normal});
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position = vertices_[i], .color = Vec4f(1,1,1,1)});
+        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{.position = vertices_[i], .color = Vec4f(1,1,1,1), .normal = normal});
 
         data.pointIndices.push_back(i);
         data.lineIndices.push_back(i);

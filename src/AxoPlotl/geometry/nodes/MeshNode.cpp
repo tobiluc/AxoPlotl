@@ -52,12 +52,46 @@ static void upload_vertex_scalar_property_data(
     _r.updatePointsAttributes(p_attribs);
 };
 
+template<typename T>
+static std::pair<T,T> get_edge_scalar_property_range(
+    const PolyhedralMesh& _mesh,
+    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop)
+{
+    if (_mesh.n_edges()==0) {return {0,0};}
+    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
+    std::pair<T,T> r = {_prop[OVM::EH(0)], _prop[OVM::EH(0)]};
+    for (auto eh : _mesh.edges()) {
+        r.first = std::min(r.first, _prop[eh]);
+        r.second = std::max(r.second, _prop[eh]);
+    }
+    return r;
+};
+
+template<typename T>
+static void upload_edge_scalar_property_data(
+    const PolyhedralMesh& _mesh,
+    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop,
+    GL::MeshRenderer& _r)
+{
+    if (_mesh.n_edges()==0) {return;}
+    std::vector<GL::MeshRenderer::VertexLineAttrib> l_attribs;
+    for (auto eh : _mesh.edges()) {
+        auto heh = eh.halfedge_handle(0);
+        auto vh0 = _mesh.from_vertex_handle(heh);
+        auto vh1 = _mesh.to_vertex_handle(heh);
+        Vec3f p0 = toVec3<Vec3f>(_mesh.vertex(vh0));
+        Vec3f p1 = toVec3<Vec3f>(_mesh.vertex(vh1));
+        l_attribs.push_back({p0, Vec4f(_prop[eh],_prop[eh],_prop[eh],1)});
+        l_attribs.push_back({p1, Vec4f(_prop[eh],_prop[eh],_prop[eh],1)});
+    }
+    _r.updateLinesAttributes(l_attribs);
+};
+
 void MeshNode::renderUIBody(Scene* scene)
 {
     // if (ImGui::Button("Unvisualize Properties")) {
     //     initRenderer(scene);
     // }
-
 
 
     if (ImGui::BeginMenu("Properties"))
@@ -75,8 +109,8 @@ void MeshNode::renderUIBody(Scene* scene)
                         prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
                         upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<double>((*prop_)->name()).value(), mesh_renderer_);
                     } else if ((*v_prop)->typeNameWrapper()=="int") {
-                        auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<int>>(r.first, r.second);
+                        //auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
+                        prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
                         upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value(), mesh_renderer_);
                     } else if ((*v_prop)->typeNameWrapper()=="float") {
                         auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<float>((*prop_)->name()).value());
@@ -98,7 +132,25 @@ void MeshNode::renderUIBody(Scene* scene)
             for (auto e_prop = mesh_.edge_props_begin(); e_prop != mesh_.edge_props_end(); ++e_prop) {
                 ImGui::PushID((*e_prop)->name().c_str());
                 if (ImGui::MenuItem(IO::string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
-                    //
+                    prop_ = *e_prop;
+
+                    // Upload Property Data to GPU
+                    if ((*e_prop)->typeNameWrapper()=="double") {
+                        auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<double>((*prop_)->name()).value());
+                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
+                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<double>((*prop_)->name()).value(), mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="int") {
+                        //auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<int>((*prop_)->name()).value());
+                        prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
+                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<int>((*prop_)->name()).value(), mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="float") {
+                        auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<float>((*prop_)->name()).value());
+                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
+                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<float>((*prop_)->name()).value(), mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="bool") {
+                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<bool>>();
+                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<bool>((*prop_)->name()).value(), mesh_renderer_);
+                    }
                 }
                 ImGui::PopID();
             }

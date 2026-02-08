@@ -69,7 +69,7 @@ void ExplicitSurfaceNode::initRenderer(Scene* scene)
 
         data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
             .position = p,
-            .color = Color(t,0,1-t)
+            .color = Vec4f(t,0,1-t,1)
         });
 
         data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{

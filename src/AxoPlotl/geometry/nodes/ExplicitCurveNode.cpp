@@ -60,7 +60,9 @@ void ExplicitCurveNode::initRenderer(Scene* scene)
     samplePoints(f_, pts, resolution_);
 
     for (uint i = 0; i < pts.size(); ++i) {
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position = pts[i].second, .color = Color::WHITE});
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+            .position = pts[i].second,
+            .color = Vec4f(1,1,1,1)});
     }
     for (uint i = 0; i < pts.size()-1; ++i) {
         data.lineIndices.push_back(i);

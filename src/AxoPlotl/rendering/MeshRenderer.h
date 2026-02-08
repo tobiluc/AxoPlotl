@@ -69,12 +69,12 @@ public:
 
     typedef struct {
         Vec3f position;
-        Color color;
+        Vec4f color;
     } VertexLineAttrib;
 
     typedef struct {
         Vec3f position;
-        Color color;
+        Vec4f color;
         Vec3f normal;
         float buffer;
     } VertexTriangleAttrib;

@@ -58,7 +58,7 @@ void SphericalHarmonicNode::initRenderer(Scene* scene)
         float val = f_(mesh.vertex(i));
         float t = (val - min) / (max - min);
         data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-        .position = mesh.vertex(i), .color = Color(t,0,1-t), .normal = mesh.vertexNormal(i)});
+        .position = mesh.vertex(i), .color = Vec4f(t,0,1-t,1), .normal = mesh.vertexNormal(i)});
     }
     for (uint i = 0; i < mesh.polygons().size(); ++i) {
         for (uint j = 1; j < mesh.polygon(i).size()-1; ++j) {

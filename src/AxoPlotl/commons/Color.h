@@ -97,12 +97,13 @@ public:
 
 struct Light {Color ambient, diffuse, specular;};
 
-inline Color getColorOnSphere(float x, float y, float z) {
+inline Vec4f getColorOnSphere(float x, float y, float z) {
     float d = std::sqrt(x*x+y*y+z*z);
-    return Color(
+    return Vec4f(
         0.5 * (x/d + 1),
         0.5 * (y/d + 1),
-        0.5 * (z/d + 1)
+        0.5 * (z/d + 1),
+        1
         );
 }
 

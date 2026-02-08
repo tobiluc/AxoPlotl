@@ -417,12 +417,12 @@ void TestScene::init()
 
     // Coordinate Frame
     GL::MeshRenderer::Data data;
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::RED});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Color::RED});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::GREEN});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Color::GREEN});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Color::BLUE});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Color::BLUE});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(1,0,0,1)});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Vec4f(1,0,0,1)});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,1,0,1)});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Vec4f(0,1,0,1)});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,0,1,1)});
+    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Vec4f(0,0,1,1)});
     for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
     gizmoRenderer_.updateData(data);
     gizmoRenderer_.settings().useGlobalLineColor = false;

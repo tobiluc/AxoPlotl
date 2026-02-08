@@ -225,14 +225,9 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
             .color = Color::BLACK
         });
 
-        data.lineAttribs.push_back(VertexLineAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Color(v_it->idx()/(float)mesh.n_vertices(),0,0)
-        });
-
         data.triangleAttribs.push_back(VertexTriangleAttrib{
             .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Color::WHITE,
+            .color = Vec4f(1,1,1,1),
             .normal = n,
             .buffer = 0.0f
         });
@@ -244,10 +239,21 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
     }
 
     for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
-        uint v0 = mesh.from_vertex_handle(e_it->halfedge_handle(0)).uidx();
-        uint v1 = mesh.from_vertex_handle(e_it->halfedge_handle(1)).uidx();
-        data.lineIndices.push_back(v0);
-        data.lineIndices.push_back(v1);
+        auto vh0 = mesh.from_vertex_handle(e_it->halfedge_handle(0));
+        auto vh1 = mesh.from_vertex_handle(e_it->halfedge_handle(1));
+
+        data.lineAttribs.push_back(VertexLineAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(vh0)),
+            .color = Vec4f(1,0,0,1)
+        });
+        data.lineAttribs.push_back(VertexLineAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(vh1)),
+            .color = Vec4f(0,1,0,1)
+        });
+        data.lineIndices.push_back(data.lineAttribs.size()-2);
+        data.lineIndices.push_back(data.lineAttribs.size()-1);
+
+
     }
 
     for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
@@ -299,8 +305,11 @@ void MeshRenderer::render(const Matrices &m)
 
         Shader::EDGES_SHADER.setFloat("line_width", settings_.lineWidth);
 
-        Shader::EDGES_SHADER.setBool("use_global_color", settings_.useGlobalLineColor);
-        Shader::EDGES_SHADER.setVec4f("global_color", settings_.globalLineColor);
+        Shader::EDGES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
+        Shader::EDGES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
+        Shader::EDGES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
+        // Shader::EDGES_SHADER.setBool("use_global_color", settings_.useGlobalLineColor);
+        // Shader::EDGES_SHADER.setVec4f("global_color", settings_.globalLineColor);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front

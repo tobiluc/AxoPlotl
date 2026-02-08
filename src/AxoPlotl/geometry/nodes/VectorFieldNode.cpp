@@ -20,7 +20,7 @@ void VectorFieldNode::initRenderer(Scene* scene)
                 );
 
                 Vec3f d = glm::normalize(field_(p));
-                Color color = getColorOnSphere(d.x, d.y, d.z);
+                auto color = getColorOnSphere(d.x, d.y, d.z);
                 int v = data.lineAttribs.size();
                 data.lineAttribs.push_back({.position = p-0.5f*scale_factor_*d, .color = color});
                 data.lineAttribs.push_back({.position = p+0.5f*scale_factor_*d, .color = color});
