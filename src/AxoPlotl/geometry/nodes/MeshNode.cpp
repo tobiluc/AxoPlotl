@@ -47,9 +47,10 @@ static void upload_vertex_scalar_property_data(
     std::vector<GL::MeshRenderer::VertexPointAttrib> p_attribs;
     for (auto vh : _mesh.vertices()) {
         Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
-        p_attribs.push_back({p,Color(_prop[vh],_prop[vh],_prop[vh])});
+        p_attribs.push_back({p,Vec4f(_prop[vh],_prop[vh],_prop[vh],1)});
     }
     _r.updatePointsAttributes(p_attribs);
+    _r.settings().useDataForPointColor = false;
 };
 
 template<typename T>
@@ -85,6 +86,7 @@ static void upload_edge_scalar_property_data(
         l_attribs.push_back({p1, Vec4f(_prop[eh],_prop[eh],_prop[eh],1)});
     }
     _r.updateLinesAttributes(l_attribs);
+    _r.settings().useDataForLineColor = false;
 };
 
 void MeshNode::renderUIBody(Scene* scene)
@@ -215,10 +217,18 @@ void MeshNode::renderUIBody(Scene* scene)
 
     if (prop_)
     {
+
         ImGui::Text("%s [%s]", (*prop_)->name().c_str(), (*prop_)->typeNameWrapper().c_str());
 
         if (prop_filter) {
             prop_filter->renderUI(mesh_renderer_);
+        }
+
+        if (ImGui::Button("Stop Property Visualization")) {
+            prop_ = std::nullopt;
+            mesh_renderer_.settings().useDataForLineColor = true;
+            mesh_renderer_.settings().useDataForPointColor = true;
+            initRenderer(scene);
         }
     }
 

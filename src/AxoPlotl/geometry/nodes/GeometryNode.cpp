@@ -83,8 +83,6 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Edges")) {
                 ImGui::Checkbox("Show Edges", &settings.renderLines);
                 ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
-                ImGui::Checkbox("Enable Edge Color", &settings.useGlobalLineColor);
-                ImGui::ColorEdit3("Edge Color", &settings.globalLineColor[0]);
                 ImGui::EndMenu();
             }
         }

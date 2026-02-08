@@ -425,7 +425,7 @@ void TestScene::init()
     data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Vec4f(0,0,1,1)});
     for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
     gizmoRenderer_.updateData(data);
-    gizmoRenderer_.settings().useGlobalLineColor = false;
+    gizmoRenderer_.settings().useDataForLineColor = true;
     gizmoRenderer_.settings().useGlobalTriangleColor = false;
     gizmoRenderer_.settings().lineWidth = 8.0f;
     gizmoRenderer_.settings().pointSize = 12.0f;

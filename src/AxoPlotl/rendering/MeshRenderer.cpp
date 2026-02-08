@@ -222,7 +222,7 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
 
         data.pointAttribs.push_back(VertexPointAttrib{
             .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Color::BLACK
+            .color = Vec4f(0.4,0.4,0.4,1)
         });
 
         data.triangleAttribs.push_back(VertexTriangleAttrib{
@@ -253,7 +253,6 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
         data.lineIndices.push_back(data.lineAttribs.size()-2);
         data.lineIndices.push_back(data.lineAttribs.size()-1);
 
-
     }
 
     for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
@@ -283,6 +282,7 @@ void MeshRenderer::render(const Matrices &m)
         Shader::VERTICES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
         Shader::VERTICES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
+        Shader::VERTICES_SHADER.setBool("use_data_as_color", settings_.useDataForPointColor);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
@@ -302,7 +302,7 @@ void MeshRenderer::render(const Matrices &m)
 
         Shader::EDGES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::EDGES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-
+        Shader::EDGES_SHADER.setBool("use_data_as_color", settings_.useDataForLineColor);
         Shader::EDGES_SHADER.setFloat("line_width", settings_.lineWidth);
 
         Shader::EDGES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);

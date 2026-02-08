@@ -8,13 +8,16 @@ uniform mat4 model_view_projection_matrix;
 uniform vec2 visible_data_range;
 uniform vec4 min_color;
 uniform vec4 max_color;
+uniform bool use_data_as_color;
 
 out vec4 v2g_color;
 
 void main() {
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
 	
-	if (v_data.x >= visible_data_range.x && v_data.x <= visible_data_range.y) {
+	if (use_data_as_color) {
+		v2g_color = v_data;
+	} else if (v_data.x >= visible_data_range.x && v_data.x <= visible_data_range.y) {
 		float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
 		t = clamp(t,0,1);
 		v2g_color = mix(min_color, max_color, t);

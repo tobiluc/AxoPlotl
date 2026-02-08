@@ -31,7 +31,7 @@ public:
         input_buffer_z_[sizeof(input_buffer_z_)-1] = '\0';
 
         mesh_renderer_.settings().useGlobalTriangleColor = false;
-        mesh_renderer_.settings().useGlobalLineColor = false;
+        mesh_renderer_.settings().useDataForLineColor = true;
     }
 
     void initRenderer(Scene* scene) override;

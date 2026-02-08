@@ -48,11 +48,13 @@ public:
         bool renderTriangles = true;
         float pointSize = 5.0f;
         float lineWidth = 3.0f;
+        bool useDataForPointColor = true;
+        bool useDataForLineColor = true;
 
         ScalarRangeConfig scalar_property_range;
 
-        Color globalLineColor = Color::BLUE;
-        bool useGlobalLineColor = true;
+        // Color globalLineColor = Color::BLUE;
+        // bool useGlobalLineColor = true;
         Color gobalTriangleColor = Color::GREEN;
         bool useGlobalTriangleColor = true;
 
@@ -64,7 +66,7 @@ public:
 
     typedef struct {
         Vec3f position;
-        Color color;
+        Vec4f color;
     } VertexPointAttrib;
 
     typedef struct {
