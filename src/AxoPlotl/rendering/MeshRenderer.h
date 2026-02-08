@@ -50,13 +50,14 @@ public:
         float lineWidth = 3.0f;
         bool useDataForPointColor = true;
         bool useDataForLineColor = true;
+        bool useDataForTriangleColor = true;
 
         ScalarRangeConfig scalar_property_range;
 
         // Color globalLineColor = Color::BLUE;
         // bool useGlobalLineColor = true;
-        Color gobalTriangleColor = Color::GREEN;
-        bool useGlobalTriangleColor = true;
+        // Color gobalTriangleColor = Color::GREEN;
+        // bool useGlobalTriangleColor = true;
 
         //Light light{.ambient = Color::LIGHTGRAY, .diffuse = Color::LIGHTGRAY, .specular = Color::DARKGRAY};
         // float outlineWidth = 1.0f;

@@ -29,9 +29,6 @@ public:
         input_buffer_x_[sizeof(input_buffer_x_)-1] = '\0';
         input_buffer_y_[sizeof(input_buffer_y_)-1] = '\0';
         input_buffer_z_[sizeof(input_buffer_z_)-1] = '\0';
-
-        mesh_renderer_.settings().useGlobalTriangleColor = false;
-        mesh_renderer_.settings().useDataForLineColor = true;
     }
 
     void initRenderer(Scene* scene) override;

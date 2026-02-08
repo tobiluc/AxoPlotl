@@ -91,6 +91,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/MESHFileAccessor.h
     src/AxoPlotl/IO/MESHFileAccessor.cpp
     src/AxoPlotl/properties/property_filters.hpp
+    src/AxoPlotl/properties/property_data.hpp
 
 
 

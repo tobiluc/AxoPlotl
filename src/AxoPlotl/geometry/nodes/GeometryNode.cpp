@@ -91,8 +91,8 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Faces")) {
                 ImGui::Checkbox("Show Faces", &settings.renderTriangles);
                 ImGui::Checkbox("Wireframe", &settings.wireframe);
-                ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
-                ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
+                // ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
+                // ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
                 // ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
                 // ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
                 ImGui::EndMenu();

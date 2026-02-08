@@ -1,5 +1,6 @@
 #include "MeshNode.h"
 #include "AxoPlotl/IO/FileUtils.h"
+#include "AxoPlotl/properties/property_data.hpp"
 #include "AxoPlotl/utils/Utils.h"
 
 namespace AxoPlotl
@@ -22,73 +23,6 @@ void MeshNode::initRenderer(Scene* scene)
     }
 }
 
-template<typename T>
-static std::pair<T,T> get_vertex_scalar_property_range(
-    const PolyhedralMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop)
-{
-    if (_mesh.n_vertices()==0) {return {0,0};}
-    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {_prop[OVM::VH(0)], _prop[OVM::VH(0)]};
-    for (auto vh : _mesh.vertices()) {
-        r.first = std::min(r.first, _prop[vh]);
-        r.second = std::max(r.second, _prop[vh]);
-    }
-    return r;
-};
-
-template<typename T>
-static void upload_vertex_scalar_property_data(
-    const PolyhedralMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop,
-    GL::MeshRenderer& _r)
-{
-    if (_mesh.n_vertices()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexPointAttrib> p_attribs;
-    for (auto vh : _mesh.vertices()) {
-        Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
-        p_attribs.push_back({p,Vec4f(_prop[vh],_prop[vh],_prop[vh],1)});
-    }
-    _r.updatePointsAttributes(p_attribs);
-    _r.settings().useDataForPointColor = false;
-};
-
-template<typename T>
-static std::pair<T,T> get_edge_scalar_property_range(
-    const PolyhedralMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop)
-{
-    if (_mesh.n_edges()==0) {return {0,0};}
-    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {_prop[OVM::EH(0)], _prop[OVM::EH(0)]};
-    for (auto eh : _mesh.edges()) {
-        r.first = std::min(r.first, _prop[eh]);
-        r.second = std::max(r.second, _prop[eh]);
-    }
-    return r;
-};
-
-template<typename T>
-static void upload_edge_scalar_property_data(
-    const PolyhedralMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop,
-    GL::MeshRenderer& _r)
-{
-    if (_mesh.n_edges()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexLineAttrib> l_attribs;
-    for (auto eh : _mesh.edges()) {
-        auto heh = eh.halfedge_handle(0);
-        auto vh0 = _mesh.from_vertex_handle(heh);
-        auto vh1 = _mesh.to_vertex_handle(heh);
-        Vec3f p0 = toVec3<Vec3f>(_mesh.vertex(vh0));
-        Vec3f p1 = toVec3<Vec3f>(_mesh.vertex(vh1));
-        l_attribs.push_back({p0, Vec4f(_prop[eh],_prop[eh],_prop[eh],1)});
-        l_attribs.push_back({p1, Vec4f(_prop[eh],_prop[eh],_prop[eh],1)});
-    }
-    _r.updateLinesAttributes(l_attribs);
-    _r.settings().useDataForLineColor = false;
-};
-
 void MeshNode::renderUIBody(Scene* scene)
 {
     // if (ImGui::Button("Unvisualize Properties")) {
@@ -104,24 +38,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*v_prop)->name().c_str());
                 if (ImGui::MenuItem(IO::string_format("%s [%s]", (*v_prop)->name().c_str(), (*v_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *v_prop;
-
-                    // Upload Property Data to GPU
-                    if ((*v_prop)->typeNameWrapper()=="double") {
-                        auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<double>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-                        upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<double>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*v_prop)->typeNameWrapper()=="int") {
-                        //auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-                        upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*v_prop)->typeNameWrapper()=="float") {
-                        auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<float>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-                        upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<float>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*v_prop)->typeNameWrapper()=="bool") {
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<bool>>();
-                        upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<bool>((*prop_)->name()).value(), mesh_renderer_);
-                    }
+                    upload_property_data(mesh_, *v_prop, prop_filter, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -135,24 +52,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*e_prop)->name().c_str());
                 if (ImGui::MenuItem(IO::string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *e_prop;
-
-                    // Upload Property Data to GPU
-                    if ((*e_prop)->typeNameWrapper()=="double") {
-                        auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<double>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<double>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*e_prop)->typeNameWrapper()=="int") {
-                        //auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<int>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<int>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*e_prop)->typeNameWrapper()=="float") {
-                        auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<float>((*prop_)->name()).value());
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<float>((*prop_)->name()).value(), mesh_renderer_);
-                    } else if ((*e_prop)->typeNameWrapper()=="bool") {
-                        prop_filter = std::make_shared<ScalarPropertyRangeFilter<bool>>();
-                        upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<bool>((*prop_)->name()).value(), mesh_renderer_);
-                    }
+                    upload_property_data(mesh_, *e_prop, prop_filter, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -165,7 +65,8 @@ void MeshNode::renderUIBody(Scene* scene)
             for (auto f_prop = mesh_.face_props_begin(); f_prop != mesh_.face_props_end(); ++f_prop) {
                 ImGui::PushID((*f_prop)->name().c_str());
                 if (ImGui::MenuItem(IO::string_format("%s [%s]", (*f_prop)->name().c_str(), (*f_prop)->typeNameWrapper().c_str()).c_str())) {
-                    //
+                    prop_ = *f_prop;
+                    upload_property_data(mesh_, *f_prop, prop_filter, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -220,6 +121,15 @@ void MeshNode::renderUIBody(Scene* scene)
 
         ImGui::Text("%s [%s]", (*prop_)->name().c_str(), (*prop_)->typeNameWrapper().c_str());
 
+        if (ImGui::BeginMenu("Visualization Options")) {
+            if (ImGui::MenuItem("Range")) {
+            }
+            if (ImGui::MenuItem("Exact")) {
+
+            }
+            ImGui::EndMenu();
+        }
+
         if (prop_filter) {
             prop_filter->renderUI(mesh_renderer_);
         }
@@ -228,6 +138,7 @@ void MeshNode::renderUIBody(Scene* scene)
             prop_ = std::nullopt;
             mesh_renderer_.settings().useDataForLineColor = true;
             mesh_renderer_.settings().useDataForPointColor = true;
+            mesh_renderer_.settings().useDataForTriangleColor = true;
             initRenderer(scene);
         }
     }

@@ -224,14 +224,6 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
             .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
             .color = Vec4f(0.4,0.4,0.4,1)
         });
-
-        data.triangleAttribs.push_back(VertexTriangleAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(*v_it)),
-            .color = Vec4f(1,1,1,1),
-            .normal = n,
-            .buffer = 0.0f
-        });
-
     }
 
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
@@ -255,13 +247,26 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
 
     }
 
+    int idx(0);
     for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
         const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
-        for (uint j = 1; j < vhs.size()-1; ++j) {
-            data.triangleIndices.push_back(vhs[0].uidx());
-            data.triangleIndices.push_back(vhs[j].uidx());
-            data.triangleIndices.push_back(vhs[j+1].uidx());
+        auto normal = toVec3<Vec3f>(mesh.normal(f_it->halfface_handle(0)));
+
+        for (OVM::VH vh : vhs) {
+            data.triangleAttribs.push_back(VertexTriangleAttrib{
+                .position = toVec3<Vec3f>(mesh.vertex(vh)),
+                .color = Vec4f(0.6,0.6,0.6,1),
+                .normal = normal,
+                .buffer = 0.0f
+            });
         }
+
+        for (uint j = 1; j < vhs.size()-1; ++j) {
+            data.triangleIndices.push_back(idx);
+            data.triangleIndices.push_back(idx+j);
+            data.triangleIndices.push_back(idx+j+1);
+        }
+        idx += vhs.size();
     }
 }
 
@@ -336,8 +341,12 @@ void MeshRenderer::render(const Matrices &m)
         // Shader::FACES_SHADER.setVec3f("light.diffuse", settings_.light.diffuse);
         // Shader::FACES_SHADER.setVec3f("light.specular", settings_.light.specular);
 
-        Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
-        Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
+        // Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
+        // Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
+        Shader::FACES_SHADER.setBool("use_data_as_color", settings_.useDataForTriangleColor);
+        Shader::FACES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
+        Shader::FACES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
+        Shader::FACES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
 
         // Shader::FACES_OUTLINES_SHADER.use();
 

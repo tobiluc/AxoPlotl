@@ -19,8 +19,6 @@ public:
     {
         std::strncpy(input_buffer_, _f.str.c_str(), sizeof(input_buffer_) - 1);
         input_buffer_[sizeof(input_buffer_) - 1] = '\0';
-
-        mesh_renderer_.settings().useGlobalTriangleColor = false;
     }
 
     void initRenderer(Scene* scene) override;

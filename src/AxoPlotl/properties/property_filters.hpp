@@ -15,6 +15,8 @@ struct PropertyFilterBase
 template<typename ST>
 struct ScalarPropertyRangeFilter : public PropertyFilterBase
 {
+    using Scalar = ST;
+
     ScalarPropertyRangeFilter(ST _min=0, ST _max=1)
         : min(_min), max(_max) {}
     void renderUI(GL::MeshRenderer& _r) override
@@ -49,6 +51,8 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
 template<typename ST>
 struct ScalarPropertyExactFilter : public PropertyFilterBase
 {
+    using Scalar = ST;
+
     void renderUI(GL::MeshRenderer& _r) override
     {
         //_r.settings().v_prop_range
