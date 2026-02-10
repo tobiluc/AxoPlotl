@@ -10,6 +10,9 @@
 #include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
 #include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
 #include "AxoPlotl/rendering/redraw_frames.h"
+
+#include "AxoPlotl/geometry/Mesh.hpp"
+
 #include "rendering/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
@@ -50,45 +53,59 @@ public:
     /// Render the scene and UI
     void render(GLFWwindow* window);
 
+    inline void add_surface_mesh(const std::filesystem::path& _path) {
+        objects_.push_back(std::make_unique<SurfaceMeshNode>(_path));
+        if (objects_.back()->isDeleted()) {objects_.pop_back(); return;}
+        objects_.back()->init(this);
+        Rendering::triggerRedraw();
+    }
+
+    inline void add_volume_mesh(const std::filesystem::path& _path) {
+        objects_.push_back(std::make_unique<VolumeMeshNode>(_path));
+        if (objects_.back()->isDeleted()) {objects_.pop_back(); return;}
+        objects_.back()->init(this);
+        Rendering::triggerRedraw();
+    }
+
     inline void addMesh(const PolyhedralMesh& mesh, const std::string& name) {
         objects_.push_back(std::make_unique<MeshNode>(mesh, name));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
         objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addSphericalHarmonic(const std::string& name, const SphericalHarmonicFunction& sh) {
         objects_.push_back(std::make_unique<SphericalHarmonicNode>(sh, name));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addConvexPolygon(const std::vector<Vec3f>& vertices, const std::string& name) {
         objects_.push_back(std::make_unique<ConvexPolygonNode>(vertices, name));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitCurveNode>(name, func, color));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
         objects_.push_back(std::make_unique<ExplicitSurfaceNode>(name, func, color));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
     inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
         objects_.push_back(std::make_unique<ImplicitSurfaceNode>(name, func, color));
-        objects_.back()->initRenderer(this);
+        objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 

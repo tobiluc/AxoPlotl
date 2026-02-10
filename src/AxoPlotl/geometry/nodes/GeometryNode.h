@@ -32,7 +32,9 @@ protected:
     virtual void renderUIBody(Scene* scene) = 0;
 
 public:
-    GeometryNode(const std::string& _type_name, const std::string& _name, glm::mat4x4 _transform) :
+    GeometryNode(const std::string& _type_name,
+                 const std::string& _name,
+                 glm::mat4x4 _transform = glm::mat4x4(1)) :
         id_(++id_counter_), type_name_(_type_name), ui_color_(Color::random()),
         transform_(_transform)
     {
@@ -43,7 +45,7 @@ public:
     virtual ~GeometryNode() = default;
 
     /// Must be called before rendering
-    virtual void initRenderer(Scene* scene) = 0;
+    virtual void init(Scene* scene) = 0;
 
     virtual std::pair<glm::vec3, glm::vec3> getBBox() = 0;
 

@@ -4,7 +4,7 @@
 namespace AxoPlotl
 {
 
-void ImplicitSurfaceNode::initRenderer(Scene *scene)
+void ImplicitSurfaceNode::init(Scene *scene)
 {
     PolyhedralMesh mesh;
     TriangleMesh triangles;
@@ -63,7 +63,7 @@ void ImplicitSurfaceNode::renderUIBody(Scene *scene)
 
         // Update renderer
         this->f_.f = func;
-        this->initRenderer(scene);
+        this->init(scene);
     }
 }
 

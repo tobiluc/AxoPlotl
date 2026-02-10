@@ -327,15 +327,25 @@ void Scene::renderUI(GLFWwindow *window)
     // Load Mesh File Dialog
     if (ImGuiFileDialog::Instance()->Display("LoadMeshDlgKey")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
-            std::string filepath = ImGuiFileDialog::Instance()->GetFilePathName();
-            PolyhedralMesh mesh;
-            if (IO::loadMesh(filepath, mesh)) {
-                addMesh(mesh, std::filesystem::path(filepath).filename());
+            std::filesystem::path filepath = ImGuiFileDialog::Instance()->GetFilePathName();
+
+            if (filepath.extension() == ".obj") {
+                add_surface_mesh(filepath);
             } else {
-                ImGui::BeginPopup("##Error");
-                ImGui::Text("Could not save the mesh");
-                ImGui::EndPopup();
+                add_volume_mesh(filepath);
             }
+            // } else {
+            //     PolyhedralMesh mesh;
+            //     if (IO::loadMesh(filepath, mesh)) {
+            //         addMesh(mesh, std::filesystem::path(filepath).filename());
+            //     } else {status = 1;}
+            // }
+
+            // if (status != 0) {
+            //     ImGui::BeginPopup("##Error");
+            //     ImGui::Text("Could not save the mesh");
+            //     ImGui::EndPopup();
+            // }
         }
         ImGuiFileDialog::Instance()->Close();
     }
@@ -367,6 +377,10 @@ void Scene::renderUI(GLFWwindow *window)
         if (it != objects_.end())
         {
             ImGui::Text("Name: %s (Primitive %d)", it->get()->name(), picked_.primitive_id);
+            if (ImGui::Button("Zoom to Object")) {
+                auto bbox = it->get()->getBBox();
+                camera_set_.zoomToBox(bbox.first, bbox.second);
+            }
             if (ImGui::Button("Delete")) {
                 it->get()->setDeleted();
             }

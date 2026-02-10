@@ -48,11 +48,11 @@ void ExplicitCurveNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        this->initRenderer(scene);
+        this->init(scene);
     }
 }
 
-void ExplicitCurveNode::initRenderer(Scene* scene)
+void ExplicitCurveNode::init(Scene* scene)
 {
     GL::MeshRenderer::Data data;
 

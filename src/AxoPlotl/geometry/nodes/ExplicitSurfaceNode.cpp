@@ -51,13 +51,13 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        this->initRenderer(scene);
+        this->init(scene);
     }
     // ImGui::SameLine();
     // ImGui::Checkbox("Continous Evaluation", &continous_evaluation_);
 }
 
-void ExplicitSurfaceNode::initRenderer(Scene* scene)
+void ExplicitSurfaceNode::init(Scene* scene)
 {
     PolygonMesh mesh;
     createQuads(f_, mesh, resolution_);

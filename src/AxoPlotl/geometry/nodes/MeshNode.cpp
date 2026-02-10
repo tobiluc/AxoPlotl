@@ -6,7 +6,7 @@
 namespace AxoPlotl
 {
 
-void MeshNode::initRenderer(Scene* scene)
+void MeshNode::init(Scene* scene)
 {
     //renderer_.addMesh(mesh_, renderLoc_);
     GL::MeshRenderer::Data data;
@@ -139,7 +139,7 @@ void MeshNode::renderUIBody(Scene* scene)
             mesh_renderer_.settings().useDataForLineColor = true;
             mesh_renderer_.settings().useDataForPointColor = true;
             mesh_renderer_.settings().useDataForTriangleColor = true;
-            initRenderer(scene);
+            init(scene);
         }
     }
 

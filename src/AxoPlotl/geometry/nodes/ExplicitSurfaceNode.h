@@ -31,7 +31,7 @@ public:
         input_buffer_z_[sizeof(input_buffer_z_)-1] = '\0';
     }
 
-    void initRenderer(Scene* scene) override;
+    void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
 

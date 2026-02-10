@@ -37,11 +37,11 @@ void SphericalHarmonicNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->f_.f = func;
-        this->initRenderer(scene);
+        this->init(scene);
     }
 }
 
-void SphericalHarmonicNode::initRenderer(Scene* scene)
+void SphericalHarmonicNode::init(Scene* scene)
 {
     PolygonMesh mesh;
     createQuads(f_, mesh, resolution_);

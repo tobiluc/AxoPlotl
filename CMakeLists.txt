@@ -92,6 +92,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/IO/MESHFileAccessor.cpp
     src/AxoPlotl/properties/property_filters.hpp
     src/AxoPlotl/properties/property_data.hpp
+    src/AxoPlotl/geometry/Mesh.hpp
+    src/AxoPlotl/geometry/Mesh.cpp
 
 
 
@@ -117,6 +119,20 @@ include(FetchContent)
 set(FETCHCONTENT_UPDATES_DISCONNECTED TRUE)
 set(SUBMODULES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules")
 set(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
+
+#=========================
+# ToLoG
+#=========================
+if (NOT TARGET ToLoG)
+    message(STATUS "Fetching ToLoG")
+    FetchContent_Declare(ToLoG
+        GIT_REPOSITORY https://github.com/tobiluc/ToLoG.git
+        GIT_TAG main
+        SOURCE_DIR "${EXTERNAL_DIR}/ToLoG"
+    )
+    set(TOLOG_BUILD_UNIT_TESTS FALSE)
+    FetchContent_MakeAvailable(ToLoG)
+endif()
 
 #=========================
 # Eigen
@@ -236,7 +252,7 @@ endif()
 
 
 #=========================
-# OVM
+# OpenVolumeMesh
 #=========================
 if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
     message(STATUS "Fetching OpenVolumeMesh")
@@ -246,6 +262,19 @@ if (NOT TARGET OpenVolumeMesh::OpenVolumeMesh)
         SOURCE_DIR "${EXTERNAL_DIR}/OpenVolumeMesh"
         )
     FetchContent_MakeAvailable(ovm)
+endif()
+
+#=========================
+# OpenMesh
+#=========================
+if (NOT TARGET OpenMeshCore)
+   message(STATUS "Fetching OpenMesh")
+   FetchContent_Declare(om
+       GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh
+       GIT_TAG "OpenMesh-11.0"
+       SOURCE_DIR "${EXTERNAL_DIR}/OpenMesh"
+       )
+   FetchContent_MakeAvailable(om)
 endif()
 
 #=========================
@@ -269,11 +298,13 @@ OpenGL::GL
 OpenMP::OpenMP_CXX
 glm
 # Eigen3::Eigen
+OpenMeshCore
 OpenVolumeMesh::OpenVolumeMesh
 ImGui
 ImGuiFileDialog
 nlohmann_json::nlohmann_json
 ibex
+ToLoG
 )
 target_link_libraries(ImGuiFileDialog ImGui)
 

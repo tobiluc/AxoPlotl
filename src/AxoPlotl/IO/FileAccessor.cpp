@@ -1,4 +1,5 @@
 #include "FileAccessor.h"
+#include <ToLoG/utils/OVM_Traits.hpp>
 #include "AxoPlotl/IO/FileUtils.h"
 #include "AxoPlotl/IO/MESHFileAccessor.h"
 #include "AxoPlotl/IO/OBJFileAccessor.h"

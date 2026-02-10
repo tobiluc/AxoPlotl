@@ -16,7 +16,7 @@ public:
     {
     }
 
-    void initRenderer(Scene* scene) override;
+    void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
 

@@ -35,7 +35,7 @@ public:
         mesh_renderer_.settings().useDataForLineColor = true;
     }
 
-    void initRenderer(Scene* scene) override;
+    void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
 

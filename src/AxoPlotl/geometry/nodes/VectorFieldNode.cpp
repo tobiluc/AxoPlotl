@@ -4,7 +4,7 @@
 namespace AxoPlotl
 {
 
-void VectorFieldNode::initRenderer(Scene* scene)
+void VectorFieldNode::init(Scene* scene)
 {
     //bbox_.compute(mesh_.vertices());
 
@@ -84,7 +84,7 @@ void VectorFieldNode::renderUIBody(Scene* scene)
 
         // Update renderer
         this->field_.grad = func;
-        this->initRenderer(scene);
+        this->init(scene);
     }
 }
 

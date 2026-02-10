@@ -236,11 +236,11 @@ void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
 
         data.lineAttribs.push_back(VertexLineAttrib{
             .position = toVec3<Vec3f>(mesh.vertex(vh0)),
-            .color = Vec4f(1,0,0,1)
+            .color = Vec4f(0,0,0,1)
         });
         data.lineAttribs.push_back(VertexLineAttrib{
             .position = toVec3<Vec3f>(mesh.vertex(vh1)),
-            .color = Vec4f(0,1,0,1)
+            .color = Vec4f(0,0,0,1)
         });
         data.lineIndices.push_back(data.lineAttribs.size()-2);
         data.lineIndices.push_back(data.lineAttribs.size()-1);
