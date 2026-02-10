@@ -17,7 +17,7 @@ protected:
     static int id_counter_;
     std::string type_name_ = "AxPlObject";
     char name_[64] = "BASE";
-    Color ui_color_;
+    Vec3f ui_color_;
     bool deleted_ = false;
     bool show_ui_body_ = false;
     //GL::Renderer renderer_;
@@ -35,7 +35,7 @@ public:
     GeometryNode(const std::string& _type_name,
                  const std::string& _name,
                  glm::mat4x4 _transform = glm::mat4x4(1)) :
-        id_(++id_counter_), type_name_(_type_name), ui_color_(Color::random()),
+        id_(++id_counter_), type_name_(_type_name), ui_color_(Vec3f(1,0,0)),
         transform_(_transform)
     {
         std::strncpy(name_, _name.c_str(), sizeof(name_) - 1);

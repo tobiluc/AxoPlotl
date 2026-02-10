@@ -1,20 +1,21 @@
 #pragma once
 
-#include "AxoPlotl/geometry/ovm.h"
 #include "AxoPlotl/properties/property_filters.hpp"
 #include "AxoPlotl/rendering/MeshRenderer.h"
 #include "AxoPlotl/utils/Utils.h"
+
+
 namespace AxoPlotl
 {
 
 template<typename T>
 std::pair<T,T> get_vertex_scalar_property_range(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop)
 {
     if (_mesh.n_vertices()==0) {return {0,0};}
     if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {_prop[OVM::VH(0)], _prop[OVM::VH(0)]};
+    std::pair<T,T> r = {_prop[OpenVolumeMesh::VH(0)], _prop[OpenVolumeMesh::VH(0)]};
     for (auto vh : _mesh.vertices()) {
         r.first = std::min(r.first, _prop[vh]);
         r.second = std::max(r.second, _prop[vh]);
@@ -24,7 +25,7 @@ std::pair<T,T> get_vertex_scalar_property_range(
 
 template<typename T>
 void upload_vertex_scalar_property_data(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop,
     GL::MeshRenderer& _r)
 {
@@ -40,7 +41,7 @@ void upload_vertex_scalar_property_data(
 
 template<typename T>
 std::pair<T,T> get_edge_scalar_property_range(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop)
 {
     if (_mesh.n_edges()==0) {return {0,0};}
@@ -55,7 +56,7 @@ std::pair<T,T> get_edge_scalar_property_range(
 
 template<typename T>
 void upload_edge_scalar_property_data(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop,
     GL::MeshRenderer& _r)
 {
@@ -76,7 +77,7 @@ void upload_edge_scalar_property_data(
 
 template<typename T>
 std::pair<T,T> get_face_scalar_property_range(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OVM::Entity::Face>& _prop)
 {
     if (_mesh.n_edges()==0) {return {0,0};}
@@ -91,7 +92,7 @@ std::pair<T,T> get_face_scalar_property_range(
 
 template<typename T>
 void upload_face_scalar_property_data(
-    const PolyhedralMesh& _mesh,
+    const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Face>& _prop,
     GL::MeshRenderer& _r)
 {
@@ -111,7 +112,7 @@ void upload_face_scalar_property_data(
 };
 
 void upload_property_data(
-    const PolyhedralMesh& mesh_,
+    const VolumeMesh& mesh_,
     OpenVolumeMesh::PropertyStorageBase* _prop,
     std::shared_ptr<PropertyFilterBase>& prop_filter,
     GL::MeshRenderer& _r)

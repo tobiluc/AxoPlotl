@@ -6,18 +6,9 @@ namespace AxoPlotl
 
 void ImplicitSurfaceNode::init(Scene *scene)
 {
-    PolyhedralMesh mesh;
-    TriangleMesh triangles;
+    SurfaceMesh triangles;
     createTrianglesAMC(f_, triangles, initial_resolution_, octree_depth_);
-
-    for (const auto& p : triangles.vertices) {
-        mesh.add_vertex(toVec3<OVM::Vec3d>(p));
-    }
-
-    for (const auto& t : triangles.triangles) {
-        mesh.add_face({OVM::VH(t[0]), OVM::VH(t[1]), OVM::VH(t[2])});
-    }
-
+    VolumeMesh mesh = volume_mesh(triangles);
     GL::MeshRenderer::Data data;
     GL::MeshRenderer::createData(mesh, data);
     mesh_renderer_.updateData(data);

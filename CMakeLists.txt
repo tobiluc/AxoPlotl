@@ -55,21 +55,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/Memory.cpp
     src/AxoPlotl/commons/Mesh.h
 
-
-
-    src/AxoPlotl/geometry/Octree.h
-
-    src/AxoPlotl/geometry/Octree.cpp
-    src/AxoPlotl/IO/OBJFileAccessor.h
-    src/AxoPlotl/IO/OVMFileAccessor.h
-    src/AxoPlotl/IO/OVMFileAccessor.cpp
-    src/AxoPlotl/IO/FileUtils.h
     src/AxoPlotl/IO/JSONFileAccessor.h
-    src/AxoPlotl/geometry/glm.h
-    src/AxoPlotl/geometry/ovm.h
-    src/AxoPlotl/IO/OBJFileAccessor.cpp
-    src/AxoPlotl/IO/PLYFileAccessor.h
-    src/AxoPlotl/IO/PLYFileAccessor.cpp
+
     src/AxoPlotl/IO/FileAccessor.h
     src/AxoPlotl/IO/FileAccessor.cpp
     src/AxoPlotl/geometry/nodes/GeometryNode.h
@@ -78,22 +65,30 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/nodes/MeshNode.cpp
     src/AxoPlotl/geometry/nodes/ExplicitCurveNode.h
     src/AxoPlotl/geometry/nodes/ExplicitCurveNode.cpp
-    src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
-    src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
-    src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
-    src/AxoPlotl/geometry/nodes/VectorFieldNode.h src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
+    src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h
+    src/AxoPlotl/geometry/nodes/ExplicitSurfaceNode.cpp
+    src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h
+    src/AxoPlotl/geometry/nodes/ImplicitSurfaceNode.cpp
+    src/AxoPlotl/geometry/nodes/ConvexPolygonNode.h
+    src/AxoPlotl/geometry/nodes/ConvexPolygonNode.cpp
+    src/AxoPlotl/geometry/nodes/VectorFieldNode.h
+    src/AxoPlotl/geometry/nodes/VectorFieldNode.cpp
     src/AxoPlotl/rendering/MeshRenderer.cpp
-    src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
+    src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.h
+    src/AxoPlotl/geometry/nodes/SphericalHarmonicNode.cpp
 
-    # src/AxoPlotl/geometry/eigen.h
     src/AxoPlotl/rendering/redraw_frames.h
     src/AxoPlotl/rendering/redraw_frames.cpp
-    src/AxoPlotl/IO/MESHFileAccessor.h
-    src/AxoPlotl/IO/MESHFileAccessor.cpp
     src/AxoPlotl/properties/property_filters.hpp
     src/AxoPlotl/properties/property_data.hpp
-    src/AxoPlotl/geometry/Mesh.hpp
-    src/AxoPlotl/geometry/Mesh.cpp
+
+
+
+    src/AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp
+    src/AxoPlotl/geometry/AABB.hpp
+    src/AxoPlotl/typedefs/typedefs_glm.hpp
+    src/AxoPlotl/typedefs/typedefs_ToLoG.hpp
+    src/AxoPlotl/utils/string_format.hpp
 
 
 
@@ -107,10 +102,10 @@ if(APPLE)
     set(OpenMP_ROOT "/opt/homebrew/opt/libomp") # this is a bit of a hack
 endif()
 find_package(OpenMP COMPONENTS CXX REQUIRED)
-if(OpenMP_CXX_FOUND)
-    target_compile_options(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
-    target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
-endif()
+# if(OpenMP_CXX_FOUND)
+#     target_compile_options(${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS})
+#     target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+# endif()
 
 #=========================
 # Init Fetch Content
@@ -267,15 +262,15 @@ endif()
 #=========================
 # OpenMesh
 #=========================
-if (NOT TARGET OpenMeshCore)
-   message(STATUS "Fetching OpenMesh")
-   FetchContent_Declare(om
-       GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh
-       GIT_TAG "OpenMesh-11.0"
-       SOURCE_DIR "${EXTERNAL_DIR}/OpenMesh"
-       )
-   FetchContent_MakeAvailable(om)
-endif()
+# if (NOT TARGET OpenMeshCore)
+#    message(STATUS "Fetching OpenMesh")
+#    FetchContent_Declare(om
+#        GIT_REPOSITORY https://www.graphics.rwth-aachen.de:9000/OpenMesh/OpenMesh
+#        GIT_TAG "OpenMesh-11.0"
+#        SOURCE_DIR "${EXTERNAL_DIR}/OpenMesh"
+#        )
+#    FetchContent_MakeAvailable(om)
+# endif()
 
 #=========================
 # NLohmann Json
@@ -298,7 +293,7 @@ OpenGL::GL
 OpenMP::OpenMP_CXX
 glm
 # Eigen3::Eigen
-OpenMeshCore
+# OpenMeshCore
 OpenVolumeMesh::OpenVolumeMesh
 ImGui
 ImGuiFileDialog

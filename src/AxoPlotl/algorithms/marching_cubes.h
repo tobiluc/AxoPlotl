@@ -1,8 +1,9 @@
 #pragma once
 
 #include "AxoPlotl/commons/Mesh.h"
-#include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/geometry/glm.h"
+#include "AxoPlotl/geometry/AABB.hpp"
+#include "AxoPlotl/typedefs/typedefs_ToLoG.hpp"
+#include "AxoPlotl/typedefs/typedefs_glm.hpp"
 
 namespace AxoPlotl::Algo
 {
@@ -19,7 +20,7 @@ private:
     AABB bounds = {-5,5,-5,5,-5,5};
 
     /// Generate Triangles on a single node
-    int generate(const std::function<float (Vec3f)> &f, AABB b, TriangleMesh &mesh);
+    int generate(const std::function<float (Vec3f)> &f, AABB b, SurfaceMesh &mesh);
 
 public:
 
@@ -34,10 +35,10 @@ public:
     }
 
     /// Generates a Triangle Mesh representing the surface f(x,y,z) = 0
-    void generate(const std::function<float(Vec3f)>& f, TriangleMesh& mesh);
+    void generate(const std::function<float(Vec3f)>& f, SurfaceMesh& mesh);
 
     /// Using an Octree
-    void generateAdaptive(const std::function<float(Vec3f)>& f, TriangleMesh& mesh, uint maxDepth = 5);
+    void generateAdaptive(const std::function<float(Vec3f)>& f, SurfaceMesh& mesh, uint maxDepth = 5);
 
 };
 

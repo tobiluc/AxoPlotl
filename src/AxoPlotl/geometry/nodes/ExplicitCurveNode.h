@@ -11,7 +11,7 @@ class ExplicitCurveNode : public GeometryNode
 {
 private:
     ExplicitCurveFunction f_;
-    ColorFunction2f color_;
+    std::function<Vec3f(float,float)> color_;
     int resolution_ = 256;
     char input_buffer_x_[512];
     char input_buffer_y_[512];
@@ -19,8 +19,8 @@ private:
 
 public:
     ExplicitCurveNode(const std::string& _name, const ExplicitCurveFunction& _f,
-                        Color _color = Color::BLUE, const glm::mat4& _transform = glm::mat4(1.0)) :
-        GeometryNode("Explicit Curve", _name, _transform),  f_(_f), color_(_color)
+        Vec3f _color = Vec3f(0,0,1), const glm::mat4& _transform = glm::mat4(1.0)) :
+        GeometryNode("Explicit Curve", _name, _transform),  f_(_f), color_([&](float,float){return _color;})
     {
         std::strncpy(input_buffer_x_, f_.str_x.c_str(), sizeof(input_buffer_x_));
         std::strncpy(input_buffer_y_, f_.str_y.c_str(), sizeof(input_buffer_y_));

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "../utils/Utils.h"
-#include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/geometry/glm.h"
 #include "AxoPlotl/commons/Mesh.h"
-#include "AxoPlotl/geometry/ovm.h"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
+#include "AxoPlotl/typedefs/typedefs_glm.hpp"
+#include "AxoPlotl/typedefs/typedefs_ToLoG.hpp"
 
 namespace AxoPlotl
 {
@@ -53,21 +52,21 @@ ImplicitSurfaceFunction createUnion(const ImplicitSurfaceFunction& f, ImplicitSu
 
 ImplicitSurfaceFunction createIntersection(const ImplicitSurfaceFunction& f, ImplicitSurfaceFunction& g);
 
-void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh& mesh, const uint resolution = 32);
+void createMesh(const ExplicitSurfaceFunction& esf, VolumeMesh& mesh, const uint resolution = 32);
 
-void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const uint resolution = 32);
+void createQuads(const ExplicitSurfaceFunction& esf, SurfaceMesh& mesh, const uint resolution = 32);
 
-void createQuads(const SphericalHarmonicFunction& sh, PolygonMesh& mesh, const uint resolution = 32);
+void createQuads(const SphericalHarmonicFunction& sh, SurfaceMesh& mesh, const uint resolution = 32);
 
-//void createTriangles(const ExplicitSurfaceFunction& esf, TriangleMesh& mesh, const uint resolution = 32);
-
-void samplePoints(const ExplicitCurveFunction& ecf, std::vector<std::pair<float,Vec3f>>& pts, const uint resolution = 32);
+void samplePoints(const ExplicitCurveFunction& ecf,
+                  std::vector<std::pair<float,Vec3f>>& pts, const uint resolution = 32);
 
 /// Marching Cubes
-void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh, const uint resolution = 32);
+void createTrianglesMC(const ImplicitSurfaceFunction& isf,
+    SurfaceMesh& mesh, const uint resolution = 32);
 
 /// Adaptive MC (using octree)
-void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh,
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, SurfaceMesh& mesh,
             const uint resolution = 8, const uint maxDepth = 4);
 
 class ExplicitCurveFunctionBuilder

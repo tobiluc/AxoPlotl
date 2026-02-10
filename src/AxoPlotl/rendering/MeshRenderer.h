@@ -3,8 +3,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "AxoPlotl/commons/Color.h"
-#include "AxoPlotl/geometry/glm.h"
-#include "AxoPlotl/geometry/ovm.h"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
+#include "AxoPlotl/typedefs/typedefs_glm.hpp"
 
 namespace AxoPlotl::GL
 {
@@ -128,7 +128,7 @@ public:
 
     void updateData(const Data& data);
 
-    static void createData(const PolyhedralMesh& mesh, Data& data);
+    static void createData(const VolumeMesh& mesh, Data& data);
 
     void render(const Matrices& m);
 

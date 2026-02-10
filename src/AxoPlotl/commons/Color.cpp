@@ -4,15 +4,7 @@
 namespace AxoPlotl
 {
 
-const Color Color::RED   = Color(1.0f, 0.0f, 0.0f);
-const Color Color::BLUE  = Color(0.0f, 0.0f, 1.0f);
-const Color Color::GREEN = Color(0.0f, 1.0f, 0.0f);
-const Color Color::BLACK = Color(0.0f, 0.0f, 0.0f);
-const Color Color::DARKGRAY = Color(.17f, .17f, .17f);
-const Color Color::LIGHTGRAY = Color(.83f, .83f, .83f);
-const Color Color::WHITE = Color(1.0f, 1.0f, 1.0f);
-
-Color Color::random()
+Vec3f random_color()
 {
     std::mt19937_64 rng;
     uint64_t seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
@@ -20,7 +12,7 @@ Color Color::random()
     rng.seed(ss);
     std::uniform_real_distribution<float> unif(0, 1);
 
-    return Color(unif(rng), unif(rng), unif(rng));
+    return Vec3f(unif(rng), unif(rng), unif(rng));
 }
 
 }

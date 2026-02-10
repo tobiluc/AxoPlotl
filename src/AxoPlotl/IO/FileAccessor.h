@@ -1,11 +1,13 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
-#include "AxoPlotl/geometry/ovm.h"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
+#include "AxoPlotl/typedefs/typedefs_ToLoG.hpp"
+#include <filesystem>
 
 namespace AxoPlotl::IO
 {
 
-bool loadMesh(const std::string& filename, PolyhedralMesh& mesh);
+std::optional<std::variant<SurfaceMesh,VolumeMesh>> read_mesh(
+    const std::filesystem::path& _path);
 
 }

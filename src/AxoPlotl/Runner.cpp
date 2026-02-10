@@ -51,11 +51,8 @@ void Runner::run(int argc, char **argv)
     // Load Meshes given as commandline args
     //----------------------------------------
     for (int i = 1; i < argc; ++i) {
-        PolyhedralMesh mesh;
         std::filesystem::path path(argv[i]);
-        if (IO::loadMesh(path, mesh)) {
-            scene_.addMesh(mesh, std::filesystem::path(path).filename());
-        }
+        scene_.add_mesh(path);
     }
 
 
@@ -146,11 +143,7 @@ void Runner::init()
         if (!app) {return;}
 
         for (int i = 0; i < count; ++i) {
-            PolyhedralMesh mesh;
-            if (IO::loadMesh(paths[i], mesh)) {
-                app->scene_.addMesh(mesh, std::filesystem::path(paths[i]).filename());
-            } else {
-            }
+            app->scene_.add_mesh(std::filesystem::path(paths[i]));
         }
     });
 

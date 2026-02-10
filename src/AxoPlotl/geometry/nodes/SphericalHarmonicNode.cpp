@@ -43,28 +43,31 @@ void SphericalHarmonicNode::renderUIBody(Scene* scene)
 
 void SphericalHarmonicNode::init(Scene* scene)
 {
-    PolygonMesh mesh;
+    SurfaceMesh mesh;
     createQuads(f_, mesh, resolution_);
     GL::MeshRenderer::Data data;
 
     float min = std::numeric_limits<float>::infinity(), max = -std::numeric_limits<float>::infinity();
-    for (uint i = 0; i < mesh.vertices().size(); ++i) {
-        float val = f_(mesh.vertex(i));
+    for (uint i = 0; i < mesh.n_vertices(); ++i) {
+        auto p = mesh.point(i);
+        float val = f_(p);
         if (val < min) {min = val;}
         if (val > max) {max = val;}
-    }
 
-    for (uint i = 0; i < mesh.vertices().size(); ++i) {
-        float val = f_(mesh.vertex(i));
         float t = (val - min) / (max - min);
         data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-        .position = mesh.vertex(i), .color = Vec4f(t,0,1-t,1), .normal = mesh.vertexNormal(i)});
+            .position = p,
+            .color = Vec4f(t,0,1-t,1),
+            .normal = Vec3f(1,0,0)});
     }
-    for (uint i = 0; i < mesh.polygons().size(); ++i) {
-        for (uint j = 1; j < mesh.polygon(i).size()-1; ++j) {
-            data.triangleIndices.push_back(mesh.polygon(i)[0]);
-            data.triangleIndices.push_back(mesh.polygon(i)[j]);
-            data.triangleIndices.push_back(mesh.polygon(i)[j+1]);
+
+    for (const auto& f : mesh.faces()) {
+        std::vector<int> is;
+        for (const auto& v : f.vertices()) {is.push_back(v);}
+        for (uint j = 1; j < is.size()-1; ++j) {
+            data.triangleIndices.push_back(is[0]);
+            data.triangleIndices.push_back(is[j]);
+            data.triangleIndices.push_back(is[j+1]);
         }
     }
     mesh_renderer_.updateData(data);

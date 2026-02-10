@@ -75,31 +75,31 @@ namespace AxoPlotl
         std::uniform_real_distribution<float> dist;
     };
 
-    template <typename Vec3T>
-    Vec3T tetIncenter(const Vec3T& A, const Vec3T& B, const Vec3T& C, const Vec3T& D)
-    {
-        const auto a = .5 * ((D - C).cross(D - B)).norm(); // Areas
-        const auto b = .5 * ((D - C).cross(D - A)).norm();
-        const auto c = .5 * ((D - A).cross(D - B)).norm();
-        const auto d = .5 * ((C - B).cross(C - A)).norm();
-        return (a*A + b*B + c*C + d*D) / (a + b + c + d);
-    }
+    // template <typename Vec3T>
+    // Vec3T tetIncenter(const Vec3T& A, const Vec3T& B, const Vec3T& C, const Vec3T& D)
+    // {
+    //     const auto a = .5 * ((D - C).cross(D - B)).norm(); // Areas
+    //     const auto b = .5 * ((D - C).cross(D - A)).norm();
+    //     const auto c = .5 * ((D - A).cross(D - B)).norm();
+    //     const auto d = .5 * ((C - B).cross(C - A)).norm();
+    //     return (a*A + b*B + c*C + d*D) / (a + b + c + d);
+    // }
 
-    template <typename Vec3T>
-    void scaleTetrahedron(Vec3T& A, Vec3T& B, Vec3T& C, Vec3T& D, const double& delta)
-    {
-        if (delta <= 0) return;
-        const auto I = tetIncenter(A,B,C,D);
+    // template <typename Vec3T>
+    // void scaleTetrahedron(Vec3T& A, Vec3T& B, Vec3T& C, Vec3T& D, const double& delta)
+    // {
+    //     if (delta <= 0) return;
+    //     const auto I = tetIncenter(A,B,C,D);
 
-        A += (1. - delta) * (I - A);
-        B += (1. - delta) * (I - B);
-        C += (1. - delta) * (I - C);
-        D += (1. - delta) * (I - D);
-    }
+    //     A += (1. - delta) * (I - A);
+    //     B += (1. - delta) * (I - B);
+    //     C += (1. - delta) * (I - C);
+    //     D += (1. - delta) * (I - D);
+    // }
 
-    template<typename Vec3T>
-    inline Vec3T lerp3d(const Vec3T& a, const Vec3T& b, float t) {
-        return a + (b - a) * t;
-    }
+    // template<typename Vec3T>
+    // inline Vec3T lerp3d(const Vec3T& a, const Vec3T& b, float t) {
+    //     return a + (b - a) * t;
+    // }
     
 } // namespace MV

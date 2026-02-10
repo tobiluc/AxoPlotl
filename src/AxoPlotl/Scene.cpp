@@ -1,15 +1,10 @@
 #include <glad/glad.h>
 #include "Scene.h"
 #include "AxoPlotl/Runner.h"
-#include "AxoPlotl/IO/FileAccessor.h"
-#include "AxoPlotl/IO/OBJFileAccessor.h"
-#include "AxoPlotl/geometry/Octree.h"
-#include "AxoPlotl/IO/OVMFileAccessor.h"
 #include "AxoPlotl/utils/Memory.h"
 #include "ImGuiFileDialog.h"
 #include "rendering/ImGuiRenderer.h"
 #include <GLFW/glfw3.h>
-#include "commons/Color.h"
 #include "utils/Time.h"
 #include "utils/MouseHandler.h"
 #include <imgui.h>
@@ -161,12 +156,12 @@ void Scene::renderUI(GLFWwindow *window)
             if (ImGui::BeginMenu("Curve")) {
 
                 if (ImGui::MenuItem("Empty")) {
-                    addExplicitCurve("Empty", ExplicitCurveFunctionBuilder::dummy(), Color::random());
+                    addExplicitCurve("Empty", ExplicitCurveFunctionBuilder::dummy(), random_color());
                 }
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Butterfly")) {
-                    addExplicitCurve("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), Color::random());
+                    addExplicitCurve("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), random_color());
                 }
 
                 ImGui::EndMenu(); // !Curve
@@ -177,20 +172,20 @@ void Scene::renderUI(GLFWwindow *window)
                 if (ImGui::BeginMenu("Explicit")) {
 
                     if (ImGui::MenuItem("Empty")) {
-                        addExplicitSurface("Empty", ExplicitSurfaceFunctionBuilder::dummy(), Color::random());
+                        addExplicitSurface("Empty", ExplicitSurfaceFunctionBuilder::dummy(), random_color());
                     }
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("Sphere")) {
-                        addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), Color::random());
+                        addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), random_color());
                     }
 
                     if (ImGui::MenuItem("Torus")) {
-                        addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), Color::random());
+                        addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), random_color());
                     }
 
                     if (ImGui::MenuItem("Moebius Strip")) {
-                        addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), Color::random());
+                        addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), random_color());
                     }
 
                     ImGui::EndMenu(); // !Explicit
@@ -328,12 +323,8 @@ void Scene::renderUI(GLFWwindow *window)
     if (ImGuiFileDialog::Instance()->Display("LoadMeshDlgKey")) {
         if (ImGuiFileDialog::Instance()->IsOk()) { // action if OK
             std::filesystem::path filepath = ImGuiFileDialog::Instance()->GetFilePathName();
+            add_mesh(filepath);
 
-            if (filepath.extension() == ".obj") {
-                add_surface_mesh(filepath);
-            } else {
-                add_volume_mesh(filepath);
-            }
             // } else {
             //     PolyhedralMesh mesh;
             //     if (IO::loadMesh(filepath, mesh)) {

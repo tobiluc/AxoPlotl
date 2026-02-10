@@ -202,7 +202,7 @@ void MeshRenderer::updateData(const Data& data)
     glBindVertexArray(0);
 }
 
-void MeshRenderer::createData(const PolyhedralMesh& mesh, Data& data)
+void MeshRenderer::createData(const VolumeMesh &mesh, Data& data)
 {
     data.pointAttribs.clear();
     data.lineAttribs.clear();

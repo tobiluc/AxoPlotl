@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AxoPlotl/properties/property_filters.hpp"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
 #include "GeometryNode.h"
 
 namespace AxoPlotl
@@ -10,12 +11,12 @@ class MeshNode : public GeometryNode
 {
 private:
     std::pair<Vec3f,Vec3f> bbox_;
-    PolyhedralMesh mesh_;
+    VolumeMesh mesh_;
     std::optional<OpenVolumeMesh::PropertyStorageBase*> prop_;
     std::shared_ptr<PropertyFilterBase> prop_filter;
 
 public:
-    MeshNode(const PolyhedralMesh& _mesh, const std::string& _name="New Mesh", const glm::mat4& _transform = glm::mat4(1.0)) :
+    MeshNode(const VolumeMesh& _mesh, const std::string& _name="New Mesh", const glm::mat4& _transform = glm::mat4(1.0)) :
         GeometryNode("Mesh", _name, _transform), mesh_(_mesh)
     {
 
@@ -29,7 +30,7 @@ public:
         return bbox_;
     }
 
-    inline const PolyhedralMesh& mesh() const {return mesh_;}
+    inline const VolumeMesh& mesh() const {return mesh_;}
 };
 
 }

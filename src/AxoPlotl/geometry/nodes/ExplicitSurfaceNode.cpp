@@ -59,13 +59,14 @@ void ExplicitSurfaceNode::renderUIBody(Scene* scene)
 
 void ExplicitSurfaceNode::init(Scene* scene)
 {
-    PolygonMesh mesh;
+    SurfaceMesh mesh;
     createQuads(f_, mesh, resolution_);
+
     GL::MeshRenderer::Data data;
 
-    for (uint i = 0; i < mesh.vertices().size(); ++i) {
-        Vec3f p = mesh.vertex(i);
-        float t = i/((float)mesh.vertices().size()-1);
+    for (int i = 0; i < mesh.n_vertices(); ++i) {
+        auto p = mesh.point(i);
+        float t = i/((float)mesh.n_vertices()-1);
 
         data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
             .position = p,
@@ -73,23 +74,22 @@ void ExplicitSurfaceNode::init(Scene* scene)
         });
 
         data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-        .position = p,
-        .color = getColorOnSphere(p.x,p.y,p.z),
-        .normal = mesh.vertexNormal(i)});
+            .position = p,
+            .color = getColorOnSphere(p[0],p[1],p[2]),
+            .normal = Vec3f(1,0,0)});
 
-        for (uint j : mesh.neighbors(i)) {
-            if (j > i) {
-                data.lineIndices.push_back(i);
-                data.lineIndices.push_back(j);
-            }
-        }
-
+        // for (const auto& w : v.vertices_ccw()) {
+        //     if (w.idx() > v.idx()) {
+        //         data.lineIndices.push_back(v.idx());
+        //         data.lineIndices.push_back(w.idx());
+        //     }
+        // }
     }
-    for (uint i = 0; i < mesh.polygons().size(); ++i) {
-        for (uint j = 1; j < mesh.polygon(i).size()-1; ++j) {
-            data.triangleIndices.push_back(mesh.polygon(i)[0]);
-            data.triangleIndices.push_back(mesh.polygon(i)[j]);
-            data.triangleIndices.push_back(mesh.polygon(i)[j+1]);
+    for (const auto& f : mesh.faces()) {
+        for (uint j = 1; j < f.valence()-1; ++j) {
+            data.triangleIndices.push_back(f.vertices()[0]);
+            data.triangleIndices.push_back(f.vertices()[j]);
+            data.triangleIndices.push_back(f.vertices()[j+1]);
         }
     }
     mesh_renderer_.updateData(data);

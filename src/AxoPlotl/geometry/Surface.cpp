@@ -1,6 +1,7 @@
 #include "Surface.h"
 #include "AxoPlotl/algorithms/marching_cubes.h"
-#include "AxoPlotl/IO/FileUtils.h"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
+#include "AxoPlotl/utils/string_format.hpp"
 
 namespace AxoPlotl
 {
@@ -36,7 +37,7 @@ ImplicitSurfaceFunction createIntersection(const ImplicitSurfaceFunction& f, Imp
     };
 }
 
-void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const uint resolution)
+void createMesh(const ExplicitSurfaceFunction& esf, VolumeMesh &mesh, const uint resolution)
 {
     // Generate Vertex Positions
     int vo = mesh.n_vertices(); // vertex offset
@@ -45,7 +46,7 @@ void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const 
         s = esf.uMin + i * (esf.uMax - esf.uMin) / resolution;
         for (int j = 0; j <= resolution; ++j) {
             t = esf.vMin + j * (esf.vMax - esf.vMin) / resolution;
-            mesh.add_vertex(toVec3<OVM::Vec3d>(esf(s, t)));
+            mesh.add_vertex(toVec3<OpenVolumeMesh::Vec3f>(esf(s, t)));
         }
     }
 
@@ -56,16 +57,16 @@ void createMesh(const ExplicitSurfaceFunction& esf, PolyhedralMesh &mesh, const 
             int row2 = (i + 1) * (resolution + 1);
 
             mesh.add_face({
-               OVM::VH(vo + row1 + j + 0),
-               OVM::VH(vo + row2 + j + 0),
-               OVM::VH(vo + row2 + j + 1),
-                OVM::VH(vo + row1 + j + 1)
+               OpenVolumeMesh::VH(vo + row1 + j + 0),
+               OpenVolumeMesh::VH(vo + row2 + j + 0),
+               OpenVolumeMesh::VH(vo + row2 + j + 1),
+                OpenVolumeMesh::VH(vo + row1 + j + 1)
             });
         }
     }
 }
 
-void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const uint resolution)
+void createQuads(const ExplicitSurfaceFunction& esf, SurfaceMesh& mesh, const uint resolution)
 {
     mesh.clear();
 
@@ -75,7 +76,7 @@ void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const ui
         s = esf.uMin + i * (esf.uMax - esf.uMin) / resolution;
         for (int j = 0; j <= resolution; ++j) {
             t = esf.vMin + j * (esf.vMax - esf.vMin) / resolution;
-            mesh.addVertex(esf(s, t));
+            mesh.add_vertex((esf(s, t)));
         }
     }
 
@@ -85,7 +86,7 @@ void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const ui
             int row1 = i * (resolution + 1);
             int row2 = (i + 1) * (resolution + 1);
 
-            mesh.addPolygon({
+            mesh.add_face(std::vector<int>{
                 (row1 + j + 0),
                 (row2 + j + 0),
                 (row2 + j + 1),
@@ -95,7 +96,7 @@ void createQuads(const ExplicitSurfaceFunction& esf, PolygonMesh& mesh, const ui
     }
 }
 
-void createQuads(const SphericalHarmonicFunction& sh, PolygonMesh& mesh, const uint resolution)
+void createQuads(const SphericalHarmonicFunction& sh, SurfaceMesh& mesh, const uint resolution)
 {
     createQuads(ExplicitSurfaceFunctionBuilder::sphericalHarmonic(sh), mesh, resolution);
 }
@@ -110,7 +111,7 @@ void samplePoints(const ExplicitCurveFunction& ecf, std::vector<std::pair<float,
     }
 }
 
-void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, const uint resolution)
+void createTrianglesMC(const ImplicitSurfaceFunction& isf, SurfaceMesh &mesh, const uint resolution)
 {
     Algo::MarchingCubes mc;
     AABB b{isf.xMin, isf.xMax, isf.yMin, isf.yMax, isf.zMin, isf.zMax};
@@ -119,7 +120,7 @@ void createTrianglesMC(const ImplicitSurfaceFunction& isf, TriangleMesh &mesh, c
     mc.generate(isf.f, mesh);
 }
 
-void createTrianglesAMC(const ImplicitSurfaceFunction& isf, TriangleMesh& mesh,
+void createTrianglesAMC(const ImplicitSurfaceFunction& isf, SurfaceMesh& mesh,
                         const uint resolution, const uint maxDepth)
 {
     Algo::MarchingCubes mc;
@@ -185,9 +186,9 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::sphere(float radius)
             );
             return res;
         }, .uMin=0,.uMax=M_PI,.vMin=0,.vMax=2.0*M_PI,
-        .str_x = IO::string_format("%f * sin(u)*cos(v)", radius),
-        .str_y = IO::string_format("%f * cos(u)", radius),
-        .str_z = IO::string_format("%f * sin(u)*sin(v)", radius)
+        .str_x = string_format("%f * sin(u)*cos(v)", radius),
+        .str_y = string_format("%f * cos(u)", radius),
+        .str_z = string_format("%f * sin(u)*sin(v)", radius)
     };
 }
 
@@ -202,9 +203,9 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::torus(const float r, con
                 r*cos(u)
             );
         }, .uMin=0,.uMax=2.0*M_PI,.vMin=0,.vMax=2.0*M_PI,
-        .str_x = IO::string_format("(%f + %f*sin(u))*cos(v)", R, r),
-        .str_y = IO::string_format("(%f + %f*sin(u))*sin(v)", R, r),
-        .str_z = IO::string_format("%f*cos(u)", r)
+        .str_x = string_format("(%f + %f*sin(u))*cos(v)", R, r),
+        .str_y = string_format("(%f + %f*sin(u))*sin(v)", R, r),
+        .str_z = string_format("%f*cos(u)", r)
     };
 }
 
@@ -223,9 +224,9 @@ ExplicitSurfaceFunction ExplicitSurfaceFunctionBuilder::moebiusStrip(float R)
                 v2*sin(u2)
             );
         }, .uMin=0,.uMax=2.0*M_PI,.vMin=-1.0f,.vMax=1.0f,
-        .str_x = IO::string_format("(%f + 0.5*v*cos(0.5*u)) * cos(u)", R),
-        .str_y = IO::string_format("(%f + 0.5*v*cos(0.5*u)) * sin(u)", R),
-        .str_z = IO::string_format("0.5*v * sin(0.5*u)"),
+        .str_x = string_format("(%f + 0.5*v*cos(0.5*u)) * cos(u)", R),
+        .str_y = string_format("(%f + 0.5*v*cos(0.5*u)) * sin(u)", R),
+        .str_z = string_format("0.5*v * sin(0.5*u)"),
     };
 }
 
@@ -294,7 +295,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::cube()
         .xMin = -1.5f, .xMax = 1.5f,
         .yMin = -1.5f, .yMax = 1.5f,
         .zMin = -1.5f, .zMax = 1.5f,
-        .str = IO::string_format("max(abs(x),abs(y),abs(z)) - 1")
+        .str = string_format("max(abs(x),abs(y),abs(z)) - 1")
     };
 }
 
@@ -310,7 +311,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::sphere(const Vec3f& cent
         .xMin = center.x - radius, .xMax = center.x + radius,
         .yMin = center.y - radius, .yMax = center.y + radius,
         .zMin = center.z - radius, .zMax = center.z + radius,
-        .str = IO::string_format("(x-%f)^2 + (y-%f)^2 + (z-%f)^2 - %f^2", center.x, center.y, center.z, radius)
+        .str = string_format("(x-%f)^2 + (y-%f)^2 + (z-%f)^2 - %f^2", center.x, center.y, center.z, radius)
     };
 }
 
@@ -327,7 +328,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::torus(const float r, con
         .xMin = -r-R, .xMax = r+R,
         .yMin = -r-R, .yMax = r+R,
         .zMin = -r-R, .zMax = r+R,
-        .str = IO::string_format("(%f - (x*x+z*z)^0.5)^2 + y^2 - %f^2", R, r)
+        .str = string_format("(%f - (x*x+z*z)^0.5)^2 + y^2 - %f^2", R, r)
     };
 }
 
@@ -342,7 +343,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::gyroid()
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,
         .zMin = -10.f, .zMax = 10.f,
-        .str = IO::string_format("sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)")
+        .str = string_format("sin(x)*cos(y) + sin(y)*cos(z) + sin(z)*cos(x)")
     };
 }
 
@@ -356,7 +357,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::wineglass()
         .xMin = -2, .xMax = 2,
         .yMin = -3.0f, .yMax = 3,
         .zMin = -2, .zMax = 2,
-        .str = IO::string_format("x^2 + z^2 - (ln(y + 3.2))^2 - 0.02")
+        .str = string_format("x^2 + z^2 - (ln(y + 3.2))^2 - 0.02")
     };
 }
 
@@ -374,7 +375,7 @@ ImplicitSurfaceFunction ImplicitSurfaceFunctionBuilder::test()
         .xMin = -10.f, .xMax = 10.f,
         .yMin = -10.f, .yMax = 10.f,
         .zMin = -10.f, .zMax = 10.f,
-        .str = IO::string_format("(x-2)*(x-2)*(x+2)*(x+2) + (y-2)*(y-2)*(y+2)*(y+2) + (z-2)*(z-2)*(z+2)*(z+2) + 3*(x*x*y*y + x*x*z*z + y*y*z*z) + 6*x*y*z - 10*(x*x+y*y+z*z) + 22")
+        .str = string_format("(x-2)*(x-2)*(x+2)*(x+2) + (y-2)*(y-2)*(y+2)*(y+2) + (z-2)*(z-2)*(z+2)*(z+2) + 3*(x*x*y*y + x*x*z*z + y*y*z*z) + 6*x*y*z - 10*(x*x+y*y+z*z) + 22")
     };
 }
 

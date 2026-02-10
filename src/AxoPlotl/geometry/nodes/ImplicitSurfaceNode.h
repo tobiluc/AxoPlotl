@@ -10,14 +10,14 @@ class ImplicitSurfaceNode : public GeometryNode
 {
 private:
     ImplicitSurfaceFunction f_;
-    Color color_;
+    Vec3f color_;
     int initial_resolution_ = 16;
     int octree_depth_ = 2;
     char input_buffer_[1024];
 
 public:
     ImplicitSurfaceNode(const std::string& _name, const ImplicitSurfaceFunction& _f,
-                          Color _color = Color::RED, const glm::mat4& _transform = glm::mat4(1.0)) :
+                        Vec3f _color = Vec3f(1,0,0), const glm::mat4& _transform = glm::mat4(1.0)) :
         GeometryNode("Implicit Surface", _name, _transform), f_(_f), color_(_color)
     {
         std::strncpy(input_buffer_, _f.str.c_str(), sizeof(input_buffer_) - 1);

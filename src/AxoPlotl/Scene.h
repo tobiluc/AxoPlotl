@@ -10,9 +10,8 @@
 #include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
 #include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
 #include "AxoPlotl/rendering/redraw_frames.h"
-
-#include "AxoPlotl/geometry/Mesh.hpp"
-
+#include "AxoPlotl/IO/FileAccessor.h"
+#include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
 #include "rendering/PickingTexture.h"
 #include "glad/glad.h"
 #include "commons/Camera.h"
@@ -30,7 +29,7 @@ protected:
 
     GL::MeshRenderer gizmoRenderer_;
     CameraSet camera_set_;
-    Color clear_color_ = Color::WHITE;
+    Vec3f clear_color_ = Vec3f(1,1,1);
 
     PickingTexture pickingTexture_;
     PickingTexture::Pixel picked_ = {0,0,0};
@@ -53,21 +52,30 @@ public:
     /// Render the scene and UI
     void render(GLFWwindow* window);
 
-    inline void add_surface_mesh(const std::filesystem::path& _path) {
-        objects_.push_back(std::make_unique<SurfaceMeshNode>(_path));
-        if (objects_.back()->isDeleted()) {objects_.pop_back(); return;}
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
+    inline void add_mesh(const std::filesystem::path& _path) {
+        auto mesh = IO::read_mesh(_path);
+        if (mesh.has_value()) {
+            if (std::holds_alternative<SurfaceMesh>(mesh.value())) {
+                addMesh(volume_mesh(std::get<SurfaceMesh>(mesh.value())), _path.stem());
+            } else if(std::holds_alternative<VolumeMesh>(mesh.value())) {
+                addMesh(std::move(std::get<VolumeMesh>(mesh.value())), _path.stem());
+            }
+        }
     }
 
-    inline void add_volume_mesh(const std::filesystem::path& _path) {
-        objects_.push_back(std::make_unique<VolumeMeshNode>(_path));
-        if (objects_.back()->isDeleted()) {objects_.pop_back(); return;}
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
+    // inline void add_surface_mesh(const SurfaceMesh&& _mesh) {
+    //     objects_.push_back(std::make_unique<SurfaceMeshNode>(std::move(_mesh)));
+    //     objects_.back()->init(this);
+    //     Rendering::triggerRedraw();
+    // }
 
-    inline void addMesh(const PolyhedralMesh& mesh, const std::string& name) {
+    // inline void add_volume_mesh(const VolumeMesh&& _mesh) {
+    //     objects_.push_back(std::make_unique<VolumeMeshNode>(std::move(_mesh)));
+    //     objects_.back()->init(this);
+    //     Rendering::triggerRedraw();
+    // }
+
+    inline void addMesh(const VolumeMesh& mesh, const std::string& name) {
         objects_.push_back(std::make_unique<MeshNode>(mesh, name));
         objects_.back()->init(this);
         Rendering::triggerRedraw();
@@ -91,19 +99,19 @@ public:
         Rendering::triggerRedraw();
     }
 
-    inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Color color = Color::BLUE) {
+    inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Vec3f color = Vec3f(0,0,1)) {
         objects_.push_back(std::make_unique<ExplicitCurveNode>(name, func, color));
         objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
-    inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Color color = Color::BLUE) {
+    inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Vec3f color = Vec3f(0,0,1)) {
         objects_.push_back(std::make_unique<ExplicitSurfaceNode>(name, func, color));
         objects_.back()->init(this);
         Rendering::triggerRedraw();
     }
 
-    inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Color color = Color::RED) {
+    inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Vec3f color = Vec3f(1,0,0)) {
         objects_.push_back(std::make_unique<ImplicitSurfaceNode>(name, func, color));
         objects_.back()->init(this);
         Rendering::triggerRedraw();
