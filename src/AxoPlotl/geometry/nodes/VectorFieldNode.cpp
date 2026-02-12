@@ -32,7 +32,7 @@ void VectorFieldNode::init(Scene* scene)
 
     mesh_renderer_.updateData(data);
 
-    // renderer_.addLines(lines, renderLoc_);
+    this->bbox_ = {Vec3f(field_.xMin,field_.yMin,field_.zMin),Vec3f(field_.xMax,field_.yMax,field_.zMax)};;
 }
 
 void VectorFieldNode::renderUIBody(Scene* scene)

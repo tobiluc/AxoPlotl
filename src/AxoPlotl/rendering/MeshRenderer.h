@@ -128,8 +128,6 @@ public:
 
     void updateData(const Data& data);
 
-    static void createData(const VolumeMesh& mesh, Data& data);
-
     void render(const Matrices& m);
 
     void renderPicking(const Matrices& m, int id);

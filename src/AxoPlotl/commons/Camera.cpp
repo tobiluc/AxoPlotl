@@ -15,8 +15,8 @@ void PerspectiveCamera::update(GLFWwindow* window) {
         // Zoom
         float dy = MouseHandler::SCROLL_DELTA[1];
         if (dy) {
-            dy *= sensitivity;
-            orbit_distance = std::clamp(orbit_distance * (1.0f-dy), near, far);
+            dy *= sensitivity_;
+            orbit_distance_ = std::clamp(orbit_distance_ * (1.0f-dy), near, far);
         }
 
         // Pan
@@ -24,32 +24,50 @@ void PerspectiveCamera::update(GLFWwindow* window) {
         {
             float dx = MouseHandler::POSITION_DELTA[0];
             float dy = MouseHandler::POSITION_DELTA[1];
-            dx *= sensitivity;
-            dy *= sensitivity;
 
-            yaw -= dx;
-            pitch = std::clamp(pitch - dy, -1.5f, 1.5f); // between -89 and 89 degrees
+            dx *= sensitivity_;
+            dy *= sensitivity_;
+
+            if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+                glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS) {
+                // Shift Move orbit target
+
+                glm::vec3 forward = glm::normalize(orbit_target_ - position_);
+                glm::vec3 right   = glm::normalize(glm::cross(forward, world_up));
+                up_ = glm::normalize(glm::cross(right, forward));
+
+                float pan_speed = pan_speed_ * orbit_distance_ * tan(fov_ * 0.5f);
+
+                orbit_target_ -= right * dx * pan_speed;
+                orbit_target_ += up_ * dy * pan_speed;
+            }
+            else
+            {
+                // Rotate
+                yaw_ -= dx;
+                pitch_ = std::clamp(pitch_ - dy, -1.5f, 1.5f); // between -89 and 89 degrees
+            }
         }
     }
 
     // Update Vectors
     glm::vec3 offset;
-    offset.x = orbit_distance * cos(pitch) * sin(yaw);
-    offset.y = orbit_distance * sin(pitch);
-    offset.z = orbit_distance * cos(pitch) * cos(yaw);
+    offset.x = orbit_distance_ * cos(pitch_) * sin(yaw_);
+    offset.y = orbit_distance_ * sin(pitch_);
+    offset.z = orbit_distance_ * cos(pitch_) * cos(yaw_);
 
-    position = orbit_target + offset;
+    position_ = orbit_target_ + offset;
 
     glm::vec3 forward = glm::normalize(-offset);
     glm::vec3 right = glm::normalize(glm::cross(forward, world_up));
-    up = glm::normalize(glm::cross(right, forward));
+    up_ = glm::normalize(glm::cross(right, forward));
 }
 
 void PerspectiveCamera::reset(GLFWwindow *window) {
-    orbit_target = glm::vec3(0.0f);
-    orbit_distance = 10.0f;
-    fov = 0.25*M_PI;
-    pitch = yaw = 0;
+    orbit_target_ = glm::vec3(0.0f);
+    orbit_distance_ = 10.0f;
+    fov_ = 0.25*M_PI;
+    pitch_ = yaw_ = 0;
 }
 
 void OrthographicCamera::update(GLFWwindow* window) {
@@ -62,12 +80,12 @@ void OrthographicCamera::update(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) direction.y += 1;
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) direction.y -= 1;
     if (!direction.x && !direction.y) return;
-    position += normalize(direction) * movement_speed * Time::DELTA_TIME;
+    position += normalize(direction) * pan_speed_ * Time::DELTA_TIME;
 
     // Zoom
     float dy = MouseHandler::SCROLL_DELTA[1];
     if (dy) {
-        dy *= sensitivity;
+        dy *= sensitivity_;
         height = std::clamp(height * (1.0f-dy), near, far);
     }
 }
@@ -79,8 +97,8 @@ void OrthographicCamera::reset(GLFWwindow *window) {
 
 void PerspectiveCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)
 {
-    orbit_target = 0.5f*(min+max);
-    orbit_distance = glm::distance(max, min);
+    orbit_target_ = 0.5f*(min+max);
+    orbit_distance_ = glm::distance(max, min);
 }
 
 void OrthographicCamera::zoomToBox(const glm::vec3& min, const glm::vec3& max)

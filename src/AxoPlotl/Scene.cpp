@@ -147,7 +147,7 @@ void Scene::renderUI(GLFWwindow *window)
             if (ImGui::BeginMenu("Simple")) {
 
                 if (ImGui::MenuItem("Convex Polygon")) {
-                    addConvexPolygon({Vec3f(0,0,0), Vec3f(1,0,0), Vec3f(0,1,0)}, "Triangle");
+                    add_object<ConvexPolygonNode>(std::vector<Vec3f>{Vec3f(0,0,0), Vec3f(1,0,0), Vec3f(0,1,0)}, "Triangle");
                 }
 
                 ImGui::EndMenu(); // !Simple
@@ -156,12 +156,12 @@ void Scene::renderUI(GLFWwindow *window)
             if (ImGui::BeginMenu("Curve")) {
 
                 if (ImGui::MenuItem("Empty")) {
-                    addExplicitCurve("Empty", ExplicitCurveFunctionBuilder::dummy(), random_color());
+                    add_object<ExplicitCurveNode>("Empty", ExplicitCurveFunctionBuilder::dummy(), random_color());
                 }
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Butterfly")) {
-                    addExplicitCurve("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), random_color());
+                    add_object<ExplicitCurveNode>("Butterfly", ExplicitCurveFunctionBuilder::butterfly(), random_color());
                 }
 
                 ImGui::EndMenu(); // !Curve
@@ -172,20 +172,20 @@ void Scene::renderUI(GLFWwindow *window)
                 if (ImGui::BeginMenu("Explicit")) {
 
                     if (ImGui::MenuItem("Empty")) {
-                        addExplicitSurface("Empty", ExplicitSurfaceFunctionBuilder::dummy(), random_color());
+                        add_object<ExplicitSurfaceNode>("Empty", ExplicitSurfaceFunctionBuilder::dummy(), random_color());
                     }
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("Sphere")) {
-                        addExplicitSurface("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), random_color());
+                        add_object<ExplicitSurfaceNode>("Sphere", ExplicitSurfaceFunctionBuilder::sphere(), random_color());
                     }
 
                     if (ImGui::MenuItem("Torus")) {
-                        addExplicitSurface("Torus", ExplicitSurfaceFunctionBuilder::torus(), random_color());
+                        add_object<ExplicitSurfaceNode>("Torus", ExplicitSurfaceFunctionBuilder::torus(), random_color());
                     }
 
                     if (ImGui::MenuItem("Moebius Strip")) {
-                        addExplicitSurface("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), random_color());
+                        add_object<ExplicitSurfaceNode>("Moebius Strip", ExplicitSurfaceFunctionBuilder::moebiusStrip(), random_color());
                     }
 
                     ImGui::EndMenu(); // !Explicit
@@ -194,36 +194,36 @@ void Scene::renderUI(GLFWwindow *window)
                 if (ImGui::BeginMenu("Implicit")) {
 
                     if (ImGui::MenuItem("Empty")) {
-                        addImplicitSurface("Empty", ImplicitSurfaceFunctionBuilder::dummy());
+                        add_object<ImplicitSurfaceNode>("Empty", ImplicitSurfaceFunctionBuilder::dummy());
                     }
                     ImGui::Separator();
 
                     if (ImGui::MenuItem("Sphere")) {
-                        addImplicitSurface("Sphere", ImplicitSurfaceFunctionBuilder::sphere());
+                        add_object<ImplicitSurfaceNode>("Sphere", ImplicitSurfaceFunctionBuilder::sphere());
                     }
 
                     if (ImGui::MenuItem("Cube")) {
-                        addImplicitSurface("Cube", ImplicitSurfaceFunctionBuilder::cube());
+                        add_object<ImplicitSurfaceNode>("Cube", ImplicitSurfaceFunctionBuilder::cube());
                     }
 
                     if (ImGui::MenuItem("Torus")) {
-                        addImplicitSurface("Torus", ImplicitSurfaceFunctionBuilder::torus());
+                        add_object<ImplicitSurfaceNode>("Torus", ImplicitSurfaceFunctionBuilder::torus());
                     }
 
                     if (ImGui::MenuItem("Gyroid")) {
-                        addImplicitSurface("Gyroid", ImplicitSurfaceFunctionBuilder::gyroid());
+                        add_object<ImplicitSurfaceNode>("Gyroid", ImplicitSurfaceFunctionBuilder::gyroid());
                     }
 
                     if (ImGui::MenuItem("Heart")) {
-                        addImplicitSurface("Heart", ImplicitSurfaceFunctionBuilder::heart());
+                        add_object<ImplicitSurfaceNode>("Heart", ImplicitSurfaceFunctionBuilder::heart());
                     }
 
                     if (ImGui::MenuItem("Wineglass")) {
-                        addImplicitSurface("Wineglass", ImplicitSurfaceFunctionBuilder::wineglass());
+                        add_object<ImplicitSurfaceNode>("Wineglass", ImplicitSurfaceFunctionBuilder::wineglass());
                     }
 
                     if (ImGui::MenuItem("Test")) {
-                        addImplicitSurface("Test", ImplicitSurfaceFunctionBuilder::test());
+                        add_object<ImplicitSurfaceNode>("Test", ImplicitSurfaceFunctionBuilder::test());
                     }
 
                     ImGui::EndMenu(); // !Implicit
@@ -235,13 +235,13 @@ void Scene::renderUI(GLFWwindow *window)
             if (ImGui::BeginMenu("Others")) {
 
                 if (ImGui::MenuItem("Vector Field")) {
-                    addVectorField([](const Vec3f& p) {
+                    add_object<VectorFieldNode>(GradientField([](const Vec3f& p) {
                         return p;
-                    }, "Direction");
+                    }), "Direction");
                 }
 
                 if (ImGui::MenuItem("Spherical Harmonic")) {
-                    addSphericalHarmonic("SH", SphericalHarmonicFunctionBuilder::identityFrame());
+                    add_object<SphericalHarmonicNode>(SphericalHarmonicFunctionBuilder::identityFrame(), "SH");
                 }
 
                 ImGui::EndMenu();
@@ -268,7 +268,9 @@ void Scene::renderUI(GLFWwindow *window)
             ImGui::EndMenu(); // !Edit
         }
 
-        if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("Settings")) {
+
+            ImGui::Checkbox("Auto-Focus", &auto_zoom_to_new_object_);
 
             if (ImGui::BeginMenu("Camera")) {
 
@@ -276,12 +278,15 @@ void Scene::renderUI(GLFWwindow *window)
                     camera_set_.reset(window);
                 }
 
-                ImGui::Checkbox("Orthographic", &camera_set_.use_ortho);
+                ImGui::Checkbox("Use Orthographic View", &camera_set_.use_ortho);
+
+                ImGui::SliderFloat("Sensitivity",
+                    &camera_set_.camera()->sensitivity_, 0.0005f, 0.005f);
 
                 ImGui::EndMenu(); // !Camera
             }
 
-            ImGui::ColorEdit3("Background", &clear_color_[0]);
+            ImGui::ColorEdit3("Background Color", &clear_color_[0]);
 
             ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
 
@@ -354,12 +359,16 @@ void Scene::renderUI(GLFWwindow *window)
     //---------------------------
     // Right Click on Geometry
     //---------------------------
-    if (picked_.object_index != 0 && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+    if (picked_.object_index > 0
+        && picked_.object_index != -1
+        && ImGui::IsMouseReleased(ImGuiMouseButton_Right))
     {
         ImGui::OpenPopup(("object_popup_" + std::to_string(picked_.object_index)).c_str());
     }
     if (ImGui::BeginPopup(("object_popup_" + std::to_string(picked_.object_index)).c_str()))
     {
+        ImGui::Text("%d/%d/%d", picked_.object_index, picked_.primitive_id, picked_.buffer);
+
         // Find Object
         int id = picked_.object_index;
         auto it = std::find_if(objects_.begin(), objects_.end(), [id](const auto& obj) {
@@ -367,7 +376,8 @@ void Scene::renderUI(GLFWwindow *window)
         });
         if (it != objects_.end())
         {
-            ImGui::Text("Name: %s (Primitive %d)", it->get()->name(), picked_.primitive_id);
+            ImGui::Text("%s", it->get()->name());
+            ImGui::Checkbox("Visible", &it->get()->visible());
             if (ImGui::Button("Zoom to Object")) {
                 auto bbox = it->get()->getBBox();
                 camera_set_.zoomToBox(bbox.first, bbox.second);

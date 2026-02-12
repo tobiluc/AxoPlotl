@@ -13,9 +13,7 @@ class GeometryNode
 {
 protected:
     int id_;
-    bool target_ = false;
     static int id_counter_;
-    std::string type_name_ = "AxPlObject";
     char name_[64] = "BASE";
     Vec3f ui_color_;
     bool deleted_ = false;
@@ -24,6 +22,7 @@ protected:
     GL::MeshRenderer mesh_renderer_;
     //Rendering::Renderer::BatchIndices renderLoc_;
     glm::mat4 transform_; // model matrix
+    std::pair<Vec3f,Vec3f> bbox_;
 
     /// General UI
     void renderUIHeader(Scene* scene);
@@ -32,10 +31,9 @@ protected:
     virtual void renderUIBody(Scene* scene) = 0;
 
 public:
-    GeometryNode(const std::string& _type_name,
-                 const std::string& _name,
+    GeometryNode(const std::string& _name,
                  glm::mat4x4 _transform = glm::mat4x4(1)) :
-        id_(++id_counter_), type_name_(_type_name), ui_color_(Vec3f(1,0,0)),
+        id_(++id_counter_), ui_color_(Vec3f(1,0,0)),
         transform_(_transform)
     {
         std::strncpy(name_, _name.c_str(), sizeof(name_) - 1);
@@ -47,7 +45,15 @@ public:
     /// Must be called before rendering
     virtual void init(Scene* scene) = 0;
 
-    virtual std::pair<glm::vec3, glm::vec3> getBBox() = 0;
+    inline std::pair<Vec3f, Vec3f> getBBox() const {
+        // std::cerr << bbox_.first[0] << " "<<bbox_.first[1] << " "<<bbox_.first[2] <<std::endl;
+        // std::cerr << bbox_.second[0] << " "<<bbox_.second[1] << " "<<bbox_.second[2] <<std::endl;
+        // return bbox_;
+        return {
+            Vec3f(transform_ * Vec4f(bbox_.first, 1.0f)),
+            Vec3f(transform_ * Vec4f(bbox_.second, 1.0f))
+        };
+    }
 
     inline void renderUI(Scene* scene) {
         ImGui::PushID(id_);
@@ -73,6 +79,8 @@ public:
     inline bool isDeleted() const {return deleted_;}
 
     inline void setDeleted() {deleted_ = true;}
+
+    inline bool& visible() {return mesh_renderer_.settings().visible;}
 };
 
 }

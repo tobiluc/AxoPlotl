@@ -26,7 +26,9 @@ void GeometryNode::renderUIHeader(Scene *scene)
     //---------------------
     // Name
     //---------------------
-    if (ImGui::Selectable(("[" + type_name_ + "] " + name_).c_str())) {
+    ImGui::Checkbox("", &visible());
+    ImGui::SameLine();
+    if (ImGui::Selectable(name_)) {
         // Open Popup with Settings
         ImGui::OpenPopup(("object_popup_" + std::to_string(id_)).c_str());
     }
@@ -34,11 +36,6 @@ void GeometryNode::renderUIHeader(Scene *scene)
     //---------------------
     // Options
     //---------------------
-    ImGui::SameLine();
-    ImGui::Checkbox("Show", &mesh_renderer_.settings().visible);
-    ImGui::SameLine();
-    ImGui::Checkbox("Target", &target_);
-
     ImGui::Checkbox("Expand", &show_ui_body_);
 
     //---------------------
@@ -56,10 +53,10 @@ void GeometryNode::renderUIHeader(Scene *scene)
         ImGui::Text("PLT: %d, %d, %d", mesh_renderer_.n_points(), mesh_renderer_.n_lines(), mesh_renderer_.n_triangles());
         ImGui::Separator();
 
-        if (ImGui::Button("Zoom to Object")) {
-            const auto& bbox = getBBox();
-            scene->cameraSet().zoomToBox(bbox.first, bbox.second);
-        }
+        // if (ImGui::Button("Zoom to Object")) {
+        //     const auto& bbox = getBBox();
+        //     scene->cameraSet().zoomToBox(bbox.first, bbox.second);
+        // }
 
         // Transform
         if (ImGui::BeginMenu("Transform")) {

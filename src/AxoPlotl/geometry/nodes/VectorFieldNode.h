@@ -30,7 +30,7 @@ private:
 
 public:
     VectorFieldNode(const GradientField& _field, const std::string& _name="New Gradient", const glm::mat4& _transform = glm::mat4(1.0)) :
-        GeometryNode("Vector Field", _name, _transform), field_(_field)
+        GeometryNode(_name, _transform), field_(_field)
     {
         mesh_renderer_.settings().useDataForLineColor = true;
     }
@@ -38,10 +38,6 @@ public:
     void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
-
-    inline std::pair<Vec3f,Vec3f> getBBox() override {
-        return {Vec3f(field_.xMin,field_.yMin,field_.zMin),Vec3f(field_.xMax,field_.yMax,field_.zMax)};
-    }
 };
 
 }

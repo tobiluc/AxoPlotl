@@ -26,6 +26,16 @@ void ConvexPolygonNode::init(Scene* scene)
         data.triangleIndices.push_back(i+1);
     }
     mesh_renderer_.updateData(data);
+
+    // Compute Bounding Box
+    bbox_.first = Vec3f(std::numeric_limits<float>::infinity());
+    bbox_.second = Vec3f(-std::numeric_limits<float>::infinity());
+    for (uint32_t i = 0; i < vertices_.size(); ++i) {
+        for (int a = 0; a < 3; ++a) {
+            bbox_.first[a] = std::min(bbox_.first[a], vertices_[i][a]);
+            bbox_.second[a] = std::max(bbox_.second[a], vertices_[i][a]);
+        }
+    }
 }
 
 void ConvexPolygonNode::renderUIBody(Scene* scene)
@@ -54,19 +64,6 @@ void ConvexPolygonNode::renderUIBody(Scene* scene)
         // Update Renderer
         this->init(scene);
     }
-}
-
-std::pair<glm::vec3, glm::vec3> ConvexPolygonNode::getBBox()
-{
-    Vec3f min(std::numeric_limits<float>::infinity());
-    Vec3f max(-std::numeric_limits<float>::infinity());
-    for (uint32_t i = 0; i < vertices_.size(); ++i) {
-        for (int a = 0; a < 3; ++a) {
-            min[a] = std::min(min[a], vertices_[i][a]);
-            max[a] = std::max(max[a], vertices_[i][a]);
-        }
-    }
-    return {min, max};
 }
 
 }

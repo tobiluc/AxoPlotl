@@ -20,7 +20,7 @@ private:
 public:
     ExplicitCurveNode(const std::string& _name, const ExplicitCurveFunction& _f,
         Vec3f _color = Vec3f(0,0,1), const glm::mat4& _transform = glm::mat4(1.0)) :
-        GeometryNode("Explicit Curve", _name, _transform),  f_(_f), color_([&](float,float){return _color;})
+        GeometryNode(_name, _transform),  f_(_f), color_([&](float,float){return _color;})
     {
         std::strncpy(input_buffer_x_, f_.str_x.c_str(), sizeof(input_buffer_x_));
         std::strncpy(input_buffer_y_, f_.str_y.c_str(), sizeof(input_buffer_y_));
@@ -33,8 +33,6 @@ public:
     void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
-
-    std::pair<glm::vec3, glm::vec3> getBBox() override;
 };
 
 }

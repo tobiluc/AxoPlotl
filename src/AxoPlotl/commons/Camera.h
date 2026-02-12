@@ -12,10 +12,11 @@ namespace AxoPlotl
 class BaseCamera
 {
 public:
+    float sensitivity_ = 0.001f;
+    float pan_speed_ = 2.0f;
+
     static constexpr glm::vec3 world_up = glm::vec3(0,1,0);
-    static constexpr float sensitivity = 0.001f; // mouse movement and scroll
-    static constexpr float movement_speed = 5.0f;
-    static constexpr float near = 0.1f;
+    static constexpr float near = 0.01f;
     static constexpr float far = 4096.0f;
 
     virtual glm::mat4 getViewMatrix() const = 0;
@@ -40,21 +41,21 @@ public:
 class PerspectiveCamera : public BaseCamera
 {
 private:
-    glm::vec3 orbit_target = glm::vec3(0.0f);
-    float orbit_distance = 10.0f;
-    glm::vec3 position;
-    glm::vec3 up;
-    float yaw = 0; // Euler Angles in radians
-    float pitch = 0;
-    float fov = 0.25*M_PI; // field of view in radians
+    glm::vec3 orbit_target_ = glm::vec3(0.0f);
+    float orbit_distance_ = 10.0f;
+    glm::vec3 position_;
+    glm::vec3 up_;
+    float yaw_ = 0; // Euler Angles in radians
+    float pitch_ = 0;
+    float fov_ = 0.25*M_PI; // field of view in radians
 
 public:
     inline glm::mat4 getViewMatrix() const override {
-        return lookAt(position, orbit_target, up);
+        return lookAt(position_, orbit_target_, up_);
     }
 
     inline glm::mat4 getProjectionMatrix(float width_over_height) const override {
-        return glm::perspective(fov, width_over_height, near, far);
+        return glm::perspective(fov_, width_over_height, near, far);
     }
 
     void update(GLFWwindow* window) override;
@@ -63,8 +64,8 @@ public:
 
     void zoomToBox(const glm::vec3& min, const glm::vec3& max) override;
 
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveCamera, position, up,
-orbit_target, orbit_distance, yaw, pitch, fov)
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(PerspectiveCamera, position_, up_,
+orbit_target_, orbit_distance_, yaw_, pitch_, fov_)
 };
 
 class OrthographicCamera : public BaseCamera

@@ -12,15 +12,13 @@ private:
 
 public:
     ConvexPolygonNode(const std::vector<Vec3f>& _vertices, const std::string& _name="New Polygon", const glm::mat4& _transform = glm::mat4(1.0)) :
-        GeometryNode("Polygon", _name, _transform), vertices_(_vertices)
+        GeometryNode(_name, _transform), vertices_(_vertices)
     {
     }
 
     void init(Scene* scene) override;
 
     void renderUIBody(Scene* scene) override;
-
-    std::pair<glm::vec3, glm::vec3> getBBox() override;
 };
 
 

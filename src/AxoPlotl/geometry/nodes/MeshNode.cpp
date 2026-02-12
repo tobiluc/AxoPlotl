@@ -5,11 +5,78 @@
 namespace AxoPlotl
 {
 
+static GL::MeshRenderer::Data create_render_data(const VolumeMesh &mesh)
+{
+    GL::MeshRenderer::Data data;
+
+    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
+
+        // Compute smooth normal
+        Vec3f n(0,0,0);
+        for (auto vf_it = mesh.vf_iter(*v_it); vf_it.is_valid(); ++vf_it) {
+            n += toVec3<Vec3f>(mesh.normal(vf_it->halfface_handle(0)));
+        }
+        n = glm::normalize(n);
+        auto p =toVec3<Vec3f>(mesh.vertex(*v_it));
+
+        data.pointAttribs.push_back(GL::MeshRenderer::VertexPointAttrib{
+            .position = p,
+            .color = color_on_sphere(p)
+        });
+    }
+
+    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
+        data.pointIndices.push_back(v_it->uidx());
+    }
+
+    for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
+        auto vh0 = mesh.from_vertex_handle(e_it->halfedge_handle(0));
+        auto vh1 = mesh.from_vertex_handle(e_it->halfedge_handle(1));
+
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(vh0)),
+            .color = Vec4f(0,0,0,1)
+        });
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+            .position = toVec3<Vec3f>(mesh.vertex(vh1)),
+            .color = Vec4f(0,0,0,1)
+        });
+        data.lineIndices.push_back(data.lineAttribs.size()-2);
+        data.lineIndices.push_back(data.lineAttribs.size()-1);
+
+    }
+
+    int idx(0);
+    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
+        const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
+        auto normal = toVec3<Vec3f>(mesh.normal(f_it->halfface_handle(0)));
+
+        for (OVM::VH vh : vhs) {
+            auto p = toVec3<Vec3f>(mesh.vertex(vh));
+            data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
+                .position = p,
+                .color = color_on_sphere(p),
+                .normal = normal,
+                .buffer = 0.0f
+            });
+        }
+
+        for (uint j = 1; j < vhs.size()-1; ++j) {
+            data.triangleIndices.push_back(idx);
+            data.triangleIndices.push_back(idx+j);
+            data.triangleIndices.push_back(idx+j+1);
+        }
+        idx += vhs.size();
+    }
+
+    return data;
+}
+
 void MeshNode::init(Scene* scene)
 {
     //renderer_.addMesh(mesh_, renderLoc_);
-    GL::MeshRenderer::Data data;
-    GL::MeshRenderer::createData(mesh_, data);
+    GL::MeshRenderer::Data data = create_render_data(mesh_);
+    //GL::MeshRenderer::createData(mesh_, data);
     mesh_renderer_.updateData(data);
 
     // Compute Bounding Box

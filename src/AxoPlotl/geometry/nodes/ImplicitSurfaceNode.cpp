@@ -6,12 +6,44 @@ namespace AxoPlotl
 
 void ImplicitSurfaceNode::init(Scene *scene)
 {
-    SurfaceMesh triangles;
-    createTrianglesAMC(f_, triangles, initial_resolution_, octree_depth_);
-    VolumeMesh mesh = volume_mesh(triangles);
+    SurfaceMesh mesh;
+    createTrianglesAMC(f_, mesh, initial_resolution_, octree_depth_);
+    // VolumeMesh mesh = volume_mesh(triangles);
+    // GL::MeshRenderer::Data data;
+    // GL::MeshRenderer::createData(mesh, data);
+    // mesh_renderer_.updateData(data);
     GL::MeshRenderer::Data data;
-    GL::MeshRenderer::createData(mesh, data);
+
+    for (int i = 0; i < mesh.n_vertices(); ++i) {
+        auto p = mesh.point(i);
+        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+            .position = p,
+            .color = Vec4f(0,0,0,1)
+        });
+        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
+          .position = p,
+          .color = getColorOnSphere(p[0],p[1],p[2]),
+          .normal = Vec3f(1,0,0)});
+
+        for (auto vv_it = mesh.vv_iter(i); vv_it.is_valid(); ++vv_it) {
+            int j = *vv_it;
+            if (j > i) {
+                data.lineIndices.push_back(i);
+                data.lineIndices.push_back(j);
+            }
+        }
+    }
+
+    for (const auto& f : mesh.faces()) {
+        for (uint j = 1; j < f.valence()-1; ++j) {
+            data.triangleIndices.push_back(f.vertices()[0]);
+            data.triangleIndices.push_back(f.vertices()[j]);
+            data.triangleIndices.push_back(f.vertices()[j+1]);
+        }
+    }
     mesh_renderer_.updateData(data);
+
+    this->bbox_ = {Vec3f(f_.xMin,f_.yMin,f_.zMin),Vec3f(f_.xMax,f_.yMax,f_.zMax)};
 }
 
 void ImplicitSurfaceNode::renderUIBody(Scene *scene)

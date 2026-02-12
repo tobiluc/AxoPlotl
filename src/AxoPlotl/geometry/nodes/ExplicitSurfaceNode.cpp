@@ -62,15 +62,21 @@ void ExplicitSurfaceNode::init(Scene* scene)
     SurfaceMesh mesh;
     createQuads(f_, mesh, resolution_);
 
+    bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
+
     GL::MeshRenderer::Data data;
 
     for (int i = 0; i < mesh.n_vertices(); ++i) {
         auto p = mesh.point(i);
-        float t = i/((float)mesh.n_vertices()-1);
+
+        for (int a = 0; a < 3; ++a) {
+            bbox_.first[a] = std::min(bbox_.first[a], p[a]);
+            bbox_.second[a] = std::max(bbox_.second[a], p[a]);
+        }
 
         data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
             .position = p,
-            .color = Vec4f(t,0,1-t,1)
+            .color = Vec4f(0,0,0,1)
         });
 
         data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
@@ -78,12 +84,13 @@ void ExplicitSurfaceNode::init(Scene* scene)
             .color = getColorOnSphere(p[0],p[1],p[2]),
             .normal = Vec3f(1,0,0)});
 
-        // for (const auto& w : v.vertices_ccw()) {
-        //     if (w.idx() > v.idx()) {
-        //         data.lineIndices.push_back(v.idx());
-        //         data.lineIndices.push_back(w.idx());
-        //     }
-        // }
+        for (auto vv_it = mesh.vv_iter(i); vv_it.is_valid(); ++vv_it) {
+            int j = *vv_it;
+            if (j > i) {
+                data.lineIndices.push_back(i);
+                data.lineIndices.push_back(j);
+            }
+        }
     }
     for (const auto& f : mesh.faces()) {
         for (uint j = 1; j < f.valence()-1; ++j) {
@@ -94,14 +101,6 @@ void ExplicitSurfaceNode::init(Scene* scene)
     }
     mesh_renderer_.updateData(data);
 
-    // Compute Bounding Box
-    bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
-    for (uint32_t i = 0; i < data.pointAttribs.size(); ++i) {
-        for (int a = 0; a < 3; ++a) {
-            bbox_.first[a] = std::min(bbox_.first[a], data.pointAttribs[i].position[a]);
-            bbox_.second[a] = std::max(bbox_.second[a], data.pointAttribs[i].position[a]);
-        }
-    }
 }
 
 }

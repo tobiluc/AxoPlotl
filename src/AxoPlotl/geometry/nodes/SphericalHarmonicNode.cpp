@@ -71,6 +71,8 @@ void SphericalHarmonicNode::init(Scene* scene)
         }
     }
     mesh_renderer_.updateData(data);
+
+    this->bbox_ = {Vec3f(-1,-1,-1),Vec3f(1,1,1)};
 }
 
 }

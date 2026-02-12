@@ -16,4 +16,9 @@ inline Vec4f getColorOnSphere(float x, float y, float z) {
         );
 }
 
+
+inline Vec4f color_on_sphere(const Vec3f& _v) {
+    return getColorOnSphere(_v[0], _v[1], _v[2]);
+}
+
 } // namespace AxoPlotl

@@ -24,6 +24,9 @@ namespace AxoPlotl
 
 class Scene
 {
+private:
+    bool auto_zoom_to_new_object_ = true;
+
 protected:
     std::vector<std::unique_ptr<GeometryNode>> objects_;
 
@@ -52,69 +55,26 @@ public:
     /// Render the scene and UI
     void render(GLFWwindow* window);
 
+    template<typename Object, typename ...Args>
+    inline void add_object(Args... _args) {
+        objects_.push_back(std::make_unique<Object>(_args...));
+        objects_.back()->init(this);
+        if (auto_zoom_to_new_object_) {
+            auto bbox = objects_.back()->getBBox();
+            camera_set_.zoomToBox(bbox.first, bbox.second);
+        }
+        Rendering::triggerRedraw();
+    }
+
     inline void add_mesh(const std::filesystem::path& _path) {
         auto mesh = IO::read_mesh(_path);
         if (mesh.has_value()) {
             if (std::holds_alternative<SurfaceMesh>(mesh.value())) {
-                addMesh(volume_mesh(std::get<SurfaceMesh>(mesh.value())), _path.stem());
+                add_object<MeshNode>(volume_mesh(std::get<SurfaceMesh>(mesh.value())), _path.stem());
             } else if(std::holds_alternative<VolumeMesh>(mesh.value())) {
-                addMesh(std::move(std::get<VolumeMesh>(mesh.value())), _path.stem());
+                add_object<MeshNode>(std::move(std::get<VolumeMesh>(mesh.value())), _path.stem());
             }
         }
-    }
-
-    // inline void add_surface_mesh(const SurfaceMesh&& _mesh) {
-    //     objects_.push_back(std::make_unique<SurfaceMeshNode>(std::move(_mesh)));
-    //     objects_.back()->init(this);
-    //     Rendering::triggerRedraw();
-    // }
-
-    // inline void add_volume_mesh(const VolumeMesh&& _mesh) {
-    //     objects_.push_back(std::make_unique<VolumeMeshNode>(std::move(_mesh)));
-    //     objects_.back()->init(this);
-    //     Rendering::triggerRedraw();
-    // }
-
-    inline void addMesh(const VolumeMesh& mesh, const std::string& name) {
-        objects_.push_back(std::make_unique<MeshNode>(mesh, name));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addVectorField(const std::function<Vec3f(Vec3f)>& func, const std::string& name) {
-        objects_.push_back(std::make_unique<VectorFieldNode>(GradientField(func), name));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addSphericalHarmonic(const std::string& name, const SphericalHarmonicFunction& sh) {
-        objects_.push_back(std::make_unique<SphericalHarmonicNode>(sh, name));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addConvexPolygon(const std::vector<Vec3f>& vertices, const std::string& name) {
-        objects_.push_back(std::make_unique<ConvexPolygonNode>(vertices, name));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addExplicitCurve(const std::string& name, const ExplicitCurveFunction& func, Vec3f color = Vec3f(0,0,1)) {
-        objects_.push_back(std::make_unique<ExplicitCurveNode>(name, func, color));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addExplicitSurface(const std::string& name, const ExplicitSurfaceFunction& func, Vec3f color = Vec3f(0,0,1)) {
-        objects_.push_back(std::make_unique<ExplicitSurfaceNode>(name, func, color));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
-    }
-
-    inline void addImplicitSurface(const std::string& name, const ImplicitSurfaceFunction& func, Vec3f color = Vec3f(1,0,0)) {
-        objects_.push_back(std::make_unique<ImplicitSurfaceNode>(name, func, color));
-        objects_.back()->init(this);
-        Rendering::triggerRedraw();
     }
 
     bool saveToFile(const std::filesystem::path& filename);
