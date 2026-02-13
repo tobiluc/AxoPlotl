@@ -162,10 +162,10 @@ void MeshNode::renderUIBody(Scene* scene)
     if (ImGui::BeginMenu("Properties"))
     {
         if (ImGui::BeginMenu("Calculate")) {
-            if (ImGui::MenuItem("Cell Boundary Distance")) {
+            if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Boundary Distance")) {
                 calc_cell_boundary_distance(mesh_);
             }
-            if (ImGui::MenuItem("Cell Min Dihedral Angle")) {
+            if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Min Dihedral Angle")) {
                 calc_cell_min_dihedral_angle(mesh_);
             }
             ImGui::EndMenu();
