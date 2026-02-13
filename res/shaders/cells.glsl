@@ -15,12 +15,17 @@ uniform vec4 min_color;
 uniform vec4 max_color;
 uniform bool use_data_as_color;
 
+uniform vec4 clip_plane;
+
 out vec4 v2f_color;
 
 void main()
 {
-	vec3 position = v_cell_incenter + cell_scale * (v_position - v_cell_incenter);
-	gl_Position = model_view_projection_matrix * vec4(position, 1.0);
+	vec4 model_position = vec4(v_cell_incenter + cell_scale * (v_position - v_cell_incenter), 1.0);
+
+	gl_ClipDistance[0] = dot(model_position, clip_plane);
+
+	gl_Position = model_view_projection_matrix * model_position;
 	
 	if (use_data_as_color) {
 		v2f_color = v_data;

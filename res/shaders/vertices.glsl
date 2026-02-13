@@ -10,10 +10,13 @@ uniform vec4 min_color;
 uniform vec4 max_color;
 uniform bool use_data_as_color;
 uniform float point_size;
+uniform vec4 clip_plane;
 
 out vec4 v2f_color;
 
 void main() {
+	gl_ClipDistance[0] = dot(vec4(v_position, 1.0), clip_plane);
+
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
 	gl_PointSize = point_size;
 	if (use_data_as_color) {

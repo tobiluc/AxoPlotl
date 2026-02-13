@@ -10,6 +10,7 @@ namespace AxoPlotl
 struct PropertyFilterBase
 {
     virtual void renderUI(GL::MeshRenderer& _r) = 0;
+    virtual std::string name() = 0;
 };
 
 template<typename ST>
@@ -44,6 +45,11 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
         ImGui::ColorEdit3("Min Color", &_r.settings().scalar_property_range.min_color[0]);
         ImGui::ColorEdit3("Max Color", &_r.settings().scalar_property_range.max_color[0]);
     }
+
+    std::string name() override {
+        return "Scalar Range";
+    }
+
     ST min;
     ST max;
 };
@@ -76,6 +82,10 @@ struct ScalarPropertyExactFilter : public PropertyFilterBase
         }
         ImGui::ColorEdit3("Color", &_r.settings().scalar_property_range.min_color[0]);
         _r.settings().scalar_property_range.max_color = _r.settings().scalar_property_range.min_color;
+    }
+
+    std::string name() override {
+        return "Exact Scalar";
     }
 };
 

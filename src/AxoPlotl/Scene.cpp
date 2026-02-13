@@ -44,6 +44,8 @@ void Scene::render(GLFWwindow *window)
     // Cache matrices for rendering
     glm::mat4 view_matrix = camera_set_.camera()->getViewMatrix();
 
+    glEnable(GL_CLIP_DISTANCE0);
+
     // Picking
     if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED || AxoPlotl::MouseHandler::RIGHT_JUST_PRESSED)
     {

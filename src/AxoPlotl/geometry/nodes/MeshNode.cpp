@@ -79,55 +79,8 @@ static GL::MeshRenderer::Data create_render_data(VolumeMesh &mesh)
         data.cell_attribs_.reserve(4*mesh.n_cells());
         data.cell_triangle_indices_.reserve(12*mesh.n_cells());
 
-        auto c_min_dihedral_angle = mesh.request_cell_property<double>("AxoPlotl::min_dihedral_angle");
-        mesh.set_persistent(c_min_dihedral_angle);
-
         int idx_offset(0);
         for (auto c_it = mesh.c_iter(); c_it.is_valid(); ++c_it) {
-
-            // Compute the dihedral angles
-            c_min_dihedral_angle[*c_it] = std::numeric_limits<double>::infinity();
-            for (auto ce_it = mesh.ce_iter(*c_it); ce_it.is_valid(); ++ce_it) {
-                std::vector<OpenVolumeMesh::HFH> hfhs;
-                for (auto hfh : mesh.cell(*c_it).halffaces()) {
-                    if (mesh.is_incident(hfh.face_handle(), *ce_it)) {
-                        hfhs.push_back(hfh);
-                    }
-                }
-                assert(hfhs.size()==2);
-                OpenVolumeMesh::HEH heh = ce_it->halfedge_handle(0);
-                for (auto heh0 : mesh.halfface_halfedges(hfhs[1])) {
-                    if (heh0 == heh) {
-                        heh = heh.opposite_handle();
-                        break;
-                    }
-                }
-                OpenVolumeMesh::VH vh_a = mesh.from_vertex_handle(heh);
-                OpenVolumeMesh::VH vh_b = mesh.to_vertex_handle(heh);
-                OpenVolumeMesh::VH vh_p(-1);
-                for (auto vh : mesh.get_halfface_vertices(hfhs[0])) {
-                    if (vh != vh_a && vh != vh_b) {
-                        vh_p = vh;
-                        break;
-                    }
-                }
-                assert(vh_p.is_valid());
-                OpenVolumeMesh::VH vh_q(-1);
-                for (auto vh : mesh.get_halfface_vertices(hfhs[1])) {
-                    if (vh != vh_a && vh != vh_b) {
-                        vh_q = vh;
-                        break;
-                    }
-                }
-                assert(vh_q.is_valid());
-                double alpha = ToLoG::dihedral_angle(
-                    mesh.vertex(vh_a),
-                    mesh.vertex(vh_b),
-                    mesh.vertex(vh_p),
-                    mesh.vertex(vh_q)
-                    );
-                c_min_dihedral_angle[*c_it] = std::min(c_min_dihedral_angle[*c_it], alpha);
-            }
 
             // Compute the Cell Incenter
             uint32_t n_vhs(0);
@@ -205,15 +158,27 @@ void MeshNode::renderUIBody(Scene* scene)
     // }
 
 
+
     if (ImGui::BeginMenu("Properties"))
     {
+        if (ImGui::BeginMenu("Calculate")) {
+            if (ImGui::MenuItem("Cell Boundary Distance")) {
+                calc_cell_boundary_distance(mesh_);
+            }
+            if (ImGui::MenuItem("Cell Min Dihedral Angle")) {
+                calc_cell_min_dihedral_angle(mesh_);
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::Separator();
+
         if (mesh_.n_vertex_props()>0 && ImGui::BeginMenu("Vertices"))
         {
             for (auto v_prop = mesh_.vertex_props_begin(); v_prop != mesh_.vertex_props_end(); ++v_prop) {
                 ImGui::PushID((*v_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*v_prop)->name().c_str(), (*v_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *v_prop;
-                    upload_property_data(mesh_, *v_prop, prop_filter, mesh_renderer_);
+                    upload_property_data(mesh_, *v_prop, prop_filters_, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -227,7 +192,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*e_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *e_prop;
-                    upload_property_data(mesh_, *e_prop, prop_filter, mesh_renderer_);
+                    upload_property_data(mesh_, *e_prop, prop_filters_, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -241,7 +206,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*f_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*f_prop)->name().c_str(), (*f_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *f_prop;
-                    upload_property_data(mesh_, *f_prop, prop_filter, mesh_renderer_);
+                    upload_property_data(mesh_, *f_prop, prop_filters_, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -255,7 +220,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*c_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*c_prop)->name().c_str(), (*c_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *c_prop;
-                    upload_property_data(mesh_, *c_prop, prop_filter, mesh_renderer_);
+                    upload_property_data(mesh_, *c_prop, prop_filters_, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -297,17 +262,19 @@ void MeshNode::renderUIBody(Scene* scene)
 
         ImGui::Text("%s [%s]", (*prop_)->name().c_str(), (*prop_)->typeNameWrapper().c_str());
 
-        if (ImGui::BeginMenu("Visualization Options")) {
-            if (ImGui::MenuItem("Range")) {
-            }
-            if (ImGui::MenuItem("Exact")) {
+        if (!prop_filters_.empty()) {
 
-            }
-            ImGui::EndMenu();
-        }
+            if (ImGui::BeginMenu("Filter Options")) {
 
-        if (prop_filter) {
-            prop_filter->renderUI(mesh_renderer_);
+                for (int i = 0; i < prop_filters_.size(); ++i) {
+                    if (ImGui::MenuItem(prop_filters_[i]->name().c_str())) {
+                        active_prop_filter_ = i;
+                    }
+                }
+                ImGui::EndMenu();
+            }
+
+            prop_filters_[active_prop_filter_]->renderUI(mesh_renderer_);
         }
 
         if (ImGui::Button("Stop Property Visualization")) {

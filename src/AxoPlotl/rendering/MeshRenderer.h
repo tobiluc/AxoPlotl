@@ -55,6 +55,10 @@ public:
         bool useDataForTriangleColor = true;
         bool use_data_as_cell_color_ = true;
 
+        Vec4f vertex_clip_plane_ = Vec4f(0,0,0,0);
+        Vec4f edge_clip_plane_ = Vec4f(0,0,0,0);
+        Vec4f face_clip_plane_ = Vec4f(0,0,0,0);
+        Vec4f cell_clip_plane_ = Vec4f(0,0,0,0);
 
         ScalarRangeConfig scalar_property_range;
 

@@ -224,83 +224,105 @@ void upload_cell_scalar_property_data(
 void upload_property_data(
     const VolumeMesh& mesh_,
     OpenVolumeMesh::PropertyStorageBase* _prop,
-    std::shared_ptr<PropertyFilterBase>& prop_filter,
+    std::vector<std::shared_ptr<PropertyFilterBase>>& _prop_filters,
     GL::MeshRenderer& _r)
 {
+    _prop_filters.clear();
+
     if (_prop->entity_type() == OVM::EntityType::Vertex)
     {
         if ((_prop)->typeNameWrapper()=="double") {
-            auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<double>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-            upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<double>((_prop)->name()).value(), _r);
+            auto v_prop = mesh_.get_vertex_property<double>((_prop)->name()).value();
+            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second));
+            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="int") {
-            //auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-            upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<int>((_prop)->name()).value(), _r);
+            auto v_prop = mesh_.get_vertex_property<int>((_prop)->name()).value();
+            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int>>(r.first, r.second));
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int>>());
+            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="float") {
-            auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<float>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-            upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<float>((_prop)->name()).value(), _r);
+            auto v_prop = mesh_.get_vertex_property<float>((_prop)->name()).value();
+            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second));
+            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="bool") {
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<bool>>();
-            upload_vertex_scalar_property_data(mesh_, mesh_.get_vertex_property<bool>((_prop)->name()).value(), _r);
+            auto v_prop = mesh_.get_vertex_property<bool>((_prop)->name()).value();
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool>>());
+            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
         }
     }
     else if (_prop->entity_type() == OVM::EntityType::Edge)
     {
         if ((_prop)->typeNameWrapper()=="double") {
-            auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<double>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-            upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<double>((_prop)->name()).value(), _r);
+            auto e_prop = mesh_.get_edge_property<double>((_prop)->name()).value();
+            auto r = get_edge_scalar_property_range(mesh_, e_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second));
+            upload_edge_scalar_property_data(mesh_, e_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="int") {
-            //auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<int>((*prop_)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-            upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<int>((_prop)->name()).value(), _r);
+            auto e_prop = mesh_.get_edge_property<int>((_prop)->name()).value();
+            auto r = get_edge_scalar_property_range(mesh_, e_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int>>(r.first, r.second));
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int>>());
+            upload_edge_scalar_property_data(mesh_, e_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="float") {
-            auto r = get_edge_scalar_property_range(mesh_, mesh_.get_edge_property<float>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-            upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<float>((_prop)->name()).value(), _r);
+            auto e_prop = mesh_.get_edge_property<float>((_prop)->name()).value();
+            auto r = get_edge_scalar_property_range(mesh_, e_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second));
+            upload_edge_scalar_property_data(mesh_, e_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="bool") {
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<bool>>();
-            upload_edge_scalar_property_data(mesh_, mesh_.get_edge_property<bool>((_prop)->name()).value(), _r);
+            auto e_prop = mesh_.get_edge_property<bool>((_prop)->name()).value();
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool>>());
+            upload_edge_scalar_property_data(mesh_, e_prop, _r);
         }
     }
     else if (_prop->entity_type() == OVM::EntityType::Face)
     {
         if ((_prop)->typeNameWrapper()=="double") {
-            auto r = get_face_scalar_property_range(mesh_, mesh_.get_face_property<double>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-            upload_face_scalar_property_data(mesh_, mesh_.get_face_property<double>((_prop)->name()).value(), _r);
+            auto f_prop = mesh_.get_face_property<double>((_prop)->name()).value();
+            auto r = get_face_scalar_property_range(mesh_, f_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second));
+            upload_face_scalar_property_data(mesh_, f_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="int") {
-            //auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-            upload_face_scalar_property_data(mesh_, mesh_.get_face_property<int>((_prop)->name()).value(), _r);
+            auto f_prop = mesh_.get_face_property<int>((_prop)->name()).value();
+            auto r = get_face_scalar_property_range(mesh_, f_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int>>(r.first, r.second));
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int>>());
+            upload_face_scalar_property_data(mesh_, f_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="float") {
-            auto r = get_face_scalar_property_range(mesh_, mesh_.get_face_property<float>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-            upload_face_scalar_property_data(mesh_, mesh_.get_face_property<float>((_prop)->name()).value(), _r);
+            auto f_prop = mesh_.get_face_property<float>((_prop)->name()).value();
+            auto r = get_face_scalar_property_range(mesh_, f_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second));
+            upload_face_scalar_property_data(mesh_, f_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="bool") {
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<bool>>();
-            upload_face_scalar_property_data(mesh_, mesh_.get_face_property<bool>((_prop)->name()).value(), _r);
+            auto f_prop = mesh_.get_face_property<bool>((_prop)->name()).value();
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool>>());
+            upload_face_scalar_property_data(mesh_, f_prop, _r);
         }
     }
     else if (_prop->entity_type() == OVM::EntityType::Cell)
     {
         if ((_prop)->typeNameWrapper()=="double") {
-            auto r = get_cell_scalar_property_range(mesh_, mesh_.get_cell_property<double>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second);
-            upload_cell_scalar_property_data(mesh_, mesh_.get_cell_property<double>((_prop)->name()).value(), _r);
+            auto c_prop = mesh_.get_cell_property<double>((_prop)->name()).value();
+            auto r = get_cell_scalar_property_range(mesh_, c_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double>>(r.first, r.second));
+            upload_cell_scalar_property_data(mesh_, c_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="int") {
-            //auto r = get_vertex_scalar_property_range(mesh_, mesh_.get_vertex_property<int>((*prop_)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<int>>();
-            upload_cell_scalar_property_data(mesh_, mesh_.get_cell_property<int>((_prop)->name()).value(), _r);
+            auto c_prop = mesh_.get_cell_property<int>((_prop)->name()).value();
+            auto r = get_cell_scalar_property_range(mesh_, c_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int>>(r.first, r.second));
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int>>());
+            upload_cell_scalar_property_data(mesh_, c_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="float") {
-            auto r = get_cell_scalar_property_range(mesh_, mesh_.get_cell_property<float>((_prop)->name()).value());
-            prop_filter = std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second);
-            upload_cell_scalar_property_data(mesh_, mesh_.get_cell_property<float>((_prop)->name()).value(), _r);
+            auto c_prop = mesh_.get_cell_property<float>((_prop)->name()).value();
+            auto r = get_cell_scalar_property_range(mesh_, c_prop);
+            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float>>(r.first, r.second));
+            upload_cell_scalar_property_data(mesh_, c_prop, _r);
         } else if ((_prop)->typeNameWrapper()=="bool") {
-            prop_filter = std::make_shared<ScalarPropertyExactFilter<bool>>();
-            upload_cell_scalar_property_data(mesh_, mesh_.get_cell_property<bool>((_prop)->name()).value(), _r);
+            auto c_prop = mesh_.get_cell_property<bool>((_prop)->name()).value();
+            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool>>());
+            upload_cell_scalar_property_data(mesh_, c_prop, _r);
         }
     }
     else

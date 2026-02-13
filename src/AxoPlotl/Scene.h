@@ -63,7 +63,7 @@ public:
         auto mesh = IO::read_mesh(_path);
         if (mesh.has_value()) {
             if (std::holds_alternative<SurfaceMesh>(mesh.value())) {
-                add_object<MeshNode>(volume_mesh(std::get<SurfaceMesh>(mesh.value())), _path.stem());
+                add_object<MeshNode>(std::move(volume_mesh(std::get<SurfaceMesh>(mesh.value()))), _path.stem());
             } else if(std::holds_alternative<VolumeMesh>(mesh.value())) {
                 add_object<MeshNode>(std::move(std::get<VolumeMesh>(mesh.value())), _path.stem());
             }

@@ -89,6 +89,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/typedefs/typedefs_glm.hpp
     src/AxoPlotl/typedefs/typedefs_ToLoG.hpp
     src/AxoPlotl/utils/string_format.hpp
+    src/AxoPlotl/properties/property_calculations.hpp
+    src/AxoPlotl/properties/property_calculations.cpp
 
 
 

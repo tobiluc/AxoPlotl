@@ -268,6 +268,7 @@ void MeshRenderer::render(const Matrices &m)
         Shader::VERTICES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::VERTICES_SHADER.setBool("use_data_as_color", settings_.useDataForPointColor);
+        Shader::VERTICES_SHADER.setVec4f("clip_plane", settings_.vertex_clip_plane_);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
@@ -295,6 +296,10 @@ void MeshRenderer::render(const Matrices &m)
         Shader::EDGES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
         // Shader::EDGES_SHADER.setBool("use_global_color", settings_.useGlobalLineColor);
         // Shader::EDGES_SHADER.setVec4f("global_color", settings_.globalLineColor);
+        Shader::EDGES_SHADER.setVec4f("clip_plane", settings_.edge_clip_plane_);
+        Shader::EDGES_SHADER.setVec4f("clip_plane_projection",
+            glm::transpose(glm::inverse(m.model_view_projection_matrix))
+                *settings_.edge_clip_plane_);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
@@ -327,6 +332,7 @@ void MeshRenderer::render(const Matrices &m)
         Shader::FACES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
         Shader::FACES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
         Shader::FACES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
+        Shader::FACES_SHADER.setVec4f("clip_plane", settings_.face_clip_plane_);
 
         // Shader::FACES_OUTLINES_SHADER.use();
 
@@ -357,6 +363,7 @@ void MeshRenderer::render(const Matrices &m)
         Shader::CELLS_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
         Shader::CELLS_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
         Shader::CELLS_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
+        Shader::CELLS_SHADER.setVec4f("clip_plane", settings_.cell_clip_plane_);
 
         glBindVertexArray(vao_cells_);
 

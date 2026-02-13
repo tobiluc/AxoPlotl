@@ -9,10 +9,13 @@ uniform vec2 visible_data_range;
 uniform vec4 min_color;
 uniform vec4 max_color;
 uniform bool use_data_as_color;
+uniform vec4 clip_plane;
 
 out vec4 v2g_color;
 
 void main() {
+	gl_ClipDistance[0] = dot(vec4(v_position, 1.0), clip_plane);
+
 	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
 	
 	if (use_data_as_color) {
@@ -36,6 +39,7 @@ layout(triangle_strip, max_vertices = 4) out;
 
 uniform float line_width;
 uniform vec2 inverse_viewport_size;
+uniform vec4 clip_plane_projection;
 
 in vec4 v2g_color[];
 
@@ -65,6 +69,7 @@ void main() {
     for (int i = 0; i < 4; ++i) {
         gl_Position = coords[i];
 	g2f_color = v2g_color[i/2];
+	gl_ClipDistance[0] = dot(coords[i], clip_plane_projection);
         EmitVertex();
     }
     EndPrimitive();

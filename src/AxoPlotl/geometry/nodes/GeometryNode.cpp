@@ -78,6 +78,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Vertices")) {
                 ImGui::Checkbox("Show Vertices", &settings.renderPoints);
                 ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
+                ImGui::InputFloat4("Clip Plane", &settings.vertex_clip_plane_[0]);
                 ImGui::EndMenu();
             }
         }
@@ -86,6 +87,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Edges")) {
                 ImGui::Checkbox("Show Edges", &settings.renderLines);
                 ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
+                ImGui::InputFloat4("Clip Plane", &settings.edge_clip_plane_[0]);
                 ImGui::EndMenu();
             }
         }
@@ -94,6 +96,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Faces")) {
                 ImGui::Checkbox("Show Faces", &settings.renderTriangles);
                 ImGui::Checkbox("Wireframe", &settings.wireframe);
+                ImGui::InputFloat4("Clip Plane", &settings.face_clip_plane_[0]);
                 // ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
                 // ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
                 // ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
@@ -106,6 +109,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             if (ImGui::BeginMenu("Cells")) {
                 ImGui::Checkbox("Show Cells", &settings.render_cells_);
                 ImGui::SliderFloat("Cell Scale", &settings.cell_scale_, 0.0f, 1.0f);
+                ImGui::InputFloat4("Clip Plane", &settings.cell_clip_plane_[0]);
                 ImGui::EndMenu();
             }
         }
