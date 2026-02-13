@@ -1,14 +1,7 @@
 #pragma once
 
-#include "AxoPlotl/geometry/nodes/ConvexPolygonNode.h"
-#include "AxoPlotl/geometry/nodes/ExplicitCurveNode.h"
-#include "AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h"
 #include "AxoPlotl/geometry/nodes/GeometryNode.h"
-#include "AxoPlotl/geometry/Surface.h"
-#include "AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h"
 #include "AxoPlotl/geometry/nodes/MeshNode.h"
-#include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
-#include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
 #include "AxoPlotl/rendering/redraw_frames.h"
 #include "AxoPlotl/IO/FileAccessor.h"
 #include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"

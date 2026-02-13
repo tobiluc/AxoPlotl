@@ -21,9 +21,9 @@ void ConvexPolygonNode::init(Scene* scene)
         data.lineIndices.push_back((i+1)%vertices_.size());
     }
     for (uint i = 1; i < vertices_.size()-1; ++i) {
-        data.triangleIndices.push_back(0);
-        data.triangleIndices.push_back(i);
-        data.triangleIndices.push_back(i+1);
+        data.face_triangle_indices_.push_back(0);
+        data.face_triangle_indices_.push_back(i);
+        data.face_triangle_indices_.push_back(i+1);
     }
     mesh_renderer_.updateData(data);
 

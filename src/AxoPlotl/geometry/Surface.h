@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
 #include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
 #include "AxoPlotl/typedefs/typedefs_glm.hpp"
 #include "AxoPlotl/typedefs/typedefs_ToLoG.hpp"

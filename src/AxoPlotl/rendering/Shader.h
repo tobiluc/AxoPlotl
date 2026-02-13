@@ -13,9 +13,7 @@ namespace AxoPlotl
 
 class Shader {
 public:
-
-    static Shader FACES_OUTLINES_SHADER;
-    static Shader TET_CELLS_SHADER;
+    static Shader CELLS_SHADER;
     static Shader FACES_SHADER;
     static Shader EDGES_SHADER;
     static Shader VERTICES_SHADER;

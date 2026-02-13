@@ -5,10 +5,12 @@
 namespace AxoPlotl
 {
 
-static GL::MeshRenderer::Data create_render_data(const VolumeMesh &mesh)
+static GL::MeshRenderer::Data create_render_data(VolumeMesh &mesh)
 {
     GL::MeshRenderer::Data data;
 
+    data.pointAttribs.reserve(mesh.n_vertices());
+    data.pointIndices.reserve(mesh.n_vertices());
     for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
 
         // Compute smooth normal
@@ -23,12 +25,11 @@ static GL::MeshRenderer::Data create_render_data(const VolumeMesh &mesh)
             .position = p,
             .color = color_on_sphere(p)
         });
-    }
-
-    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
         data.pointIndices.push_back(v_it->uidx());
     }
 
+    data.lineAttribs.reserve(2*mesh.n_edges());
+    data.lineIndices.reserve(2*mesh.n_edges());
     for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
         auto vh0 = mesh.from_vertex_handle(e_it->halfedge_handle(0));
         auto vh1 = mesh.from_vertex_handle(e_it->halfedge_handle(1));
@@ -43,30 +44,88 @@ static GL::MeshRenderer::Data create_render_data(const VolumeMesh &mesh)
         });
         data.lineIndices.push_back(data.lineAttribs.size()-2);
         data.lineIndices.push_back(data.lineAttribs.size()-1);
-
     }
 
-    int idx(0);
-    for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
-        const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
-        auto normal = toVec3<Vec3f>(mesh.normal(f_it->halfface_handle(0)));
+    if (mesh.n_cells() == 0)
+    {
+        data.triangleAttribs.reserve(3*mesh.n_faces());
+        data.face_triangle_indices_.reserve(3*mesh.n_faces());
 
-        for (OVM::VH vh : vhs) {
-            auto p = toVec3<Vec3f>(mesh.vertex(vh));
-            data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-                .position = p,
-                .color = color_on_sphere(p),
-                .normal = normal,
-                .buffer = 0.0f
-            });
-        }
+        int idx(0);
+        for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
+            const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
+            auto normal = toVec3<Vec3f>(mesh.normal(f_it->halfface_handle(0)));
 
-        for (uint j = 1; j < vhs.size()-1; ++j) {
-            data.triangleIndices.push_back(idx);
-            data.triangleIndices.push_back(idx+j);
-            data.triangleIndices.push_back(idx+j+1);
+            for (OVM::VH vh : vhs) {
+                auto p = toVec3<Vec3f>(mesh.vertex(vh));
+                data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
+                    .position = p,
+                    .color = color_on_sphere(p),
+                    .normal = normal,
+                    .face_index = 0.0f
+                });
+            }
+
+            for (uint j = 1; j < vhs.size()-1; ++j) {
+                data.face_triangle_indices_.push_back(idx);
+                data.face_triangle_indices_.push_back(idx+j);
+                data.face_triangle_indices_.push_back(idx+j+1);
+            }
+            idx += vhs.size();
         }
-        idx += vhs.size();
+    }
+    else
+    {
+        data.cell_attribs_.reserve(4*mesh.n_cells());
+        data.cell_triangle_indices_.reserve(12*mesh.n_cells());
+
+        int idx_offset(0);
+        for (auto c_it = mesh.c_iter(); c_it.is_valid(); ++c_it) {
+
+            uint32_t n_vhs(0);
+            Vec3f incenter(0,0,0);
+            for (auto cv_it = mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
+                incenter += toVec3<Vec3f>(mesh.vertex(*cv_it));
+                ++n_vhs;
+            }
+            incenter /= n_vhs; // todo. compute actual incenter
+
+            std::vector<OpenVolumeMesh::VH> cell_vhs;
+            for (auto cv_it = mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
+                OpenVolumeMesh::VH vh = *cv_it;
+                cell_vhs.push_back(vh);
+
+                auto p = toVec3<Vec3f>(mesh.vertex(vh));
+                data.cell_attribs_.push_back(GL::MeshRenderer::VertexCellAttrib{
+                    .position = p,
+                    .data = color_on_sphere(p),
+                    .cell_incenter = incenter,
+                    .cell_index = static_cast<float>(c_it->idx())
+                });
+            }
+
+            for (const auto& hfh : mesh.cell(*c_it).halffaces()) {
+                const auto& vhs = mesh.get_halfface_vertices(hfh);
+                std::vector<int> vhs_inds;
+                for (const auto& vh : vhs) {
+                    for (int vh_idx = 0; vh_idx < cell_vhs.size(); ++vh_idx) {
+                        if (cell_vhs[vh_idx] == vh) {
+                            vhs_inds.push_back(vh_idx);
+                            break;
+                        }
+                    }
+                }
+
+                for (uint j = 1; j < vhs.size()-1; ++j) {
+                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[0]);
+                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[j]);
+                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[j+1]);
+                }
+
+            }
+
+            idx_offset += cell_vhs.size();
+        }
     }
 
     return data;
@@ -145,7 +204,8 @@ void MeshNode::renderUIBody(Scene* scene)
             for (auto c_prop = mesh_.cell_props_begin(); c_prop != mesh_.cell_props_end(); ++c_prop) {
                 ImGui::PushID((*c_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*c_prop)->name().c_str(), (*c_prop)->typeNameWrapper().c_str()).c_str())) {
-                    //
+                    prop_ = *c_prop;
+                    upload_property_data(mesh_, *c_prop, prop_filter, mesh_renderer_);
                 }
                 ImGui::PopID();
             }
@@ -205,6 +265,7 @@ void MeshNode::renderUIBody(Scene* scene)
             mesh_renderer_.settings().useDataForLineColor = true;
             mesh_renderer_.settings().useDataForPointColor = true;
             mesh_renderer_.settings().useDataForTriangleColor = true;
+            mesh_renderer_.settings().use_data_as_cell_color_ = true;
             init(scene);
         }
     }

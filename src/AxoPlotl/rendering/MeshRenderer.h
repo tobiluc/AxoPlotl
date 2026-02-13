@@ -46,11 +46,15 @@ public:
         bool renderPoints = true;
         bool renderLines = true;
         bool renderTriangles = true;
+        bool render_cells_ = true;
         float pointSize = 5.0f;
         float lineWidth = 3.0f;
+        float cell_scale_ = 0.9f;
         bool useDataForPointColor = true;
         bool useDataForLineColor = true;
         bool useDataForTriangleColor = true;
+        bool use_data_as_cell_color_ = true;
+
 
         ScalarRangeConfig scalar_property_range;
 
@@ -79,33 +83,46 @@ public:
         Vec3f position;
         Vec4f color;
         Vec3f normal;
-        float buffer;
+        float face_index;
     } VertexTriangleAttrib;
+
+    typedef struct {
+        Vec3f position;
+        Vec4f data;
+        Vec3f cell_incenter;
+        float cell_index;
+    } VertexCellAttrib;
 
     typedef struct {
         std::vector<VertexPointAttrib> pointAttribs;
         std::vector<VertexLineAttrib> lineAttribs;
         std::vector<VertexTriangleAttrib> triangleAttribs;
+        std::vector<VertexCellAttrib> cell_attribs_;
         std::vector<GLuint> pointIndices;
         std::vector<GLuint> lineIndices;
-        std::vector<GLuint> triangleIndices;
+        std::vector<GLuint> face_triangle_indices_;
+        std::vector<GLuint> cell_triangle_indices_;
     } Data;
 
 private:
-    uint n_points_;
-    uint n_lines_;
-    uint n_triangles_;
+    size_t n_points_;
+    size_t n_lines_;
+    size_t n_face_triangles_;
+    size_t n_cell_triangles_;
 
     GLuint vbo_point_attrib_ = 0;
     GLuint vbo_line_attrib_ = 0;
     GLuint vbo_triangle_attrib_ = 0;
+    GLuint vbo_cell_attrib_ = 0;
     GLuint vao_points_ = 0;
     GLuint vao_lines_ = 0;
     GLuint vao_triangles_ = 0;
+    GLuint vao_cells_ = 0;
     GLuint vao_triangles_picking_ = 0;
     GLuint ibo_points_ = 0;
     GLuint ibo_lines_ = 0;
     GLuint ibo_triangles_ = 0;
+    GLuint ibo_cells_ = 0;
 
     Settings settings_;
 
@@ -115,16 +132,33 @@ private:
 
     void setupVertexAttributes();
 
+    inline void init() {
+        if (!vao_points_ || !vao_lines_ || !vao_triangles_ || !vao_triangles_picking_ || !vao_cells_) {
+            createBuffers();
+            setupVertexAttributes();
+        }
+    }
+
 public:
     MeshRenderer();
 
     ~MeshRenderer();
 
-    void updatePointsAttributes(const std::vector<VertexPointAttrib>& _p_attribs);
+    void updateVertexPoints(
+        const std::vector<VertexPointAttrib>& _p_attribs,
+        const std::vector<GLuint>& _v_point_indices);
 
-    void updateLinesAttributes(const std::vector<VertexLineAttrib>& _l_attribs);
+    void updateEdgeLines(
+        const std::vector<VertexLineAttrib>& _l_attribs,
+        const std::vector<GLuint>& _e_line_indices);
 
-    void updateTrianglesAttributes(const std::vector<VertexTriangleAttrib>& _t_attribs);
+    void updateFaceTriangles(
+        const std::vector<VertexTriangleAttrib>& _t_attribs,
+        const std::vector<GLuint>& _f_triangle_indices);
+
+    void updateCellTriangles(
+        const std::vector<VertexCellAttrib>& _c_attribs,
+        const std::vector<GLuint>& _c_triangle_indices);
 
     void updateData(const Data& data);
 
@@ -138,7 +172,9 @@ public:
 
     inline uint n_lines() const {return n_lines_;}
 
-    inline uint n_triangles() const {return n_triangles_;}
+    inline uint n_triangles() const {return n_face_triangles_;}
+
+    inline size_t n_cell_triangles() const {return n_cell_triangles_;}
 };
 
 }

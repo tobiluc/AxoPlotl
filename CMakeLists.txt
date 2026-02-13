@@ -53,7 +53,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/geometry/Surface.cpp
     src/AxoPlotl/utils/Memory.h
     src/AxoPlotl/utils/Memory.cpp
-    src/AxoPlotl/commons/Mesh.h
+
 
     src/AxoPlotl/IO/JSONFileAccessor.h
 

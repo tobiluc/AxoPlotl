@@ -11,6 +11,14 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#include "AxoPlotl/geometry/nodes/SphericalHarmonicNode.h"
+#include "AxoPlotl/geometry/nodes/VectorFieldNode.h"
+#include "AxoPlotl/geometry/nodes/ConvexPolygonNode.h"
+#include "AxoPlotl/geometry/nodes/ExplicitCurveNode.h"
+#include "AxoPlotl/geometry/nodes/ExplicitSurfaceNode.h"
+#include "AxoPlotl/geometry/Surface.h"
+#include "AxoPlotl/geometry/nodes/ImplicitSurfaceNode.h"
+
 namespace AxoPlotl
 {
 
@@ -270,7 +278,7 @@ void Scene::renderUI(GLFWwindow *window)
 
         if (ImGui::BeginMenu("Settings")) {
 
-            ImGui::Checkbox("Auto-Focus", &auto_zoom_to_new_object_);
+            ImGui::Checkbox("Auto-focus on new object", &auto_zoom_to_new_object_);
 
             if (ImGui::BeginMenu("Camera")) {
 

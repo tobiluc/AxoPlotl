@@ -65,9 +65,9 @@ void SphericalHarmonicNode::init(Scene* scene)
         std::vector<int> is;
         for (const auto& v : f.vertices()) {is.push_back(v);}
         for (uint j = 1; j < is.size()-1; ++j) {
-            data.triangleIndices.push_back(is[0]);
-            data.triangleIndices.push_back(is[j]);
-            data.triangleIndices.push_back(is[j+1]);
+            data.face_triangle_indices_.push_back(is[0]);
+            data.face_triangle_indices_.push_back(is[j]);
+            data.face_triangle_indices_.push_back(is[j+1]);
         }
     }
     mesh_renderer_.updateData(data);

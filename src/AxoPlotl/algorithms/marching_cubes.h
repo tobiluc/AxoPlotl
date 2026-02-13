@@ -1,6 +1,5 @@
 #pragma once
 
-#include "AxoPlotl/commons/Mesh.h"
 #include "AxoPlotl/geometry/AABB.hpp"
 #include "AxoPlotl/typedefs/typedefs_ToLoG.hpp"
 #include "AxoPlotl/typedefs/typedefs_glm.hpp"

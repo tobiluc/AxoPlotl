@@ -20,23 +20,30 @@ void MeshRenderer::deleteBuffers()
     if (vbo_point_attrib_) {glDeleteBuffers(1, &vbo_point_attrib_);}
     if (vbo_line_attrib_) {glDeleteBuffers(1, &vbo_line_attrib_);}
     if (vbo_triangle_attrib_) {glDeleteBuffers(1, &vbo_triangle_attrib_);}
+    if (vbo_cell_attrib_) {glDeleteBuffers(1, &vbo_cell_attrib_);}
 
     if (vao_points_) {glDeleteVertexArrays(1, &vao_points_);}
     if (vao_lines_) {glDeleteVertexArrays(1, &vao_lines_);}
     if (vao_triangles_) {glDeleteVertexArrays(1, &vao_triangles_);}
     if (vao_triangles_picking_) {glDeleteVertexArrays(1, &vao_triangles_picking_);}
+    if (vao_cells_) {glDeleteVertexArrays(1, &vao_cells_);}
 
     if (ibo_points_) {glDeleteBuffers(1, &ibo_points_);}
     if (ibo_lines_) {glDeleteBuffers(1, &ibo_lines_);}
     if (ibo_triangles_) {glDeleteBuffers(1, &ibo_triangles_);}
+    if (ibo_cells_) {glDeleteBuffers(1, &ibo_cells_);}
 
-    vbo_point_attrib_ = vbo_line_attrib_ = vbo_triangle_attrib_
-    = vao_points_ = vao_lines_ = vao_triangles_ = vao_triangles_picking_
-        = ibo_points_ = ibo_lines_ = ibo_triangles_ = 0;
+    vbo_point_attrib_ = vbo_line_attrib_ = vbo_triangle_attrib_ = vbo_cell_attrib_
+    = vao_points_ = vao_lines_ = vao_triangles_ = vao_triangles_picking_ = vao_cells_
+        = ibo_points_ = ibo_lines_ = ibo_triangles_ = ibo_cells_ = 0;
 }
 
 void MeshRenderer::createBuffers()
 {
+    glGenVertexArrays(1, &vao_cells_);
+    glGenBuffers(1, &vbo_cell_attrib_);
+    glGenBuffers(1, &ibo_cells_);
+
     glGenVertexArrays(1, &vao_triangles_);
     glGenBuffers(1, &vbo_triangle_attrib_);
     glGenBuffers(1, &ibo_triangles_);
@@ -54,6 +61,30 @@ void MeshRenderer::createBuffers()
 
 void MeshRenderer::setupVertexAttributes()
 {
+    //---------------
+    // Cells
+    //---------------
+    glBindVertexArray(vao_cells_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_cell_attrib_);
+
+    // -- Attrib 0: Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, position));
+    glEnableVertexAttribArray(0);
+
+    // -- Attrib 1: Data
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, data));
+    glEnableVertexAttribArray(1);
+
+    // -- Attrib 2: Cell Incenter
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, cell_incenter));
+    glEnableVertexAttribArray(2);
+
+    // -- Attrib 3: Cell Index
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, cell_index));
+    glEnableVertexAttribArray(3);
+
+    glBindVertexArray(0);
+
     //---------------
     // Triangles
     //---------------
@@ -73,7 +104,7 @@ void MeshRenderer::setupVertexAttributes()
     glEnableVertexAttribArray(2);
 
     // -- Attrib 3: Buffer
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, buffer));
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, face_index));
     glEnableVertexAttribArray(3);
 
     glBindVertexArray(0);
@@ -89,7 +120,7 @@ void MeshRenderer::setupVertexAttributes()
     glEnableVertexAttribArray(0);
 
     // -- Attrib 1: Buffer
-    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, buffer));
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(VertexTriangleAttrib), (void*)offsetof(VertexTriangleAttrib, face_index));
     glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
@@ -127,24 +158,56 @@ void MeshRenderer::setupVertexAttributes()
     glBindVertexArray(0);
 }
 
-void MeshRenderer::updatePointsAttributes(const std::vector<VertexPointAttrib>& _p_attribs)
+void MeshRenderer::updateVertexPoints(
+    const std::vector<VertexPointAttrib>& _p_attribs,
+    const std::vector<GLuint>& _v_point_indices)
 {
+    init();
+
+    n_points_ = _v_point_indices.size();
+
     glBindVertexArray(vao_points_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _v_point_indices.size() * sizeof(GLuint), _v_point_indices.data(), GL_DYNAMIC_DRAW);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo_point_attrib_);
     glBufferData(GL_ARRAY_BUFFER, _p_attribs.size() * sizeof(VertexPointAttrib), _p_attribs.data(), GL_DYNAMIC_DRAW);
     glBindVertexArray(0);
 }
 
-void MeshRenderer::updateLinesAttributes(const std::vector<VertexLineAttrib>& _l_attribs)
+void MeshRenderer::updateEdgeLines(
+    const std::vector<VertexLineAttrib>& _l_attribs,
+    const std::vector<GLuint>& _e_line_indices)
 {
+    init();
+
+    n_lines_     = _e_line_indices.size() / 2;
+
     glBindVertexArray(vao_lines_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _e_line_indices.size() * sizeof(GLuint), _e_line_indices.data(), GL_DYNAMIC_DRAW);
+
     glBindBuffer(GL_ARRAY_BUFFER, vbo_line_attrib_);
     glBufferData(GL_ARRAY_BUFFER, _l_attribs.size() * sizeof(VertexLineAttrib), _l_attribs.data(), GL_DYNAMIC_DRAW);
     glBindVertexArray(0);
 }
 
-void MeshRenderer::updateTrianglesAttributes(const std::vector<VertexTriangleAttrib>& _t_attribs)
+void MeshRenderer::updateFaceTriangles(
+    const std::vector<VertexTriangleAttrib>& _t_attribs,
+    const std::vector<GLuint>& _f_triangle_indices)
 {
+    init();
+
+    n_face_triangles_ = _f_triangle_indices.size() / 3;
+
+    glBindVertexArray(vao_triangles_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _f_triangle_indices.size() * sizeof(GLuint), _f_triangle_indices.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(vao_triangles_picking_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _f_triangle_indices.size() * sizeof(GLuint), _f_triangle_indices.data(), GL_DYNAMIC_DRAW);
+
     glBindVertexArray(vao_triangles_);
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
     glBufferData(GL_ARRAY_BUFFER, _t_attribs.size() * sizeof(VertexTriangleAttrib), _t_attribs.data(), GL_DYNAMIC_DRAW);
@@ -153,51 +216,36 @@ void MeshRenderer::updateTrianglesAttributes(const std::vector<VertexTriangleAtt
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo_triangle_attrib_);
     glBufferData(GL_ARRAY_BUFFER, _t_attribs.size() * sizeof(VertexTriangleAttrib), _t_attribs.data(), GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(0);
+}
+
+void MeshRenderer::updateCellTriangles(
+    const std::vector<VertexCellAttrib>& _c_attribs,
+    const std::vector<GLuint>& _c_triangle_indices)
+{
+
+    init();
+
+    n_cell_triangles_ = _c_triangle_indices.size() / 3;
+
+    glBindVertexArray(vao_cells_);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cells_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _c_triangle_indices.size() * sizeof(GLuint), _c_triangle_indices.data(), GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_cell_attrib_);
+    glBufferData(GL_ARRAY_BUFFER, _c_attribs.size() * sizeof(VertexCellAttrib), _c_attribs.data(), GL_DYNAMIC_DRAW);
 
     glBindVertexArray(0);
 }
 
 void MeshRenderer::updateData(const Data& data)
 {
-    if (!vao_points_ || !vao_lines_ || !vao_triangles_ || !vao_triangles_picking_) {
-        createBuffers();
-        setupVertexAttributes();
-    }
-
-    n_points_ = data.pointIndices.size();
-    n_lines_     = data.lineIndices.size() / 2;
-    n_triangles_ = data.triangleIndices.size() / 3;
-
-    //-------------
-    // Triangles
-    //-------------
-    glBindVertexArray(vao_triangles_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
-
-    glBindVertexArray(vao_triangles_picking_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_triangles_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.triangleIndices.size() * sizeof(GLuint), data.triangleIndices.data(), GL_DYNAMIC_DRAW);
-
-    updateTrianglesAttributes(data.triangleAttribs);
-
-    //-----------
-    // Lines
-    //-----------
-    glBindVertexArray(vao_lines_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_lines_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, data.lineIndices.size() * sizeof(GLuint), data.lineIndices.data(), GL_DYNAMIC_DRAW);
-
-    updateLinesAttributes(data.lineAttribs);
-
-    //-----------
-    // Points
-    //-----------
-    glBindVertexArray(vao_points_);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_points_);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, n_points_ * sizeof(GLuint), data.pointIndices.data(), GL_DYNAMIC_DRAW);
-
-    updatePointsAttributes(data.pointAttribs);
+    updateCellTriangles(data.cell_attribs_, data.cell_triangle_indices_);
+    updateFaceTriangles(data.triangleAttribs, data.face_triangle_indices_);
+    updateEdgeLines(data.lineAttribs, data.lineIndices);
+    updateVertexPoints(data.pointAttribs, data.pointIndices);
 
     glBindVertexArray(0);
 }
@@ -292,8 +340,27 @@ void MeshRenderer::render(const Matrices &m)
         glBindVertexArray(vao_triangles_);
 
         glPolygonMode( GL_FRONT_AND_BACK, settings_.wireframe? GL_LINE : GL_FILL );
-        glDrawElements(GL_TRIANGLES, 3*n_triangles_, GL_UNSIGNED_INT, NULL);
+        glDrawElements(GL_TRIANGLES, 3*n_face_triangles_, GL_UNSIGNED_INT, NULL);
         if (settings_.wireframe) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
+
+        glBindVertexArray(0);
+    }
+
+    if (vao_cells_ && settings_.render_cells_)
+    {
+        Shader::CELLS_SHADER.use();
+
+        Shader::CELLS_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
+        Shader::CELLS_SHADER.setFloat("cell_scale", settings_.cell_scale_);
+
+        Shader::CELLS_SHADER.setBool("use_data_as_color", settings_.use_data_as_cell_color_);
+        Shader::CELLS_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
+        Shader::CELLS_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
+        Shader::CELLS_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
+
+        glBindVertexArray(vao_cells_);
+
+        glDrawElements(GL_TRIANGLES, 3*n_cell_triangles_, GL_UNSIGNED_INT, NULL);
 
         glBindVertexArray(0);
     }
@@ -311,7 +378,7 @@ void MeshRenderer::renderPicking(const Matrices& m, int id)
 
     glBindVertexArray(vao_triangles_picking_);
 
-    glDrawElements(GL_TRIANGLES, 3*n_triangles_, GL_UNSIGNED_INT, NULL);
+    glDrawElements(GL_TRIANGLES, 3*n_face_triangles_, GL_UNSIGNED_INT, NULL);
 
     glBindVertexArray(0);
 }

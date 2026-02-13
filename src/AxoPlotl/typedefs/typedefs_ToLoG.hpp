@@ -5,8 +5,6 @@
 
 namespace ToLoG
 {
-template<typename FT, int DIM>
-struct is_vector_type<glm::vec<DIM,FT>> : std::true_type {};
 
 template<typename FT, int DIM>
 struct Traits<glm::vec<DIM,FT>>

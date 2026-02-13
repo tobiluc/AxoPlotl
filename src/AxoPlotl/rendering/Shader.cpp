@@ -7,7 +7,7 @@
 namespace AxoPlotl
 {
 // Shader Shader::FACES_OUTLINES_SHADER;
-// Shader Shader::TET_CELLS_SHADER;
+Shader Shader::CELLS_SHADER;
 Shader Shader::FACES_SHADER;
 Shader Shader::EDGES_SHADER;
 Shader Shader::VERTICES_SHADER;
@@ -21,6 +21,7 @@ void Shader::loadGlobalShaders()
     EDGES_SHADER =          Shader("../res/shaders/edges.glsl");
     VERTICES_SHADER =       Shader("../res/shaders/vertices.glsl");
     PICKING_SHADER =        Shader("../res/shaders/picking.glsl");
+    CELLS_SHADER = Shader("../res/shaders/cells.glsl");
 }
 
 Shader::Shader(const char* filepath)

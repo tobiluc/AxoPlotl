@@ -50,13 +50,18 @@ void GeometryNode::renderUIHeader(Scene *scene)
         // Name
         ImGui::Text("Settings (Object Id: %d)", id_);
         ImGui::InputText("Name", name_, sizeof(name_));
-        ImGui::Text("PLT: %d, %d, %d", mesh_renderer_.n_points(), mesh_renderer_.n_lines(), mesh_renderer_.n_triangles());
+        ImGui::Text("PLT: %d, %d, %d, %zu",
+            mesh_renderer_.n_points(),
+            mesh_renderer_.n_lines(),
+            mesh_renderer_.n_triangles(),
+            mesh_renderer_.n_cell_triangles()
+        );
         ImGui::Separator();
 
-        // if (ImGui::Button("Zoom to Object")) {
-        //     const auto& bbox = getBBox();
-        //     scene->cameraSet().zoomToBox(bbox.first, bbox.second);
-        // }
+        if (ImGui::Button("Zoom to Object")) {
+            const auto& bbox = getBBox();
+            scene->cameraSet().zoomToBox(bbox.first, bbox.second);
+        }
 
         // Transform
         if (ImGui::BeginMenu("Transform")) {
@@ -92,6 +97,14 @@ void GeometryNode::renderUIHeader(Scene *scene)
                 // ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
                 // ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
                 // ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
+                ImGui::EndMenu();
+            }
+        }
+
+        if (mesh_renderer_.n_cell_triangles() > 0) {
+            if (ImGui::BeginMenu("Cells")) {
+                ImGui::Checkbox("Show Cells", &settings.render_cells_);
+                ImGui::SliderFloat("Cell Scale", &settings.cell_scale_, 0.0f, 1.0f);
                 ImGui::EndMenu();
             }
         }

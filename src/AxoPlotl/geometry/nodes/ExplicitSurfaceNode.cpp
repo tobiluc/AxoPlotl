@@ -94,9 +94,9 @@ void ExplicitSurfaceNode::init(Scene* scene)
     }
     for (const auto& f : mesh.faces()) {
         for (uint j = 1; j < f.valence()-1; ++j) {
-            data.triangleIndices.push_back(f.vertices()[0]);
-            data.triangleIndices.push_back(f.vertices()[j]);
-            data.triangleIndices.push_back(f.vertices()[j+1]);
+            data.face_triangle_indices_.push_back(f.vertices()[0]);
+            data.face_triangle_indices_.push_back(f.vertices()[j]);
+            data.face_triangle_indices_.push_back(f.vertices()[j+1]);
         }
     }
     mesh_renderer_.updateData(data);
