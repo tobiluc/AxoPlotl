@@ -1,6 +1,5 @@
 #include "FileAccessor.h"
 #include <ToLoG/utils/OVM_Traits.hpp>
-#include <ToLoG/utils/OM_Traits.hpp>
 #include "OpenVolumeMesh/FileManager/FileManager.hh"
 #include "OpenVolumeMesh/IO/ovmb_read.hh"
 

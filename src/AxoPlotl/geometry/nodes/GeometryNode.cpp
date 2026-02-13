@@ -59,6 +59,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
         ImGui::Separator();
 
         if (ImGui::Button("Zoom to Object")) {
+            this->visible() = true;
             const auto& bbox = getBBox();
             scene->cameraSet().zoomToBox(bbox.first, bbox.second);
         }
