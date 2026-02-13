@@ -179,6 +179,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*v_prop)->name().c_str(), (*v_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *v_prop;
                     upload_property_data(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    mesh_renderer_.render_vertices_ = true;
                 }
                 ImGui::PopID();
             }
@@ -193,6 +194,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *e_prop;
                     upload_property_data(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    mesh_renderer_.render_edges_ = true;
                 }
                 ImGui::PopID();
             }
@@ -207,6 +209,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*f_prop)->name().c_str(), (*f_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *f_prop;
                     upload_property_data(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    mesh_renderer_.render_faces_ = true;
                 }
                 ImGui::PopID();
             }
@@ -221,6 +224,7 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*c_prop)->name().c_str(), (*c_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *c_prop;
                     upload_property_data(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    mesh_renderer_.render_cells_ = true;
                 }
                 ImGui::PopID();
             }
@@ -279,10 +283,10 @@ void MeshNode::renderUIBody(Scene* scene)
 
         if (ImGui::Button("Stop Property Visualization")) {
             prop_ = std::nullopt;
-            mesh_renderer_.settings().useDataForLineColor = true;
-            mesh_renderer_.settings().useDataForPointColor = true;
-            mesh_renderer_.settings().useDataForTriangleColor = true;
-            mesh_renderer_.settings().use_data_as_cell_color_ = true;
+            mesh_renderer_.edge_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
+            mesh_renderer_.vertex_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
+            mesh_renderer_.face_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
+            mesh_renderer_.cell_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
             init(scene);
         }
     }

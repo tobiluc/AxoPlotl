@@ -72,51 +72,51 @@ void GeometryNode::renderUIHeader(Scene *scene)
         }
 
         // Material
-        auto& settings = mesh_renderer_.settings();
 
         if (mesh_renderer_.n_points() > 0) {
             if (ImGui::BeginMenu("Vertices")) {
-                ImGui::Checkbox("Show Vertices", &settings.renderPoints);
-                ImGui::SliderFloat("Size", &settings.pointSize, 1.f, 32.0f);
-                ImGui::InputFloat4("Clip Plane", &settings.vertex_clip_plane_[0]);
+                ImGui::Checkbox("Show Vertices", &mesh_renderer_.render_vertices_);
+                ImGui::SliderFloat("Size", &mesh_renderer_.point_size_, 1.f, 32.0f);
                 ImGui::EndMenu();
             }
         }
 
         if (mesh_renderer_.n_lines() > 0) {
             if (ImGui::BeginMenu("Edges")) {
-                ImGui::Checkbox("Show Edges", &settings.renderLines);
-                ImGui::SliderFloat("Width", &settings.lineWidth, 1.f, 16.0f);
-                ImGui::InputFloat4("Clip Plane", &settings.edge_clip_plane_[0]);
+                ImGui::Checkbox("Show Edges", &mesh_renderer_.render_edges_);
+                ImGui::SliderFloat("Width", &mesh_renderer_.line_width_, 1.f, 16.0f);
                 ImGui::EndMenu();
             }
         }
 
         if (mesh_renderer_.n_triangles() > 0) {
             if (ImGui::BeginMenu("Faces")) {
-                ImGui::Checkbox("Show Faces", &settings.renderTriangles);
-                ImGui::Checkbox("Wireframe", &settings.wireframe);
-                ImGui::InputFloat4("Clip Plane", &settings.face_clip_plane_[0]);
-                // ImGui::Checkbox("Enable Face Color", &settings.useGlobalTriangleColor);
-                // ImGui::ColorEdit3("Face Color", &settings.gobalTriangleColor[0]);
-                // ImGui::SliderFloat("Outline Width", &settings.outlineWidth, 0.0f, 16.0f);
-                // ImGui::ColorEdit3("Outline Color", &settings.outlineColor[0]);
+                ImGui::Checkbox("Show Faces", &mesh_renderer_.render_faces_);
+                ImGui::Checkbox("Wireframe", &mesh_renderer_.faces_wireframe_);
                 ImGui::EndMenu();
             }
         }
 
         if (mesh_renderer_.n_cell_triangles() > 0) {
             if (ImGui::BeginMenu("Cells")) {
-                ImGui::Checkbox("Show Cells", &settings.render_cells_);
-                ImGui::SliderFloat("Cell Scale", &settings.cell_scale_, 0.0f, 1.0f);
-                ImGui::InputFloat4("Clip Plane", &settings.cell_clip_plane_[0]);
+                ImGui::Checkbox("Show Cells", &mesh_renderer_.render_cells_);
+                ImGui::SliderFloat("Cell Scale", &mesh_renderer_.cell_scale_, 0.0f, 1.0f);
+                ImGui::Checkbox("Wireframe", &mesh_renderer_.cells_wireframe_);
                 ImGui::EndMenu();
             }
         }
 
-        // ImGui::ColorEdit3("Ambient", &settings.light.ambient[0]);
-        // ImGui::ColorEdit3("Diffuse", &settings.light.diffuse[0]);
-        // ImGui::ColorEdit3("Specular", &settings.light.specular[0]);
+        if (ImGui::Checkbox("Enable Clip Box", &mesh_renderer_.clip_box_enabled_)) {
+            mesh_renderer_.clip_box_x_ = {bbox_.first[0], bbox_.second[0]};
+            mesh_renderer_.clip_box_y_ = {bbox_.first[1], bbox_.second[1]};
+            mesh_renderer_.clip_box_z_ = {bbox_.first[2], bbox_.second[2]};
+        }
+        if (mesh_renderer_.clip_box_enabled_) {
+            ImGui::SliderFloat2("x", &mesh_renderer_.clip_box_x_[0], bbox_.first[0], bbox_.second[0]);
+            ImGui::SliderFloat2("y", &mesh_renderer_.clip_box_y_[0], bbox_.first[1], bbox_.second[1]);
+            ImGui::SliderFloat2("z", &mesh_renderer_.clip_box_z_[0], bbox_.first[2], bbox_.second[2]);
+        }
+
         ImGui::Separator();
 
         // Delete

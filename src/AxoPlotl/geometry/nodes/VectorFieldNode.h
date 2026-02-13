@@ -32,7 +32,6 @@ public:
     VectorFieldNode(const GradientField& _field, const std::string& _name="New Gradient", const glm::mat4& _transform = glm::mat4(1.0)) :
         GeometryNode(_name, _transform), field_(_field)
     {
-        mesh_renderer_.settings().useDataForLineColor = true;
     }
 
     void init(Scene* scene) override;

@@ -252,23 +252,30 @@ void MeshRenderer::updateData(const Data& data)
 
 void MeshRenderer::render(const Matrices &m)
 {
-    if (!settings_.visible) {return;}
+    if (!visible) {return;}
 
     // Get Width and Height of Viewport
     GLint width, height;
     getViewportSize(width, height);
 
+    Vec3f clip_box_min_ = {clip_box_x_[0], clip_box_y_[0], clip_box_z_[0]};
+    Vec3f clip_box_max_ = {clip_box_x_[1], clip_box_y_[1], clip_box_z_[1]};
+
     // Points
-    if (vao_points_ && settings_.renderPoints)
+    if (vao_points_ && render_vertices_)
     {
         Shader::VERTICES_SHADER.use();
-        Shader::VERTICES_SHADER.setFloat("point_size", settings_.pointSize);
-        Shader::VERTICES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
-        Shader::VERTICES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
-        Shader::VERTICES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
+        Shader::VERTICES_SHADER.setFloat("point_size", point_size_);
+        Shader::VERTICES_SHADER.setVec4f("min_color", vertex_scalar_prop_range_.min_color);
+        Shader::VERTICES_SHADER.setVec4f("max_color", vertex_scalar_prop_range_.max_color);
+        Shader::VERTICES_SHADER.setVec2f("visible_data_range", vertex_scalar_prop_range_.min_value,vertex_scalar_prop_range_.max_value);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        Shader::VERTICES_SHADER.setBool("use_data_as_color", settings_.useDataForPointColor);
-        Shader::VERTICES_SHADER.setVec4f("clip_plane", settings_.vertex_clip_plane_);
+
+        Shader::VERTICES_SHADER.setInt("data_type", static_cast<int>(vertex_prop_type_));
+
+        Shader::VERTICES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
+        Shader::VERTICES_SHADER.setVec3f("clip_box_min", clip_box_min_);
+        Shader::VERTICES_SHADER.setVec3f("clip_box_max", clip_box_max_);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
@@ -281,25 +288,24 @@ void MeshRenderer::render(const Matrices &m)
         glBindVertexArray(0);
     }
 
-    if (vao_lines_ && settings_.renderLines)
+    if (vao_lines_ && render_edges_)
     {
         // Lines
         Shader::EDGES_SHADER.use();
 
         Shader::EDGES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::EDGES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-        Shader::EDGES_SHADER.setBool("use_data_as_color", settings_.useDataForLineColor);
-        Shader::EDGES_SHADER.setFloat("line_width", settings_.lineWidth);
 
-        Shader::EDGES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
-        Shader::EDGES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
-        Shader::EDGES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
-        // Shader::EDGES_SHADER.setBool("use_global_color", settings_.useGlobalLineColor);
-        // Shader::EDGES_SHADER.setVec4f("global_color", settings_.globalLineColor);
-        Shader::EDGES_SHADER.setVec4f("clip_plane", settings_.edge_clip_plane_);
-        Shader::EDGES_SHADER.setVec4f("clip_plane_projection",
-            glm::transpose(glm::inverse(m.model_view_projection_matrix))
-                *settings_.edge_clip_plane_);
+        Shader::EDGES_SHADER.setFloat("line_width", line_width_);
+
+        Shader::EDGES_SHADER.setVec4f("min_color", edge_scalar_prop_range_.min_color);
+        Shader::EDGES_SHADER.setVec4f("max_color", edge_scalar_prop_range_.max_color);
+        Shader::EDGES_SHADER.setVec2f("visible_data_range", edge_scalar_prop_range_.min_value,edge_scalar_prop_range_.max_value);
+        Shader::EDGES_SHADER.setInt("data_type", static_cast<int>(edge_prop_type_));
+
+        Shader::EDGES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
+        Shader::EDGES_SHADER.setVec3f("clip_box_min", clip_box_min_);
+        Shader::EDGES_SHADER.setVec3f("clip_box_max", clip_box_max_);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
@@ -312,62 +318,56 @@ void MeshRenderer::render(const Matrices &m)
         glBindVertexArray(0);
     }
 
-    if (vao_triangles_ && settings_.renderTriangles)
+    if (vao_triangles_ && render_faces_)
     {
         // Triangles
         Shader::FACES_SHADER.use();
 
-        // Shader::FACES_SHADER.setMat4x4f("view_matrix", m.view_matrix);
         Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        // Shader::FACES_SHADER.setMat3x3f("normal_matrix", m.normal_matrix);
 
-        // Shader::FACES_SHADER.setVec3f("light.position", Vec3f(0,0,0));
-        // Shader::FACES_SHADER.setVec3f("light.ambient", settings_.light.ambient);
-        // Shader::FACES_SHADER.setVec3f("light.diffuse", settings_.light.diffuse);
-        // Shader::FACES_SHADER.setVec3f("light.specular", settings_.light.specular);
+        Shader::FACES_SHADER.setVec4f("min_color", face_scalar_prop_range_.min_color);
+        Shader::FACES_SHADER.setVec4f("max_color", face_scalar_prop_range_.max_color);
+        Shader::FACES_SHADER.setVec2f("visible_data_range", face_scalar_prop_range_.min_value, face_scalar_prop_range_.max_value);
+        Shader::FACES_SHADER.setInt("data_type", static_cast<int>(face_prop_type_));
 
-        // Shader::FACES_SHADER.setBool("use_global_color", settings_.useGlobalTriangleColor);
-        // Shader::FACES_SHADER.setVec4f("global_color", settings_.gobalTriangleColor);
-        Shader::FACES_SHADER.setBool("use_data_as_color", settings_.useDataForTriangleColor);
-        Shader::FACES_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
-        Shader::FACES_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
-        Shader::FACES_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
-        Shader::FACES_SHADER.setVec4f("clip_plane", settings_.face_clip_plane_);
-
-        // Shader::FACES_OUTLINES_SHADER.use();
-
-        // Shader::FACES_OUTLINES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        // Shader::FACES_OUTLINES_SHADER.setVec2f("inverse_viewport_size", 1.f/width, 1.f/height);
-        // Shader::FACES_OUTLINES_SHADER.setFloat("outline_width", settings_.outlineWidth);
-        // Shader::FACES_OUTLINES_SHADER.setVec3f("outline_color", settings_.outlineColor);
+        Shader::FACES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
+        Shader::FACES_SHADER.setVec3f("clip_box_min", clip_box_min_);
+        Shader::FACES_SHADER.setVec3f("clip_box_max", clip_box_max_);
 
         Shader::FACES_SHADER.use();
 
         glBindVertexArray(vao_triangles_);
 
-        glPolygonMode( GL_FRONT_AND_BACK, settings_.wireframe? GL_LINE : GL_FILL );
+        glPolygonMode( GL_FRONT_AND_BACK, faces_wireframe_? GL_LINE : GL_FILL );
         glDrawElements(GL_TRIANGLES, 3*n_face_triangles_, GL_UNSIGNED_INT, NULL);
-        if (settings_.wireframe) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
+        if (faces_wireframe_) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
 
         glBindVertexArray(0);
     }
 
-    if (vao_cells_ && settings_.render_cells_)
+    if (vao_cells_ && render_cells_)
     {
         Shader::CELLS_SHADER.use();
 
         Shader::CELLS_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
-        Shader::CELLS_SHADER.setFloat("cell_scale", settings_.cell_scale_);
+        Shader::CELLS_SHADER.setFloat("cell_scale", cell_scale_);
 
-        Shader::CELLS_SHADER.setBool("use_data_as_color", settings_.use_data_as_cell_color_);
-        Shader::CELLS_SHADER.setVec4f("min_color", settings_.scalar_property_range.min_color);
-        Shader::CELLS_SHADER.setVec4f("max_color", settings_.scalar_property_range.max_color);
-        Shader::CELLS_SHADER.setVec2f("visible_data_range", settings_.scalar_property_range.min_value,settings_.scalar_property_range.max_value);
-        Shader::CELLS_SHADER.setVec4f("clip_plane", settings_.cell_clip_plane_);
+        Shader::CELLS_SHADER.setVec4f("min_color", cell_scalar_prop_range_.min_color);
+        Shader::CELLS_SHADER.setVec4f("max_color", cell_scalar_prop_range_.max_color);
+        Shader::CELLS_SHADER.setVec2f("visible_data_range", cell_scalar_prop_range_.min_value, cell_scalar_prop_range_.max_value);
+
+        Shader::CELLS_SHADER.setInt("data_type", static_cast<int>(cell_prop_type_));
+
+        Shader::CELLS_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
+        Shader::CELLS_SHADER.setVec3f("clip_box_min", clip_box_min_);
+        Shader::CELLS_SHADER.setVec3f("clip_box_max", clip_box_max_);
+
 
         glBindVertexArray(vao_cells_);
 
+        glPolygonMode( GL_FRONT_AND_BACK, cells_wireframe_? GL_LINE : GL_FILL );
         glDrawElements(GL_TRIANGLES, 3*n_cell_triangles_, GL_UNSIGNED_INT, NULL);
+        if (cells_wireframe_) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
 
         glBindVertexArray(0);
     }
@@ -376,7 +376,7 @@ void MeshRenderer::render(const Matrices &m)
 
 void MeshRenderer::renderPicking(const Matrices& m, int id)
 {
-    if (!settings_.visible) {return;}
+    if (!visible) {return;}
 
     Shader::PICKING_SHADER.use();
 

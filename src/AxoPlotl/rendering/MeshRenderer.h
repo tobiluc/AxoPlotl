@@ -32,6 +32,11 @@ public:
         {}
     };
 
+    enum class PropDataType : int {
+        SCALAR = 0,
+        COLOR = 1
+    };
+
     struct ScalarRangeConfig
     {
         float min_value = 0;
@@ -40,38 +45,38 @@ public:
         Vec4f max_color = {1,0,0,1};
     };
 
-    struct Settings
-    {
-        bool visible = true;
-        bool renderPoints = true;
-        bool renderLines = true;
-        bool renderTriangles = true;
-        bool render_cells_ = true;
-        float pointSize = 5.0f;
-        float lineWidth = 3.0f;
-        float cell_scale_ = 0.9f;
-        bool useDataForPointColor = true;
-        bool useDataForLineColor = true;
-        bool useDataForTriangleColor = true;
-        bool use_data_as_cell_color_ = true;
+    bool visible = true;
+    bool render_vertices_ = true;
+    bool render_edges_ = true;
+    bool render_faces_ = true;
+    bool render_cells_ = true;
 
-        Vec4f vertex_clip_plane_ = Vec4f(0,0,0,0);
-        Vec4f edge_clip_plane_ = Vec4f(0,0,0,0);
-        Vec4f face_clip_plane_ = Vec4f(0,0,0,0);
-        Vec4f cell_clip_plane_ = Vec4f(0,0,0,0);
+    float point_size_ = 5.0f;
+    float line_width_ = 3.0f;
+    float cell_scale_ = 0.9f;
 
-        ScalarRangeConfig scalar_property_range;
+    PropDataType vertex_prop_type_ = PropDataType::COLOR;
+    PropDataType edge_prop_type_ = PropDataType::COLOR;
+    PropDataType face_prop_type_ = PropDataType::COLOR;
+    PropDataType cell_prop_type_ = PropDataType::COLOR;
 
-        // Color globalLineColor = Color::BLUE;
-        // bool useGlobalLineColor = true;
-        // Color gobalTriangleColor = Color::GREEN;
-        // bool useGlobalTriangleColor = true;
+    bool clip_box_enabled_ = false;
+    Vec2f clip_box_x_;
+    Vec2f clip_box_y_;
+    Vec2f clip_box_z_;
 
-        //Light light{.ambient = Color::LIGHTGRAY, .diffuse = Color::LIGHTGRAY, .specular = Color::DARKGRAY};
-        // float outlineWidth = 1.0f;
-        // Color outlineColor = Color::BLACK;
-        bool wireframe = false;
-    };
+    // Vec4f vertex_clip_plane_ = Vec4f(0,0,0,0);
+    // Vec4f edge_clip_plane_ = Vec4f(0,0,0,0);
+    // Vec4f face_clip_plane_ = Vec4f(0,0,0,0);
+    // Vec4f cell_clip_plane_ = Vec4f(0,0,0,0);
+
+    ScalarRangeConfig vertex_scalar_prop_range_;
+    ScalarRangeConfig edge_scalar_prop_range_;
+    ScalarRangeConfig face_scalar_prop_range_;
+    ScalarRangeConfig cell_scalar_prop_range_;
+
+    bool faces_wireframe_ = false;
+    bool cells_wireframe_ = false;
 
     typedef struct {
         Vec3f position;
@@ -128,7 +133,7 @@ private:
     GLuint ibo_triangles_ = 0;
     GLuint ibo_cells_ = 0;
 
-    Settings settings_;
+    //Settings settings_;
 
     void deleteBuffers();
 
@@ -170,7 +175,7 @@ public:
 
     void renderPicking(const Matrices& m, int id);
 
-    inline Settings& settings() {return settings_;}
+    //inline Settings& settings() {return settings_;}
 
     inline uint n_points() const {return n_points_;}
 

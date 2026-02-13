@@ -13,7 +13,16 @@ struct PropertyFilterBase
     virtual std::string name() = 0;
 };
 
-template<typename ST>
+template<typename Entity>
+static GL::MeshRenderer::ScalarRangeConfig& scalar_range(GL::MeshRenderer& _r)
+{
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {return _r.vertex_scalar_prop_range_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {return _r.edge_scalar_prop_range_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {return _r.face_scalar_prop_range_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {return _r.cell_scalar_prop_range_;}
+}
+
+template<typename ST, typename Entity>
 struct ScalarPropertyRangeFilter : public PropertyFilterBase
 {
     using Scalar = ST;
@@ -22,28 +31,29 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
         : min(_min), max(_max) {}
     void renderUI(GL::MeshRenderer& _r) override
     {
+        auto& r = scalar_range<Entity>(_r);
         if constexpr(std::is_same_v<ST,int>) {
-            Vec2i i = {_r.settings().scalar_property_range.min_value,_r.settings().scalar_property_range.max_value};
+            Vec2i i = {r.min_value,r.max_value};
             ImGui::SliderInt2("Range", &i.x, min, max);
-            _r.settings().scalar_property_range.min_value = i.x;
-            _r.settings().scalar_property_range.max_value = i.y;
+            r.min_value = i.x;
+            r.max_value = i.y;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            Vec2f f = {_r.settings().scalar_property_range.min_value,_r.settings().scalar_property_range.max_value};
+            Vec2f f = {r.min_value,r.max_value};
             ImGui::SliderFloat2("Range", &f.x, min, max);
-            _r.settings().scalar_property_range.min_value = f.x;
-            _r.settings().scalar_property_range.max_value = f.y;
+            r.min_value = f.x;
+            r.max_value = f.y;
         } else if constexpr(std::is_same_v<ST,bool>) {
-            bool b_show_false = !_r.settings().scalar_property_range.min_value;
-            bool b_show_true = _r.settings().scalar_property_range.max_value;
+            bool b_show_false = !r.min_value;
+            bool b_show_true = r.max_value;
             ImGui::Checkbox("False", &b_show_false);
             ImGui::Checkbox("True", &b_show_true);
-            _r.settings().scalar_property_range.min_value = !b_show_false;
-            _r.settings().scalar_property_range.max_value = b_show_true;
+            r.min_value = !b_show_false;
+            r.max_value = b_show_true;
         }
 
-        ImGui::ColorEdit3("Min Color", &_r.settings().scalar_property_range.min_color[0]);
-        ImGui::ColorEdit3("Max Color", &_r.settings().scalar_property_range.max_color[0]);
+        ImGui::ColorEdit3("Min Color", &r.min_color[0]);
+        ImGui::ColorEdit3("Max Color", &r.max_color[0]);
     }
 
     std::string name() override {
@@ -54,34 +64,35 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
     ST max;
 };
 
-template<typename ST>
+template<typename ST, typename Entity>
 struct ScalarPropertyExactFilter : public PropertyFilterBase
 {
     using Scalar = ST;
 
     void renderUI(GL::MeshRenderer& _r) override
     {
-        //_r.settings().v_prop_range
+        auto& r = scalar_range<Entity>(_r);
+        //_r.v_prop_range
         if constexpr(std::is_same_v<ST,int>) {
-            int i = _r.settings().scalar_property_range.min_value;
+            int i = r.min_value;
             ImGui::InputInt("Value", &i);
-            _r.settings().scalar_property_range.min_value = i;
-            _r.settings().scalar_property_range.max_value = i;
+            r.min_value = i;
+            r.max_value = i;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            float f = _r.settings().scalar_property_range.min_value;
+            float f = r.min_value;
             ImGui::InputFloat("Value", &f);
-            _r.settings().scalar_property_range.min_value = f;
-            _r.settings().scalar_property_range.max_value = f;
+            r.min_value = f;
+            r.max_value = f;
         }
         else if constexpr(std::is_same_v<ST,bool>) {
-            bool b = _r.settings().scalar_property_range.min_value;
+            bool b = r.min_value;
             ImGui::Checkbox("True", &b);
-            _r.settings().scalar_property_range.min_value = b;
-            _r.settings().scalar_property_range.max_value = b;
+            r.min_value = b;
+            r.max_value = b;
         }
-        ImGui::ColorEdit3("Color", &_r.settings().scalar_property_range.min_color[0]);
-        _r.settings().scalar_property_range.max_color = _r.settings().scalar_property_range.min_color;
+        ImGui::ColorEdit3("Color", &r.min_color[0]);
+        r.max_color = r.min_color;
     }
 
     std::string name() override {

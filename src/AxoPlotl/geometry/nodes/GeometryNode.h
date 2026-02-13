@@ -80,7 +80,7 @@ public:
 
     inline void setDeleted() {deleted_ = true;}
 
-    inline bool& visible() {return mesh_renderer_.settings().visible;}
+    inline bool& visible() {return mesh_renderer_.visible;}
 };
 
 }

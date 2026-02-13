@@ -13,29 +13,40 @@ uniform float cell_scale;
 uniform vec2 visible_data_range;
 uniform vec4 min_color;
 uniform vec4 max_color;
-uniform bool use_data_as_color;
+uniform int data_type;
 
-uniform vec4 clip_plane;
+uniform bool clip_box_enabled;
+uniform vec3 clip_box_min;
+uniform vec3 clip_box_max;
 
 out vec4 v2f_color;
 
 void main()
 {
-	vec4 model_position = vec4(v_cell_incenter + cell_scale * (v_position - v_cell_incenter), 1.0);
 
-	gl_ClipDistance[0] = dot(model_position, clip_plane);
+	if (data_type == 0) {
+		// use v_data as scalar
+		gl_ClipDistance[0] = min(v_data.x - visible_data_range.x, visible_data_range.y - v_data.x);
 
-	gl_Position = model_view_projection_matrix * model_position;
-	
-	if (use_data_as_color) {
-		v2f_color = v_data;
-	} else if (v_data.x >= visible_data_range.x && v_data.x <= visible_data_range.y) {
 		float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
 		t = clamp(t,0,1);
 		v2f_color = mix(min_color, max_color, t);
-	} else {
-		v2f_color = vec4(0,0,0,0);
+	
+	} else if (data_type == 1) {
+		// use v_data as color
+		gl_ClipDistance[0] = 0;
+
+		v2f_color = v_data;
 	}
+
+	vec3 dmin = v_position - clip_box_min;
+	vec3 dmax = clip_box_max - v_position;
+	gl_ClipDistance[1] = clip_box_enabled? min(dmin[0], dmax[0]) : 1.0;
+	gl_ClipDistance[2] = clip_box_enabled? min(dmin[1], dmax[1]) : 1.0;
+	gl_ClipDistance[3] = clip_box_enabled? min(dmin[2], dmax[2]) : 1.0;
+
+	vec4 model_position = vec4(v_cell_incenter + cell_scale * (v_position - v_cell_incenter), 1.0);
+	gl_Position = model_view_projection_matrix * model_position;
 } 
 
 #shader fragment

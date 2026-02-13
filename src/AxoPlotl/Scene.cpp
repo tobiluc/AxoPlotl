@@ -44,7 +44,11 @@ void Scene::render(GLFWwindow *window)
     // Cache matrices for rendering
     glm::mat4 view_matrix = camera_set_.camera()->getViewMatrix();
 
-    glEnable(GL_CLIP_DISTANCE0);
+    // Enable gl_ClipDistance[0/1/2]
+    glEnable(GL_CLIP_DISTANCE0); // property data range
+    glEnable(GL_CLIP_DISTANCE1); // x clip
+    glEnable(GL_CLIP_DISTANCE2); // y clip
+    glEnable(GL_CLIP_DISTANCE3); // z clip
 
     // Picking
     if (AxoPlotl::MouseHandler::LEFT_JUST_PRESSED || AxoPlotl::MouseHandler::RIGHT_JUST_PRESSED)
@@ -298,7 +302,7 @@ void Scene::renderUI(GLFWwindow *window)
 
             ImGui::ColorEdit3("Background Color", &clear_color_[0]);
 
-            ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.settings().visible);
+            ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.visible);
 
             ImGui::EndMenu(); // !View
         }
@@ -450,8 +454,8 @@ void TestScene::init()
     data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Vec4f(0,0,1,1)});
     for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
     gizmoRenderer_.updateData(data);
-    gizmoRenderer_.settings().lineWidth = 8.0f;
-    gizmoRenderer_.settings().pointSize = 12.0f;
+    gizmoRenderer_.line_width_ = 8.0f;
+    gizmoRenderer_.point_size_ = 12.0f;
 
     // PolyhedralMesh mesh;
     // IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_tet.ovmb", mesh);

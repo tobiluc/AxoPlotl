@@ -8,25 +8,38 @@ uniform mat4 model_view_projection_matrix;
 uniform vec2 visible_data_range;
 uniform vec4 min_color;
 uniform vec4 max_color;
-uniform bool use_data_as_color;
-uniform vec4 clip_plane;
+uniform int data_type;
+
+uniform bool clip_box_enabled;
+uniform vec3 clip_box_min;
+uniform vec3 clip_box_max;
 
 out vec4 v2g_color;
+out vec4 v2g_clip_distances;
 
 void main() {
-	gl_ClipDistance[0] = dot(vec4(v_position, 1.0), clip_plane);
+	if (data_type == 0) {
+		// use v_data as scalar
+		v2g_clip_distances[0] = min(v_data.x - visible_data_range.x, visible_data_range.y - v_data.x);
 
-	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
-	
-	if (use_data_as_color) {
-		v2g_color = v_data;
-	} else if (v_data.x >= visible_data_range.x && v_data.x <= visible_data_range.y) {
 		float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
 		t = clamp(t,0,1);
 		v2g_color = mix(min_color, max_color, t);
-	} else {
-		v2g_color = vec4(0,0,0,0);
+	
+	} else if (data_type == 1) {
+		// use v_data as color
+		v2g_clip_distances[0] = 0;
+
+		v2g_color = v_data;
 	}
+
+	vec3 dmin = v_position - clip_box_min;
+	vec3 dmax = clip_box_max - v_position;
+	v2g_clip_distances[1] = clip_box_enabled? min(dmin[0], dmax[0]) : 1.0;
+	v2g_clip_distances[2] = clip_box_enabled? min(dmin[1], dmax[1]) : 1.0;
+	v2g_clip_distances[3] = clip_box_enabled? min(dmin[2], dmax[2]) : 1.0;
+
+	gl_Position = model_view_projection_matrix * vec4(v_position, 1.0);
 } 
 
 #shader geometry
@@ -39,9 +52,9 @@ layout(triangle_strip, max_vertices = 4) out;
 
 uniform float line_width;
 uniform vec2 inverse_viewport_size;
-uniform vec4 clip_plane_projection;
 
 in vec4 v2g_color[];
+in vec4 v2g_clip_distances[];
 
 out vec4 g2f_color;
 
@@ -69,7 +82,13 @@ void main() {
     for (int i = 0; i < 4; ++i) {
         gl_Position = coords[i];
 	g2f_color = v2g_color[i/2];
-	gl_ClipDistance[0] = dot(coords[i], clip_plane_projection);
+
+	gl_ClipDistance[0] = v2g_clip_distances[i/2][0];
+	gl_ClipDistance[1] = v2g_clip_distances[i/2][1];
+	gl_ClipDistance[2] = v2g_clip_distances[i/2][2];
+	gl_ClipDistance[3] = v2g_clip_distances[i/2][3];
+
+
         EmitVertex();
     }
     EndPrimitive();
