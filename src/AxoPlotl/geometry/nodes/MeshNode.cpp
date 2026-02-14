@@ -178,7 +178,17 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*v_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*v_prop)->name().c_str(), (*v_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *v_prop;
-                    upload_property_data(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    if ((*v_prop)->typeNameWrapper()=="double") {
+                        upload_property_data<double,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*v_prop)->typeNameWrapper()=="int") {
+                        upload_property_data<int,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*v_prop)->typeNameWrapper()=="float") {
+                        upload_property_data<float,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*v_prop)->typeNameWrapper()=="bool") {
+                        upload_property_data<bool,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*v_prop)->typeNameWrapper()=="vec3d") {
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                    }
                     mesh_renderer_.render_vertices_ = true;
                 }
                 ImGui::PopID();
@@ -193,7 +203,17 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*e_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *e_prop;
-                    upload_property_data(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    if ((*e_prop)->typeNameWrapper()=="double") {
+                        upload_property_data<double,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="int") {
+                        upload_property_data<int,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="float") {
+                        upload_property_data<float,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="bool") {
+                        upload_property_data<bool,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*e_prop)->typeNameWrapper()=="vec3d") {
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                    }
                     mesh_renderer_.render_edges_ = true;
                 }
                 ImGui::PopID();
@@ -208,7 +228,17 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*f_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*f_prop)->name().c_str(), (*f_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *f_prop;
-                    upload_property_data(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    if ((*f_prop)->typeNameWrapper()=="double") {
+                        upload_property_data<double,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*f_prop)->typeNameWrapper()=="int") {
+                        upload_property_data<int,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*f_prop)->typeNameWrapper()=="float") {
+                        upload_property_data<float,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*f_prop)->typeNameWrapper()=="bool") {
+                        upload_property_data<bool,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*f_prop)->typeNameWrapper()=="vec3d") {
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                    }
                     mesh_renderer_.render_faces_ = true;
                 }
                 ImGui::PopID();
@@ -223,7 +253,17 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::PushID((*c_prop)->name().c_str());
                 if (ImGui::MenuItem(string_format("%s [%s]", (*c_prop)->name().c_str(), (*c_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *c_prop;
-                    upload_property_data(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    if ((*c_prop)->typeNameWrapper()=="double") {
+                        upload_property_data<double,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*c_prop)->typeNameWrapper()=="int") {
+                        upload_property_data<int,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*c_prop)->typeNameWrapper()=="float") {
+                        upload_property_data<float,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*c_prop)->typeNameWrapper()=="bool") {
+                        upload_property_data<bool,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    } else if ((*c_prop)->typeNameWrapper()=="vec3d") {
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                    }
                     mesh_renderer_.render_cells_ = true;
                 }
                 ImGui::PopID();

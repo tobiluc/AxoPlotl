@@ -258,8 +258,8 @@ void MeshRenderer::render(const Matrices &m)
     GLint width, height;
     getViewportSize(width, height);
 
-    Vec3f clip_box_min_ = {clip_box_x_[0], clip_box_y_[0], clip_box_z_[0]};
-    Vec3f clip_box_max_ = {clip_box_x_[1], clip_box_y_[1], clip_box_z_[1]};
+    Vec3f clip_box_min = {clip_box_x_[0], clip_box_y_[0], clip_box_z_[0]};
+    Vec3f clip_box_max = {clip_box_x_[1], clip_box_y_[1], clip_box_z_[1]};
 
     // Points
     if (vao_points_ && render_vertices_)
@@ -274,8 +274,8 @@ void MeshRenderer::render(const Matrices &m)
         Shader::VERTICES_SHADER.setInt("data_type", static_cast<int>(vertex_prop_type_));
 
         Shader::VERTICES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
-        Shader::VERTICES_SHADER.setVec3f("clip_box_min", clip_box_min_);
-        Shader::VERTICES_SHADER.setVec3f("clip_box_max", clip_box_max_);
+        Shader::VERTICES_SHADER.setVec3f("clip_box_min", clip_box_min);
+        Shader::VERTICES_SHADER.setVec3f("clip_box_max", clip_box_max);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-1.0f, -1.0f); // ensure the vertices are drawn slightly in front
@@ -304,8 +304,8 @@ void MeshRenderer::render(const Matrices &m)
         Shader::EDGES_SHADER.setInt("data_type", static_cast<int>(edge_prop_type_));
 
         Shader::EDGES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
-        Shader::EDGES_SHADER.setVec3f("clip_box_min", clip_box_min_);
-        Shader::EDGES_SHADER.setVec3f("clip_box_max", clip_box_max_);
+        Shader::EDGES_SHADER.setVec3f("clip_box_min", clip_box_min);
+        Shader::EDGES_SHADER.setVec3f("clip_box_max", clip_box_max);
 
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(-0.75f, -0.75f); // ensure the lines are drawn slightly in front
@@ -331,8 +331,8 @@ void MeshRenderer::render(const Matrices &m)
         Shader::FACES_SHADER.setInt("data_type", static_cast<int>(face_prop_type_));
 
         Shader::FACES_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
-        Shader::FACES_SHADER.setVec3f("clip_box_min", clip_box_min_);
-        Shader::FACES_SHADER.setVec3f("clip_box_max", clip_box_max_);
+        Shader::FACES_SHADER.setVec3f("clip_box_min", clip_box_min);
+        Shader::FACES_SHADER.setVec3f("clip_box_max", clip_box_max);
 
         Shader::FACES_SHADER.use();
 
@@ -359,8 +359,8 @@ void MeshRenderer::render(const Matrices &m)
         Shader::CELLS_SHADER.setInt("data_type", static_cast<int>(cell_prop_type_));
 
         Shader::CELLS_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
-        Shader::CELLS_SHADER.setVec3f("clip_box_min", clip_box_min_);
-        Shader::CELLS_SHADER.setVec3f("clip_box_max", clip_box_max_);
+        Shader::CELLS_SHADER.setVec3f("clip_box_min", clip_box_min);
+        Shader::CELLS_SHADER.setVec3f("clip_box_max", clip_box_max);
 
 
         glBindVertexArray(vao_cells_);

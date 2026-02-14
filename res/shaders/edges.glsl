@@ -17,6 +17,16 @@ uniform vec3 clip_box_max;
 out vec4 v2g_color;
 out vec4 v2g_clip_distances;
 
+vec4 colorOnSphere(vec3 p) {
+	float d = length(p);
+    	return vec4(
+        	0.5 * (p.x/d + 1),
+        	0.5 * (p.y/d + 1),
+        	0.5 * (p.z/d + 1),
+        	1
+        );
+}
+
 void main() {
 	if (data_type == 0) {
 		// use v_data as scalar
@@ -31,6 +41,10 @@ void main() {
 		v2g_clip_distances[0] = 0;
 
 		v2g_color = v_data;
+	} else if (data_type == 2) {
+		// use v_data as 3d vector
+		v2g_clip_distances[0] = 0;
+		v2g_color = colorOnSphere(v_data.xyz);
 	}
 
 	vec3 dmin = v_position - clip_box_min;

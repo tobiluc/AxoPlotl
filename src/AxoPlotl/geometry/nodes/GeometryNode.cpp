@@ -107,6 +107,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
         }
 
         if (ImGui::Checkbox("Enable Clip Box", &mesh_renderer_.clip_box_enabled_)) {
+            // Initially, we set the clip box to the entire bounding box, so everthing is visible
             mesh_renderer_.clip_box_x_ = {bbox_.first[0], bbox_.second[0]};
             mesh_renderer_.clip_box_y_ = {bbox_.first[1], bbox_.second[1]};
             mesh_renderer_.clip_box_z_ = {bbox_.first[2], bbox_.second[2]};

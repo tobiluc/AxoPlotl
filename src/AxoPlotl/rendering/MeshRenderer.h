@@ -34,7 +34,8 @@ public:
 
     enum class PropDataType : int {
         SCALAR = 0,
-        COLOR = 1
+        COLOR = 1,
+        VEC3 = 2
     };
 
     struct ScalarRangeConfig
@@ -64,11 +65,6 @@ public:
     Vec2f clip_box_x_;
     Vec2f clip_box_y_;
     Vec2f clip_box_z_;
-
-    // Vec4f vertex_clip_plane_ = Vec4f(0,0,0,0);
-    // Vec4f edge_clip_plane_ = Vec4f(0,0,0,0);
-    // Vec4f face_clip_plane_ = Vec4f(0,0,0,0);
-    // Vec4f cell_clip_plane_ = Vec4f(0,0,0,0);
 
     ScalarRangeConfig vertex_scalar_prop_range_;
     ScalarRangeConfig edge_scalar_prop_range_;

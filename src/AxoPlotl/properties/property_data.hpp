@@ -8,23 +8,64 @@
 namespace AxoPlotl
 {
 
-template<typename T>
-std::pair<T,T> get_vertex_scalar_property_range(
+template<typename T, typename Entity>
+std::pair<T,T> get_scalar_property_range(
     const VolumeMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop)
+    const OpenVolumeMesh::PropertyPtr<T,Entity>& _prop)
 {
-    if (_mesh.n_vertices()==0) {return {0,0};}
+    if (mesh_n_entities<EntityType<Entity>::type()>(_mesh)==0) {return {0,0};}
     if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {_prop[OpenVolumeMesh::VH(0)], _prop[OpenVolumeMesh::VH(0)]};
-    for (auto vh : _mesh.vertices()) {
-        r.first = std::min(r.first, _prop[vh]);
-        r.second = std::max(r.second, _prop[vh]);
+    else {
+        auto h0 = mesh_entity_handle<EntityType<Entity>::type()>(0);
+        std::pair<T,T> r = {_prop[h0], _prop[h0]};
+        for (auto h : mesh_entities<EntityType<Entity>::type()>(_mesh)) {
+            r.first = std::min(r.first, _prop[h]);
+            r.second = std::max(r.second, _prop[h]);
+        }
+        return r;
     }
-    return r;
 };
 
+/// Converts a generic value to a Vec4f to store in the Vertex Buffer as v_data.
 template<typename T>
-void upload_vertex_scalar_property_data(
+Vec4f vertex_buffer_property_data(const T& _val)
+{
+    if constexpr(std::is_same_v<T,bool>) {return {_val,0,0,1};}
+    if constexpr(std::is_same_v<T,int>) {return {_val,0,0,1};}
+    if constexpr(std::is_same_v<T,double>) {return {_val,0,0,1};}
+    if constexpr(std::is_same_v<T,float>) {return {_val,0,0,1};}
+    if constexpr (ToLoG::vector_type<T>) {
+        if (ToLoG::Traits<T>::dim <= 4) {
+            Vec4f v;
+            for (int i = 0; i < ToLoG::Traits<T>::dim; ++i) {
+                v[i] = _val[i];
+            }
+            return v;
+        } else {
+            std::cerr << "Vector Properties of Dimension > 4 are not supported" << std::endl;
+        }
+    }
+    return Vec4f(0,0,0,0);
+}
+
+template<typename T>
+constexpr GL::MeshRenderer::PropDataType vertex_buffer_property_data_type()
+{
+    if constexpr(std::is_same_v<T,bool>
+                  || std::is_same_v<T,int>
+                  || std::is_same_v<T,float>
+                  || std::is_same_v<T,double>)
+    {return GL::MeshRenderer::PropDataType::SCALAR;}
+    if constexpr(ToLoG::vector_type<T>) {
+        if constexpr(ToLoG::Traits<T>::dim == 3) {
+            return GL::MeshRenderer::PropDataType::VEC3;
+        }
+    }
+    return GL::MeshRenderer::PropDataType::COLOR;
+}
+
+template<typename T>
+void upload_vertex_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop,
     GL::MeshRenderer& _r)
@@ -38,31 +79,16 @@ void upload_vertex_scalar_property_data(
         Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
         p_attribs.push_back({
             .position = p,
-            .color = Vec4f(_prop[vh],_prop[vh],_prop[vh],1)
+            .color = vertex_buffer_property_data(_prop[vh])
         });
         indices.push_back(vh.idx());
     }
     _r.updateVertexPoints(p_attribs, indices);
-    _r.vertex_prop_type_ = GL::MeshRenderer::PropDataType::SCALAR;
+    _r.vertex_prop_type_ = vertex_buffer_property_data_type<T>();
 };
 
 template<typename T>
-std::pair<T,T> get_edge_scalar_property_range(
-    const VolumeMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop)
-{
-    if (_mesh.n_edges()==0) {return {0,0};}
-    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {_prop[OVM::EH(0)], _prop[OVM::EH(0)]};
-    for (auto eh : _mesh.edges()) {
-        r.first = std::min(r.first, _prop[eh]);
-        r.second = std::max(r.second, _prop[eh]);
-    }
-    return r;
-};
-
-template<typename T>
-void upload_edge_scalar_property_data(
+void upload_edge_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop,
     GL::MeshRenderer& _r)
@@ -80,36 +106,21 @@ void upload_edge_scalar_property_data(
         Vec3f p1 = toVec3<Vec3f>(_mesh.vertex(vh1));
         l_attribs.push_back({
             .position = p0,
-            .color = Vec4f(_prop[eh],_prop[eh],_prop[eh],1)
+            .color = vertex_buffer_property_data(_prop[eh])
         });
         l_attribs.push_back({
             .position = p1,
-            .color = Vec4f(_prop[eh],_prop[eh],_prop[eh],1)
+            .color = vertex_buffer_property_data(_prop[eh])
         });
         indices.push_back(l_attribs.size()-2);
         indices.push_back(l_attribs.size()-1);
     }
     _r.updateEdgeLines(l_attribs, indices);
-    _r.edge_prop_type_ = GL::MeshRenderer::PropDataType::SCALAR;
+    _r.edge_prop_type_ = vertex_buffer_property_data_type<T>();
 };
 
 template<typename T>
-std::pair<T,T> get_face_scalar_property_range(
-    const VolumeMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OVM::Entity::Face>& _prop)
-{
-    if (_mesh.n_faces()==0) {return {0,0};}
-    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
-    for (auto fh : _mesh.faces()) {
-        r.first = std::min(r.first, _prop[fh]);
-        r.second = std::max(r.second, _prop[fh]);
-    }
-    return r;
-};
-
-template<typename T>
-void upload_face_scalar_property_data(
+void upload_face_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Face>& _prop,
     GL::MeshRenderer& _r)
@@ -127,7 +138,7 @@ void upload_face_scalar_property_data(
         for (OVM::VH vh : _mesh.get_halfface_vertices(hfh)) {
             t_attribs.push_back({
                 .position = toVec3<Vec3f>(_mesh.vertex(vh)),
-                .color = Vec4f(_prop[fh],_prop[fh],_prop[fh],1),
+                .color = vertex_buffer_property_data(_prop[fh]),
                 .normal = normal,
                 .face_index = static_cast<float>(fh.idx())
             });
@@ -140,26 +151,11 @@ void upload_face_scalar_property_data(
         idx_offset += vhs.size();
     }
     _r.updateFaceTriangles(t_attribs, indices);
-    _r.face_prop_type_ = GL::MeshRenderer::PropDataType::SCALAR;
+    _r.face_prop_type_ = vertex_buffer_property_data_type<T>();
 };
 
 template<typename T>
-std::pair<T,T> get_cell_scalar_property_range(
-    const VolumeMesh& _mesh,
-    const OpenVolumeMesh::PropertyPtr<T,OVM::Entity::Cell>& _prop)
-{
-    if (_mesh.n_cells()==0) {return {0,0};}
-    if constexpr(std::is_same_v<T,bool>) {return {false,true};}
-    std::pair<T,T> r = {std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity()};
-    for (auto ch : _mesh.cells()) {
-        r.first = std::min(r.first, _prop[ch]);
-        r.second = std::max(r.second, _prop[ch]);
-    }
-    return r;
-};
-
-template<typename T>
-void upload_cell_scalar_property_data(
+void upload_cell_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Cell>& _prop,
     GL::MeshRenderer& _r)
@@ -189,7 +185,7 @@ void upload_cell_scalar_property_data(
             auto p = toVec3<Vec3f>(_mesh.vertex(vh));
             c_attribs.push_back(GL::MeshRenderer::VertexCellAttrib{
                 .position = p,
-                .data = Vec4f(_prop[*c_it],_prop[*c_it],_prop[*c_it],1),
+                .data = vertex_buffer_property_data(_prop[*c_it]),
                 .cell_incenter = incenter,
                 .cell_index = static_cast<float>(c_it->idx())
             });
@@ -218,116 +214,43 @@ void upload_cell_scalar_property_data(
         idx_offset += cell_vhs.size();
     }
     _r.updateCellTriangles(c_attribs, c_triangle_indices);
-    _r.cell_prop_type_ = GL::MeshRenderer::PropDataType::SCALAR;
+    _r.cell_prop_type_ = vertex_buffer_property_data_type<T>();
 };
 
+template<typename T, typename Entity>
 void upload_property_data(
-    const VolumeMesh& mesh_,
+    const VolumeMesh& _mesh,
     OpenVolumeMesh::PropertyStorageBase* _prop,
     std::vector<std::shared_ptr<PropertyFilterBase>>& _prop_filters,
-    GL::MeshRenderer& _r)
+    GL::MeshRenderer& _r
+    )
 {
     _prop_filters.clear();
+    auto prop = _mesh.get_property<T,Entity>((_prop)->name()).value();
 
-    if (_prop->entity_type() == OVM::EntityType::Vertex)
+    // Setup Property Filters
+    if constexpr(std::is_same_v<T,bool>
+            || std::is_same_v<T,int>
+            || std::is_same_v<T,float>
+            || std::is_same_v<T,double>)
     {
-        if ((_prop)->typeNameWrapper()=="double") {
-            auto v_prop = mesh_.get_vertex_property<double>((_prop)->name()).value();
-            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double,OVM::Entity::Vertex>>(r.first, r.second));
-            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="int") {
-            auto v_prop = mesh_.get_vertex_property<int>((_prop)->name()).value();
-            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int,OVM::Entity::Vertex>>(r.first, r.second));
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int,OVM::Entity::Vertex>>());
-            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="float") {
-            auto v_prop = mesh_.get_vertex_property<float>((_prop)->name()).value();
-            auto r = get_vertex_scalar_property_range(mesh_, v_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float,OVM::Entity::Vertex>>(r.first, r.second));
-            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="bool") {
-            auto v_prop = mesh_.get_vertex_property<bool>((_prop)->name()).value();
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool,OVM::Entity::Vertex>>());
-            upload_vertex_scalar_property_data(mesh_, v_prop, _r);
-        }
+        auto r = get_scalar_property_range<T,Entity>(_mesh, prop);
+        _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<T,Entity>>(r.first, r.second));
+        _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<T,Entity>>());
     }
-    else if (_prop->entity_type() == OVM::EntityType::Edge)
-    {
-        if ((_prop)->typeNameWrapper()=="double") {
-            auto e_prop = mesh_.get_edge_property<double>((_prop)->name()).value();
-            auto r = get_edge_scalar_property_range(mesh_, e_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double,OVM::Entity::Edge>>(r.first, r.second));
-            upload_edge_scalar_property_data(mesh_, e_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="int") {
-            auto e_prop = mesh_.get_edge_property<int>((_prop)->name()).value();
-            auto r = get_edge_scalar_property_range(mesh_, e_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int,OVM::Entity::Edge>>(r.first, r.second));
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int,OVM::Entity::Edge>>());
-            upload_edge_scalar_property_data(mesh_, e_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="float") {
-            auto e_prop = mesh_.get_edge_property<float>((_prop)->name()).value();
-            auto r = get_edge_scalar_property_range(mesh_, e_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float,OVM::Entity::Edge>>(r.first, r.second));
-            upload_edge_scalar_property_data(mesh_, e_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="bool") {
-            auto e_prop = mesh_.get_edge_property<bool>((_prop)->name()).value();
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool,OVM::Entity::Edge>>());
-            upload_edge_scalar_property_data(mesh_, e_prop, _r);
-        }
+
+    // Upload Properties
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {
+        upload_vertex_property_data(_mesh, prop, _r);
     }
-    else if (_prop->entity_type() == OVM::EntityType::Face)
-    {
-        if ((_prop)->typeNameWrapper()=="double") {
-            auto f_prop = mesh_.get_face_property<double>((_prop)->name()).value();
-            auto r = get_face_scalar_property_range(mesh_, f_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double,OVM::Entity::Face>>(r.first, r.second));
-            upload_face_scalar_property_data(mesh_, f_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="int") {
-            auto f_prop = mesh_.get_face_property<int>((_prop)->name()).value();
-            auto r = get_face_scalar_property_range(mesh_, f_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int,OVM::Entity::Face>>(r.first, r.second));
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int,OVM::Entity::Face>>());
-            upload_face_scalar_property_data(mesh_, f_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="float") {
-            auto f_prop = mesh_.get_face_property<float>((_prop)->name()).value();
-            auto r = get_face_scalar_property_range(mesh_, f_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float,OVM::Entity::Face>>(r.first, r.second));
-            upload_face_scalar_property_data(mesh_, f_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="bool") {
-            auto f_prop = mesh_.get_face_property<bool>((_prop)->name()).value();
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool,OVM::Entity::Face>>());
-            upload_face_scalar_property_data(mesh_, f_prop, _r);
-        }
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {
+        upload_edge_property_data(_mesh, prop, _r);
     }
-    else if (_prop->entity_type() == OVM::EntityType::Cell)
-    {
-        if ((_prop)->typeNameWrapper()=="double") {
-            auto c_prop = mesh_.get_cell_property<double>((_prop)->name()).value();
-            auto r = get_cell_scalar_property_range(mesh_, c_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<double,OVM::Entity::Cell>>(r.first, r.second));
-            upload_cell_scalar_property_data(mesh_, c_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="int") {
-            auto c_prop = mesh_.get_cell_property<int>((_prop)->name()).value();
-            auto r = get_cell_scalar_property_range(mesh_, c_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<int,OVM::Entity::Cell>>(r.first, r.second));
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<int,OVM::Entity::Cell>>());
-            upload_cell_scalar_property_data(mesh_, c_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="float") {
-            auto c_prop = mesh_.get_cell_property<float>((_prop)->name()).value();
-            auto r = get_cell_scalar_property_range(mesh_, c_prop);
-            _prop_filters.push_back(std::make_shared<ScalarPropertyRangeFilter<float,OVM::Entity::Cell>>(r.first, r.second));
-            upload_cell_scalar_property_data(mesh_, c_prop, _r);
-        } else if ((_prop)->typeNameWrapper()=="bool") {
-            auto c_prop = mesh_.get_cell_property<bool>((_prop)->name()).value();
-            _prop_filters.push_back(std::make_shared<ScalarPropertyExactFilter<bool,OVM::Entity::Cell>>());
-            upload_cell_scalar_property_data(mesh_, c_prop, _r);
-        }
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {
+        upload_face_property_data(_mesh, prop, _r);
     }
-    else
-    {
-        std::cerr << "Unsupported entity type for property visualization" << std::endl;
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {
+        upload_cell_property_data(_mesh, prop, _r);
     }
 }
 
