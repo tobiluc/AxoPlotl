@@ -3,10 +3,10 @@
 #include <fstream>
 #include <regex>
 #include <sstream>
+#include "AxoPlotl/rendering/shader_source.ipp"
 
 namespace AxoPlotl
 {
-// Shader Shader::FACES_OUTLINES_SHADER;
 Shader Shader::CELLS_SHADER;
 Shader Shader::FACES_SHADER;
 Shader Shader::EDGES_SHADER;
@@ -15,23 +15,41 @@ Shader Shader::PICKING_SHADER;
 
 void Shader::loadGlobalShaders()
 {
-    // FACES_OUTLINES_SHADER = Shader("../res/shaders/outlines.glsl");
-    // TET_CELLS_SHADER =      Shader("../res/shaders/cells.glsl");
-    FACES_SHADER =          Shader("../res/shaders/faces.glsl");
-    EDGES_SHADER =          Shader("../res/shaders/edges.glsl");
-    VERTICES_SHADER =       Shader("../res/shaders/vertices.glsl");
-    PICKING_SHADER =        Shader("../res/shaders/picking.glsl");
-    CELLS_SHADER = Shader("../res/shaders/cells.glsl");
+    shader_from_source(vertices_shader_src, VERTICES_SHADER);
+    shader_from_source(edges_shader_src, EDGES_SHADER);
+    shader_from_source(faces_shader_src, FACES_SHADER);
+    shader_from_source(faces_picking_shader_src, PICKING_SHADER);
+    shader_from_source(cells_shader_src, CELLS_SHADER);
 }
 
-Shader::Shader(const char* filepath)
+void Shader::shader_from_file(const std::filesystem::path& _path, Shader& _shader)
+{
+    std::ifstream file;
+
+    try
+    {
+        file.open(_path);
+        std::stringstream stream;
+        stream << file.rdbuf();
+        file.close();
+
+        shader_from_source(stream.str().c_str(), _shader);
+    }
+    catch (std::ifstream::failure& e)
+    {
+        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
+        exit(1);
+    }
+}
+
+void Shader::shader_from_source(const char* _src, Shader& _shader)
 {
     std::string vs = "", gs = "", fs = "";
-    Shader::readFile(filepath, vs, gs, fs);
+    Shader::read_source(std::string(_src), vs, gs, fs);
 
     GLuint vertex = 0, geometry = 0, fragment = 0;
 
-    ID = glCreateProgram();
+    GLuint ID = glCreateProgram();
 
     // vertex shader
     if (!vs.empty())
@@ -73,38 +91,23 @@ Shader::Shader(const char* filepath)
     glDeleteShader(vertex);
     glDeleteShader(geometry);
     glDeleteShader(fragment);
+
+    _shader.ID = ID;
 }
 
-void Shader::readFile(const char* filepath, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode)
+void Shader::read_source(const std::string& src, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode)
 {
-    std::ifstream file;
+    // Regular expression to match sections: #shader <type>\n<shader code>
+    std::regex rgx(R"(#shader\s+(vertex|fragment|geometry)\n((.|\n)*?)(?=#shader|$))");
+    std::smatch matches;
+    std::string::const_iterator from(src.cbegin());
+    while (std::regex_search(from, src.cend(), matches, rgx)) {
+        const std::string& type = matches[1].str();
+        if (type == "vertex") {vertexCode = matches[2].str();}
+        else if (type == "geometry") {geometryCode = matches[2].str();}
+        else if (type == "fragment") {fragmentCode = matches[2].str();}
 
-    try
-    {
-        file.open(filepath);
-        std::stringstream stream;
-        stream << file.rdbuf();
-        file.close();
-
-        std::string src = stream.str();
-
-        // Regular expression to match sections: #shader <type>\n<shader code>
-        std::regex rgx(R"(#shader\s+(vertex|fragment|geometry)\n((.|\n)*?)(?=#shader|$))");
-        std::smatch matches;
-        std::string::const_iterator from(src.cbegin());
-        while (std::regex_search(from, src.cend(), matches, rgx)) {
-            const std::string& type = matches[1].str();
-            if (type == "vertex") {vertexCode = matches[2].str();}
-            else if (type == "geometry") {geometryCode = matches[2].str();}
-            else if (type == "fragment") {fragmentCode = matches[2].str();}
-
-            from = matches.suffix().first; // Move the search position forward
-        }
-    }
-    catch (std::ifstream::failure& e)
-    {
-        std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
-        exit(1);
+        from = matches.suffix().first; // Move the search position forward
     }
 }
 

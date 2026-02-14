@@ -1,11 +1,9 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include "glm/gtc/type_ptr.hpp"
+#include <filesystem>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
-#include <ostream>
 #include <string>
 
 namespace AxoPlotl
@@ -26,16 +24,16 @@ public:
 
     Shader() : ID(0) {}
 
-    // constructor generates the shader on the fly
-    //Shader(const char* vertexPath, const char* geometryPath, const char* fragmentPath);
-
-    //Shader(const char* vertexPath, const char* fragmentPath);
-
     // Compiles a shader program written in the file stored at filepath. Different types of shaders are
     // marked with #shader <type> where type = vertex | geometry | fragment
-    Shader(const char* filepath);
 
-    static void readFile(const char* filepath, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode);
+    static void shader_from_file(const std::filesystem::path& _path, Shader& _shader);
+
+    static void shader_from_source(const char* _src, Shader& _shader);
+
+    static void read_file(const std::filesystem::path& path, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode);
+
+    static void read_source(const std::string& src, std::string& vertexCode, std::string& geometryCode, std::string& fragmentCode);
 
     ~Shader()
     {
@@ -121,7 +119,6 @@ public:
 
 private:
     // utility function for checking shader compilation/linking errors.
-    void checkCompileErrors(unsigned int shader, std::string type);
+    static void checkCompileErrors(unsigned int shader, std::string type);
 };
 }
-#endif

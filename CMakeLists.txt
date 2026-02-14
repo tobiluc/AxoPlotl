@@ -91,6 +91,7 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/utils/string_format.hpp
     src/AxoPlotl/properties/property_calculations.hpp
     src/AxoPlotl/properties/property_calculations.cpp
+    src/AxoPlotl/rendering/shader_source.ipp
 
 
 
