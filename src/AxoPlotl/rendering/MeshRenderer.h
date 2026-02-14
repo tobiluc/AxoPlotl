@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "AxoPlotl/commons/Color.h"
+#include "AxoPlotl/rendering/Texture.h"
 #include "AxoPlotl/typedefs/typedefs_OpenVolumeMesh.hpp"
 #include "AxoPlotl/typedefs/typedefs_glm.hpp"
 
@@ -42,9 +43,11 @@ public:
     {
         float min_value = 0;
         float max_value = 1;
-        Vec4f min_color = {0,0,1,1};
-        Vec4f max_color = {1,0,0,1};
+        //Vec4f min_color = {0,0,1,1};
+        //Vec4f max_color = {1,0,0,1};
     };
+
+    ColorMap color_map_;
 
     bool visible = true;
     bool render_vertices_ = true;
@@ -142,6 +145,8 @@ private:
             createBuffers();
             setupVertexAttributes();
         }
+        color_map_.create({1.0f, 0.0f, 0.0f, 1.0f});
+        color_map_.set_gradient(Vec3f(1,0,0), Vec3f(0,1,0), 256);
     }
 
 public:

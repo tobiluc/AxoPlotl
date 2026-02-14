@@ -265,9 +265,11 @@ void MeshRenderer::render(const Matrices &m)
     if (vao_points_ && render_vertices_)
     {
         Shader::VERTICES_SHADER.use();
+
+        color_map_.bind(0);
+        Shader::VERTICES_SHADER.setInt("colormap", 0);
+
         Shader::VERTICES_SHADER.setFloat("point_size", point_size_);
-        Shader::VERTICES_SHADER.setVec4f("min_color", vertex_scalar_prop_range_.min_color);
-        Shader::VERTICES_SHADER.setVec4f("max_color", vertex_scalar_prop_range_.max_color);
         Shader::VERTICES_SHADER.setVec2f("visible_data_range", vertex_scalar_prop_range_.min_value,vertex_scalar_prop_range_.max_value);
         Shader::VERTICES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
 
@@ -298,8 +300,8 @@ void MeshRenderer::render(const Matrices &m)
 
         Shader::EDGES_SHADER.setFloat("line_width", line_width_);
 
-        Shader::EDGES_SHADER.setVec4f("min_color", edge_scalar_prop_range_.min_color);
-        Shader::EDGES_SHADER.setVec4f("max_color", edge_scalar_prop_range_.max_color);
+        color_map_.bind(0);
+        Shader::EDGES_SHADER.setInt("colormap", 0);
         Shader::EDGES_SHADER.setVec2f("visible_data_range", edge_scalar_prop_range_.min_value,edge_scalar_prop_range_.max_value);
         Shader::EDGES_SHADER.setInt("data_type", static_cast<int>(edge_prop_type_));
 
@@ -325,8 +327,8 @@ void MeshRenderer::render(const Matrices &m)
 
         Shader::FACES_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
 
-        Shader::FACES_SHADER.setVec4f("min_color", face_scalar_prop_range_.min_color);
-        Shader::FACES_SHADER.setVec4f("max_color", face_scalar_prop_range_.max_color);
+        color_map_.bind(0);
+        Shader::FACES_SHADER.setInt("colormap", 0);
         Shader::FACES_SHADER.setVec2f("visible_data_range", face_scalar_prop_range_.min_value, face_scalar_prop_range_.max_value);
         Shader::FACES_SHADER.setInt("data_type", static_cast<int>(face_prop_type_));
 
@@ -352,8 +354,8 @@ void MeshRenderer::render(const Matrices &m)
         Shader::CELLS_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::CELLS_SHADER.setFloat("cell_scale", cell_scale_);
 
-        Shader::CELLS_SHADER.setVec4f("min_color", cell_scalar_prop_range_.min_color);
-        Shader::CELLS_SHADER.setVec4f("max_color", cell_scalar_prop_range_.max_color);
+        color_map_.bind(0);
+        Shader::CELLS_SHADER.setInt("colormap", 0);
         Shader::CELLS_SHADER.setVec2f("visible_data_range", cell_scalar_prop_range_.min_value, cell_scalar_prop_range_.max_value);
 
         Shader::CELLS_SHADER.setInt("data_type", static_cast<int>(cell_prop_type_));

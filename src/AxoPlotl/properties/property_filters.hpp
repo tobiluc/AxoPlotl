@@ -52,8 +52,27 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
             r.max_value = b_show_true;
         }
 
-        ImGui::ColorEdit3("Min Color", &r.min_color[0]);
-        ImGui::ColorEdit3("Max Color", &r.max_color[0]);
+        if (ImGui::BeginMenu("Color Map")) {
+            if (ImGui::MenuItem("Viridis")) {
+                _r.color_map_.set_viridis(256);
+            }
+            if (ImGui::MenuItem("Magma")) {
+                _r.color_map_.set_magma(256);
+            }
+            if (ImGui::MenuItem("Inferno")) {
+                _r.color_map_.set_inferno(256);
+            }
+            if (ImGui::MenuItem("Plasma")) {
+                _r.color_map_.set_plasma(256);
+            }
+            if (ImGui::MenuItem("Diverging Red Blue")) {
+                _r.color_map_.set_rd_bu(256);
+            }
+            if (ImGui::MenuItem("Coolwarm")) {
+                _r.color_map_.set_coolwarm(256);
+            }
+            ImGui::EndMenu();
+        }
     }
 
     std::string name() override {
@@ -91,13 +110,17 @@ struct ScalarPropertyExactFilter : public PropertyFilterBase
             r.min_value = b;
             r.max_value = b;
         }
-        ImGui::ColorEdit3("Color", &r.min_color[0]);
-        r.max_color = r.min_color;
+
+        if (ImGui::ColorEdit3("Color", &color[0])) {
+            _r.color_map_.update({color[0],color[1],color[2],1.0f});
+        }
     }
 
     std::string name() override {
         return "Exact Scalar";
     }
+
+    Vec3f color = {1,0,0};
 };
 
 }

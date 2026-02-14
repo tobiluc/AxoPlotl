@@ -8,10 +8,10 @@ R"(
 layout (location = 0) in vec3 v_position; // in model space
 layout (location = 1) in vec4 v_data; // [property value, ?, ?, ?]
 
+uniform sampler1D colormap;
+
 uniform mat4 model_view_projection_matrix;
 uniform vec2 visible_data_range;
-uniform vec4 min_color;
-uniform vec4 max_color;
 uniform int data_type;
 uniform float point_size;
 
@@ -38,13 +38,14 @@ void main() {
 
         float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
         t = clamp(t,0,1);
-        v2f_color = mix(min_color, max_color, t);
+        v2f_color = texture(colormap, t);
 
     } else if (data_type == 1) {
         // use v_data as color
         gl_ClipDistance[0] = 0;
-
         v2f_color = v_data;
+
+
     } else if (data_type == 2) {
         // use v_data as 3d vector
         gl_ClipDistance[0] = 0;
@@ -84,10 +85,10 @@ R"(
 layout (location = 0) in vec3 v_position; // in model space
 layout (location = 1) in vec4 v_data;
 
+uniform sampler1D colormap;
+
 uniform mat4 model_view_projection_matrix;
 uniform vec2 visible_data_range;
-uniform vec4 min_color;
-uniform vec4 max_color;
 uniform int data_type;
 
 uniform bool clip_box_enabled;
@@ -114,7 +115,7 @@ void main() {
 
         float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
         t = clamp(t,0,1);
-        v2g_color = mix(min_color, max_color, t);
+        v2g_color = texture(colormap, t);
 
     } else if (data_type == 1) {
         // use v_data as color
@@ -211,10 +212,10 @@ layout (location = 1) in vec4 v_data;
 layout (location = 2) in vec3 v_normal;
 layout (location = 3) in float v_face_index;
 
+uniform sampler1D colormap;
+
 uniform mat4 model_view_projection_matrix;
 uniform vec2 visible_data_range;
-uniform vec4 min_color;
-uniform vec4 max_color;
 uniform int data_type;
 
 uniform bool clip_box_enabled;
@@ -241,7 +242,7 @@ void main()
 
         float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
         t = clamp(t,0,1);
-        v2f_color = mix(min_color, max_color, t);
+        v2f_color = texture(colormap, t);
 
     } else if (data_type == 1) {
         // use v_data as color
@@ -322,9 +323,8 @@ layout (location = 3) in float v_cell_index;
 uniform mat4 model_view_projection_matrix;
 uniform float cell_scale;
 
+uniform sampler1D colormap;
 uniform vec2 visible_data_range;
-uniform vec4 min_color;
-uniform vec4 max_color;
 uniform int data_type;
 
 uniform bool clip_box_enabled;
@@ -352,7 +352,7 @@ void main()
 
         float t = (v_data.x - visible_data_range.x) / (visible_data_range.y - visible_data_range.x);
         t = clamp(t,0,1);
-        v2f_color = mix(min_color, max_color, t);
+        v2f_color = texture(colormap, t);
 
     } else if (data_type == 1) {
         // use v_data as color
