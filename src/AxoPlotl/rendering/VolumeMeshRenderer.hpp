@@ -115,16 +115,10 @@ public:
     void render_picking(const glm::mat4x4 &_mvp, int _id);
 
 private:
-
-
-    // Ideally we want
-#if __APPLE__
-    // TBO
-#else
-    // SSBO
-#endif
-
+    // Vertex Positions Buffer
     GLuint positionsTBO;
+
+    // Property Buffers
     GLuint vertexDataTBO;
     GLuint edgeDataTBO;
     GLuint faceDataTBO;
@@ -136,18 +130,21 @@ private:
     GLuint faceDataTex;
     GLuint cellDataTex;
 
+    // Vertex Array Objects
     GLuint vertexVAO;
     GLuint edgeVAO;
     GLuint faceVAO;
     GLuint cellTriangleVAO;
     GLuint cellLineVAO;
 
+    // Vertex Buffer Objects
     GLuint vertexDrawVBO;
     GLuint edgeDrawVBO;
     GLuint faceDrawVBO;
     GLuint cellTriangleDrawVBO;
     GLuint cellLineDrawVBO;
 
+    // Primitive Counts
     GLsizei idx_count_vertices_ = 0;
     GLsizei idx_count_edges_ = 0;
     GLsizei idx_count_face_triangles_ = 0;

@@ -29,7 +29,7 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
     using Scalar = ST;
 
     ScalarPropertyRangeFilter(ST _min=0, ST _max=1)
-        : min(_min), max(_max) {}
+        : total_min_(_min), total_max_(_max) {}
 
     void renderUI(VolumeMeshRenderer& _r) override
     {
@@ -74,15 +74,15 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
         Vec2f& vis_range = rp.range_;
         if constexpr(std::is_same_v<ST,int>) {
             Vec2i i = {vis_range[0],vis_range[1]};
-            ImGui::SliderInt2("Show Range", &i.x, min, max);
+            ImGui::SliderInt2("Show Range", &i.x, total_min_, total_max_);
             vis_range.x = i.x;
             vis_range.y = i.y;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
             Vec2f f = {vis_range.x,vis_range.y};
-            ImGui::SliderFloat2("Show Range", &f.x, min, max);
-            vis_range.x = std::clamp<float>(f.x, min, vis_range.y);
-            vis_range.y = std::clamp<float>(f.y, vis_range.x, max);
+            ImGui::SliderFloat2("Show Range", &f.x, total_min_, total_max_);
+            vis_range.x = std::clamp<float>(f.x, total_min_, vis_range.y);
+            vis_range.y = std::clamp<float>(f.y, vis_range.x, total_max_);
         } else if constexpr(std::is_same_v<ST,bool>) {
             bool b_show_false = !vis_range.x;
             bool b_show_true = vis_range.y;
@@ -98,8 +98,8 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
         return "Scalar Range";
     }
 
-    ST min; // global min/max
-    ST max;
+    ST total_min_; // global min/total_max_
+    ST total_max_;
 };
 
 template<typename ST, typename Entity>
@@ -107,27 +107,34 @@ struct ScalarPropertyExactFilter : public PropertyFilterBase
 {
     using Scalar = ST;
 
+    ScalarPropertyExactFilter(ST _min=0, ST _max=1)
+        : total_min_(_min), total_max_(_max) {}
+
     void renderUI(VolumeMeshRenderer& _r) override
     {
         VolumeMeshRenderer::Property& rp = get_property<Entity>(_r);
-        Vec2f& r = rp.range_;
+        Vec2f& visible_range = rp.range_;
 
         //_r.v_prop_range
         if constexpr(std::is_same_v<ST,int>) {
-            int i = r[0];
+            int i = visible_range[0];
             ImGui::InputInt("Value", &i);
-            r[0] = r[1] = i;
+            visible_range[0] = visible_range[1] = i;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            float f = r[0];
+            float f = visible_range[0];
             ImGui::InputFloat("Value", &f);
-            r[0] = r[1] = f;
+            visible_range[0] = visible_range[1] = f;
         }
         else if constexpr(std::is_same_v<ST,bool>) {
-            bool b = r[0];
+            bool b = visible_range[0];
             ImGui::Checkbox("True", &b);
-            r[0] = r[1] = b;
+            visible_range[0] = visible_range[1] = b;
         }
+
+        // Clamp to total range
+        visible_range[0] = std::clamp<float>(visible_range[0], total_min_, total_max_);
+        visible_range[1] = visible_range[0];
 
         if (ImGui::ColorEdit3("Color", &color[0])) {
             rp.color_map_.update({color[0],color[1],color[2],1.0f});
@@ -139,6 +146,8 @@ struct ScalarPropertyExactFilter : public PropertyFilterBase
     }
 
     Vec3f color = {1,0,0};
+    ST total_min_; // global min/total_max_
+    ST total_max_;
 };
 
 }
