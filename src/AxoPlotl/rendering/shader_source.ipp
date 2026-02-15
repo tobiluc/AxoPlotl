@@ -157,7 +157,7 @@ void main() {
 
 
 #shader geometry
-#version 330 core
+#version 410 core
 
 // Transforms a Line into a triangle strip to make it appear thicker
 
@@ -390,8 +390,23 @@ R"(
 #version 410 core
 
 uniform samplerBuffer positions;
+uniform samplerBuffer face_data;
 
 uniform mat4 model_view_projection_matrix;
+
+struct ClipBox {
+    bool enabled;
+    vec3 min;
+    vec3 max;
+};
+uniform ClipBox clip_box;
+
+struct Property {
+    vec2 range;
+    int visualization;
+    sampler2D colormap;
+};
+uniform Property property;
 
 layout (location = 0) in uint v_vertex_index;
 layout (location = 1) in uint v_face_index;
@@ -402,6 +417,21 @@ void main()
 {
     vec3 pos = texelFetch(positions, int(v_vertex_index)).xyz;
     gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
+
+    // Clip Box
+    vec3 dmin = pos - clip_box.min;
+    vec3 dmax = clip_box.max - pos;
+    gl_ClipDistance[1] = clip_box.enabled? min(dmin[0], dmax[0]) : 1.0;
+    gl_ClipDistance[2] = clip_box.enabled? min(dmin[1], dmax[1]) : 1.0;
+    gl_ClipDistance[3] = clip_box.enabled? min(dmin[2], dmax[2]) : 1.0;
+
+    // Property
+    vec4 prop_data = texelFetch(face_data, int(v_face_index));
+    if (property.visualization == 0) { // scalar
+        gl_ClipDistance[0] = min(prop_data.x - property.range.x, property.range.y - prop_data.x);
+    } else {
+        gl_ClipDistance[0] = 1;
+    }
     v2f_face_index = v_face_index;
 }
 
@@ -493,8 +523,23 @@ R"(
 #version 410 core
 
 uniform samplerBuffer positions;
+uniform samplerBuffer cell_data;
 
 uniform mat4 model_view_projection_matrix;
+
+struct ClipBox {
+    bool enabled;
+    vec3 min;
+    vec3 max;
+};
+uniform ClipBox clip_box;
+
+struct Property {
+    vec2 range;
+    int visualization;
+    sampler2D colormap;
+};
+uniform Property property;
 
 layout (location = 0) in uint v_vertex_index;
 layout (location = 1) in uint v_cell_index;
@@ -506,6 +551,21 @@ void main()
 {
     vec3 pos = texelFetch(positions, int(v_vertex_index)).xyz;
     gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
+
+    // Clip Box
+    vec3 dmin = pos - clip_box.min;
+    vec3 dmax = clip_box.max - pos;
+    gl_ClipDistance[1] = clip_box.enabled? min(dmin[0], dmax[0]) : 1.0;
+    gl_ClipDistance[2] = clip_box.enabled? min(dmin[1], dmax[1]) : 1.0;
+    gl_ClipDistance[3] = clip_box.enabled? min(dmin[2], dmax[2]) : 1.0;
+
+    // Property
+    vec4 prop_data = texelFetch(cell_data, int(v_cell_index));
+    if (property.visualization == 0) { // scalar
+        gl_ClipDistance[0] = min(prop_data.x - property.range.x, property.range.y - prop_data.x);
+    } else {
+        gl_ClipDistance[0] = 1;
+    }
     v2f_cell_index = v_cell_index;
 }
 

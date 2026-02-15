@@ -417,6 +417,9 @@ void VolumeMeshRenderer::render_picking(const glm::mat4x4 &_mvp, int _id)
 {
     if (!render_anything_) {return;}
 
+    Vec3f clip_min = {clip_box_.x_[0], clip_box_.y_[0], clip_box_.z_[0]};
+    Vec3f clip_max = {clip_box_.x_[1], clip_box_.y_[1], clip_box_.z_[1]};
+
     if (render_faces_)
     {
         glBindVertexArray(faceVAO);
@@ -424,10 +427,21 @@ void VolumeMeshRenderer::render_picking(const glm::mat4x4 &_mvp, int _id)
         Shader::TBO_FACES_PICKING_SHADER.use();
         Shader::TBO_FACES_PICKING_SHADER.setMat4x4f("model_view_projection_matrix", _mvp);
         Shader::TBO_FACES_PICKING_SHADER.setUInt("object_index", _id);
+        Shader::TBO_FACES_PICKING_SHADER.setBool("clip_box.enabled", clip_box_.enabled_);
+        Shader::TBO_FACES_PICKING_SHADER.setVec3f("clip_box.min", clip_min);
+        Shader::TBO_FACES_PICKING_SHADER.setVec3f("clip_box.max", clip_max);
+        Shader::TBO_FACES_PICKING_SHADER.setInt("property.visualization", static_cast<int>(cell_property_.vis_));
+        Shader::TBO_FACES_PICKING_SHADER.setVec2f("property.range", cell_property_.range_);
+        cell_property_.color_map_.bind(2);
+        Shader::TBO_FACES_PICKING_SHADER.setInt("property.colormap", 2);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_BUFFER, positionsTex);
         Shader::TBO_FACES_PICKING_SHADER.setInt("positions", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_BUFFER, faceDataTex);
+        Shader::TBO_FACES_PICKING_SHADER.setInt("face_data", 1);
 
         glDrawArrays(GL_TRIANGLES, 0, idx_count_face_triangles_);
         Shader::TBO_FACES_PICKING_SHADER.detach();
@@ -439,10 +453,21 @@ void VolumeMeshRenderer::render_picking(const glm::mat4x4 &_mvp, int _id)
         Shader::TBO_CELLS_PICKING_SHADER.use();
         Shader::TBO_CELLS_PICKING_SHADER.setMat4x4f("model_view_projection_matrix", _mvp);
         Shader::TBO_CELLS_PICKING_SHADER.setUInt("object_index", _id);
+        Shader::TBO_CELLS_PICKING_SHADER.setBool("clip_box.enabled", clip_box_.enabled_);
+        Shader::TBO_CELLS_PICKING_SHADER.setVec3f("clip_box.min", clip_min);
+        Shader::TBO_CELLS_PICKING_SHADER.setVec3f("clip_box.max", clip_max);
+        Shader::TBO_CELLS_PICKING_SHADER.setInt("property.visualization", static_cast<int>(cell_property_.vis_));
+        Shader::TBO_CELLS_PICKING_SHADER.setVec2f("property.range", cell_property_.range_);
+        cell_property_.color_map_.bind(2);
+        Shader::TBO_CELLS_PICKING_SHADER.setInt("property.colormap", 2);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_BUFFER, positionsTex);
         Shader::TBO_CELLS_PICKING_SHADER.setInt("positions", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_BUFFER, cellDataTex);
+        Shader::TBO_CELLS_PICKING_SHADER.setInt("cell_data", 1);
 
         glDrawArrays(GL_TRIANGLES, 0, idx_count_cell_triangles_);
         Shader::TBO_CELLS_PICKING_SHADER.detach();
