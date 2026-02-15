@@ -12,6 +12,7 @@ Shader Shader::FACES_SHADER;
 Shader Shader::EDGES_SHADER;
 Shader Shader::VERTICES_SHADER;
 Shader Shader::PICKING_SHADER;
+Shader Shader::CELLS_OUTLINE_SHADER;
 
 void Shader::loadGlobalShaders()
 {
@@ -20,6 +21,7 @@ void Shader::loadGlobalShaders()
     shader_from_source(faces_shader_src, FACES_SHADER);
     shader_from_source(faces_picking_shader_src, PICKING_SHADER);
     shader_from_source(cells_shader_src, CELLS_SHADER);
+    shader_from_source(cells_outline_shader_src, CELLS_OUTLINE_SHADER);
 }
 
 void Shader::shader_from_file(const std::filesystem::path& _path, Shader& _shader)

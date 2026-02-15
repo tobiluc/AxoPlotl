@@ -1,5 +1,4 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#pragma once
 
 #include "AxoPlotl/typedefs/typedefs_glm.hpp"
 #include <OpenGL/gltypes.h>
@@ -23,7 +22,7 @@ class ColorMap {
 public:
     ColorMap() {}
 
-    void create(const std::vector<float>& _data);
+    void create();
 
     void set_gradient(const std::vector<Vec3f>& _colors, int _N = 256);
 
@@ -45,8 +44,7 @@ public:
 
     void bind(GLenum uint);
 
-    GLuint colormap_texture = 0;
+    GLuint texture_id_ = 0;
+    std::string name_ = "";
 };
 }
-
-#endif

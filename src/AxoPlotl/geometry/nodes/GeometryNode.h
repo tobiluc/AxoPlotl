@@ -58,7 +58,9 @@ public:
     inline void renderUI(Scene* scene) {
         ImGui::PushID(id_);
         renderUIHeader(scene);
-        if (show_ui_body_) {renderUIBody(scene);}
+        if (show_ui_body_) {
+            renderUIBody(scene);
+        }
         ImGui::PopID();
     }
 

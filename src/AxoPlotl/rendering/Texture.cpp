@@ -59,22 +59,23 @@ void Texture::use(GLenum unit) {
     glBindTexture(GL_TEXTURE_2D, ID);
 }
 
-void ColorMap::create(const std::vector<float> &_data)
+void ColorMap::create()
 {
-    if (colormap_texture == 0) {
-        glGenTextures(1, &colormap_texture);
+    if (texture_id_ == 0) {
+        glGenTextures(1, &texture_id_);
     }
 
-    update(_data);
+    update({0.0f, 0.0f, 0.0f, 1.0f}); // black
 
-    glBindTexture(GL_TEXTURE_1D, colormap_texture);
+    glBindTexture(GL_TEXTURE_2D, texture_id_);
 
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glBindTexture(GL_TEXTURE_1D, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void ColorMap::set_gradient(const std::vector<Vec3f>& _colors, int N)
@@ -128,6 +129,7 @@ void ColorMap::set_viridis(int N)
         {0.993248f, 0.906157f, 0.143936f}
     };
     set_gradient(viridis, N);
+    name_ = "Viridis";
 }
 
 void ColorMap::set_plasma(int N)
@@ -141,6 +143,7 @@ void ColorMap::set_plasma(int N)
         {0.993248f, 0.906157f, 0.143936f}
     };
     set_gradient(plasma, N);
+    name_ = "Plasma";
 }
 
 void ColorMap::set_inferno(int N)
@@ -154,6 +157,7 @@ void ColorMap::set_inferno(int N)
         {0.987053f, 0.991438f, 0.749504f}
     };
     set_gradient(inferno, N);
+    name_ = "Inferno";
 }
 
 void ColorMap::set_magma(int N)
@@ -167,6 +171,7 @@ void ColorMap::set_magma(int N)
         {0.987053f, 0.991438f, 0.749504f}
     };
     set_gradient(magma, N);
+    name_ = "Magma";
 }
 
 void ColorMap::set_rd_bu(int N)
@@ -181,6 +186,7 @@ void ColorMap::set_rd_bu(int N)
         {0.0f, 0.003922f, 0.258824f}
     };
     set_gradient(rd_bu, N);
+    name_ = "RdBu";
 }
 
 void ColorMap::set_coolwarm(int N)
@@ -193,27 +199,34 @@ void ColorMap::set_coolwarm(int N)
         {0.956871f, 0.211055f, 0.131898f}  // red
     };
     set_gradient(coolwarm, N);
+    name_ = "Coolwarm";
 }
 
 void ColorMap::update(const std::vector<float>& _data)
 {
-    glBindTexture(GL_TEXTURE_1D, colormap_texture);
-    glTexImage1D(
-        GL_TEXTURE_1D,
+    int width = _data.size() / 4; // rgba
+    static constexpr int height = 1;
+
+    glBindTexture(GL_TEXTURE_2D, texture_id_);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
         0,
         GL_RGBA8,
-        _data.size()/4,
+        width,
+        height,
         0,
         GL_RGBA,
         GL_FLOAT,
         _data.data()
-    );
-    glBindTexture(GL_TEXTURE_1D, 0);
+        );
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void ColorMap::bind(GLenum unit) {
     glActiveTexture(GL_TEXTURE0 + unit);
-    glBindTexture(GL_TEXTURE_1D, colormap_texture);
+    glBindTexture(GL_TEXTURE_2D, texture_id_);
 }
 
 } // namespace AxoPlotl

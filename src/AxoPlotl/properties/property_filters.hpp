@@ -29,30 +29,12 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
 
     ScalarPropertyRangeFilter(ST _min=0, ST _max=1)
         : min(_min), max(_max) {}
+
     void renderUI(GL::MeshRenderer& _r) override
     {
-        auto& r = scalar_range<Entity>(_r);
-        if constexpr(std::is_same_v<ST,int>) {
-            Vec2i i = {r.min_value,r.max_value};
-            ImGui::SliderInt2("Range", &i.x, min, max);
-            r.min_value = i.x;
-            r.max_value = i.y;
-        }
-        else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            Vec2f f = {r.min_value,r.max_value};
-            ImGui::SliderFloat2("Range", &f.x, min, max);
-            r.min_value = f.x;
-            r.max_value = f.y;
-        } else if constexpr(std::is_same_v<ST,bool>) {
-            bool b_show_false = !r.min_value;
-            bool b_show_true = r.max_value;
-            ImGui::Checkbox("False", &b_show_false);
-            ImGui::Checkbox("True", &b_show_true);
-            r.min_value = !b_show_false;
-            r.max_value = b_show_true;
-        }
-
-        if (ImGui::BeginMenu("Color Map")) {
+        std::string colormap_menu_title = "Colormap ("
+            + _r.color_map_.name_ + ")";
+        if (ImGui::BeginMenu(colormap_menu_title.c_str())) {
             if (ImGui::MenuItem("Viridis")) {
                 _r.color_map_.set_viridis(256);
             }
@@ -73,13 +55,47 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
             }
             ImGui::EndMenu();
         }
+
+        auto draw_colormap = [&]() {
+            ImGui::Image(
+                (ImTextureID)(intptr_t)_r.color_map_.texture_id_,
+                ImVec2(ImGui::GetContentRegionAvail().x, 20),
+                ImVec2(0,0),
+                ImVec2(1,1)
+            );
+            //ImGui::Spacing();
+        };
+        draw_colormap();
+
+        // Slider
+        auto& r = scalar_range<Entity>(_r);
+        if constexpr(std::is_same_v<ST,int>) {
+            Vec2i i = {r.min_value,r.max_value};
+            ImGui::SliderInt2("Show Range", &i.x, min, max);
+            r.min_value = i.x;
+            r.max_value = i.y;
+        }
+        else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
+            Vec2f f = {r.min_value,r.max_value};
+            ImGui::SliderFloat2("Show Range", &f.x, min, max);
+            r.min_value = std::clamp<float>(f.x, min, r.max_value);
+            r.max_value = std::clamp<float>(f.y, r.min_value, max);
+        } else if constexpr(std::is_same_v<ST,bool>) {
+            bool b_show_false = !r.min_value;
+            bool b_show_true = r.max_value;
+            ImGui::Checkbox("Show False", &b_show_false);
+            ImGui::SameLine();
+            ImGui::Checkbox("Show True", &b_show_true);
+            r.min_value = !b_show_false;
+            r.max_value = b_show_true;
+        }
     }
 
     std::string name() override {
         return "Scalar Range";
     }
 
-    ST min;
+    ST min; // global min/max
     ST max;
 };
 

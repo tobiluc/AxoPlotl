@@ -27,15 +27,21 @@ void MeshRenderer::deleteBuffers()
     if (vao_triangles_) {glDeleteVertexArrays(1, &vao_triangles_);}
     if (vao_triangles_picking_) {glDeleteVertexArrays(1, &vao_triangles_picking_);}
     if (vao_cells_) {glDeleteVertexArrays(1, &vao_cells_);}
+    if (vao_cells_outline_) {glDeleteVertexArrays(1, &vao_cells_outline_);}
 
     if (ibo_points_) {glDeleteBuffers(1, &ibo_points_);}
     if (ibo_lines_) {glDeleteBuffers(1, &ibo_lines_);}
     if (ibo_triangles_) {glDeleteBuffers(1, &ibo_triangles_);}
     if (ibo_cells_) {glDeleteBuffers(1, &ibo_cells_);}
+    if (ibo_cells_outline_) {glDeleteBuffers(1, &ibo_cells_outline_);}
 
-    vbo_point_attrib_ = vbo_line_attrib_ = vbo_triangle_attrib_ = vbo_cell_attrib_
-    = vao_points_ = vao_lines_ = vao_triangles_ = vao_triangles_picking_ = vao_cells_
-        = ibo_points_ = ibo_lines_ = ibo_triangles_ = ibo_cells_ = 0;
+    vbo_point_attrib_ = vbo_line_attrib_
+        = vbo_triangle_attrib_ = vbo_cell_attrib_
+        = vao_points_ = vao_lines_ = vao_triangles_
+        = vao_triangles_picking_ = vao_cells_
+        = vao_cells_outline_
+        = ibo_points_ = ibo_lines_ = ibo_triangles_
+        = ibo_cells_ = ibo_cells_outline_ = 0;
 }
 
 void MeshRenderer::createBuffers()
@@ -43,6 +49,9 @@ void MeshRenderer::createBuffers()
     glGenVertexArrays(1, &vao_cells_);
     glGenBuffers(1, &vbo_cell_attrib_);
     glGenBuffers(1, &ibo_cells_);
+
+    glGenVertexArrays(1, &vao_cells_outline_);
+    glGenBuffers(1, &ibo_cells_outline_);
 
     glGenVertexArrays(1, &vao_triangles_);
     glGenBuffers(1, &vbo_triangle_attrib_);
@@ -82,6 +91,26 @@ void MeshRenderer::setupVertexAttributes()
     // -- Attrib 3: Cell Index
     glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, cell_index));
     glEnableVertexAttribArray(3);
+
+    glBindVertexArray(0);
+
+    //------------------
+    // Cells (Outline)
+    //------------------
+    glBindVertexArray(vao_cells_outline_);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_cell_attrib_);
+
+    // -- Attrib 0: Position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, position));
+    glEnableVertexAttribArray(0);
+
+    // -- Attrib 1: Data
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, data));
+    glEnableVertexAttribArray(1);
+
+    // -- Attrib 2: Cell Incenter
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(VertexCellAttrib), (void*)offsetof(VertexCellAttrib, cell_incenter));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(0);
 
@@ -222,13 +251,16 @@ void MeshRenderer::updateFaceTriangles(
 
 void MeshRenderer::updateCellTriangles(
     const std::vector<VertexCellAttrib>& _c_attribs,
-    const std::vector<GLuint>& _c_triangle_indices)
+    const std::vector<GLuint>& _c_triangle_indices,
+    const std::vector<GLuint> &_c_line_indices)
 {
 
     init();
 
     n_cell_triangles_ = _c_triangle_indices.size() / 3;
+    n_cell_lines_ = _c_line_indices.size() / 2;
 
+    // Cells
     glBindVertexArray(vao_cells_);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cells_);
@@ -237,12 +269,18 @@ void MeshRenderer::updateCellTriangles(
     glBindBuffer(GL_ARRAY_BUFFER, vbo_cell_attrib_);
     glBufferData(GL_ARRAY_BUFFER, _c_attribs.size() * sizeof(VertexCellAttrib), _c_attribs.data(), GL_DYNAMIC_DRAW);
 
+    // Cells (Outline)
+    glBindVertexArray(vao_cells_outline_);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_cells_outline_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, _c_line_indices.size() * sizeof(GLuint), _c_line_indices.data(), GL_DYNAMIC_DRAW);
+
     glBindVertexArray(0);
 }
 
 void MeshRenderer::updateData(const Data& data)
 {
-    updateCellTriangles(data.cell_attribs_, data.cell_triangle_indices_);
+    updateCellTriangles(data.cell_attribs_, data.cell_triangle_indices_, data.cell_line_indices_);
     updateFaceTriangles(data.triangleAttribs, data.face_triangle_indices_);
     updateEdgeLines(data.lineAttribs, data.lineIndices);
     updateVertexPoints(data.pointAttribs, data.pointIndices);
@@ -351,25 +389,55 @@ void MeshRenderer::render(const Matrices &m)
     {
         Shader::CELLS_SHADER.use();
 
+        // General
         Shader::CELLS_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
         Shader::CELLS_SHADER.setFloat("cell_scale", cell_scale_);
 
+        // Prop Vis
         color_map_.bind(0);
         Shader::CELLS_SHADER.setInt("colormap", 0);
         Shader::CELLS_SHADER.setVec2f("visible_data_range", cell_scalar_prop_range_.min_value, cell_scalar_prop_range_.max_value);
-
         Shader::CELLS_SHADER.setInt("data_type", static_cast<int>(cell_prop_type_));
 
+        // Clip Box
         Shader::CELLS_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
         Shader::CELLS_SHADER.setVec3f("clip_box_min", clip_box_min);
         Shader::CELLS_SHADER.setVec3f("clip_box_max", clip_box_max);
 
-
+        // Draw
         glBindVertexArray(vao_cells_);
 
         glPolygonMode( GL_FRONT_AND_BACK, cells_wireframe_? GL_LINE : GL_FILL );
         glDrawElements(GL_TRIANGLES, 3*n_cell_triangles_, GL_UNSIGNED_INT, NULL);
         if (cells_wireframe_) {glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );}
+
+        glBindVertexArray(0);
+
+        // Cells Outline
+        Shader::CELLS_OUTLINE_SHADER.use();
+
+        // General
+        Shader::CELLS_OUTLINE_SHADER.setMat4x4f("model_view_projection_matrix", m.model_view_projection_matrix);
+        Shader::CELLS_OUTLINE_SHADER.setFloat("cell_scale", cell_scale_);
+        Shader::CELLS_OUTLINE_SHADER.setVec4f("color", cells_outline_color_);
+
+        // Prop Vis
+        Shader::CELLS_OUTLINE_SHADER.setVec2f("visible_data_range", cell_scalar_prop_range_.min_value, cell_scalar_prop_range_.max_value);
+        Shader::CELLS_OUTLINE_SHADER.setInt("data_type", static_cast<int>(cell_prop_type_));
+
+        // Clip Box
+        Shader::CELLS_OUTLINE_SHADER.setBool("clip_box_enabled", clip_box_enabled_);
+        Shader::CELLS_OUTLINE_SHADER.setVec3f("clip_box_min", clip_box_min);
+        Shader::CELLS_OUTLINE_SHADER.setVec3f("clip_box_max", clip_box_max);
+
+        // Draw
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(-0.75f, -0.75f);
+
+        glBindVertexArray(vao_cells_outline_);
+        glDrawElements(GL_LINES, 2*n_cell_lines_, GL_UNSIGNED_INT, NULL);
+
+        glDisable(GL_POLYGON_OFFSET_FILL);
 
         glBindVertexArray(0);
     }

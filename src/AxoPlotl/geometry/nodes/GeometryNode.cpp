@@ -48,15 +48,17 @@ void GeometryNode::renderUIHeader(Scene *scene)
     if (ImGui::BeginPopup(("object_popup_" + std::to_string(id_)).c_str())) {
 
         // Name
-        ImGui::Text("Settings (Object Id: %d)", id_);
+        ImGui::SeparatorText("Info");
+        ImGui::Text("id=%d", id_);
+        ImGui::SameLine();
         ImGui::InputText("Name", name_, sizeof(name_));
-        ImGui::Text("PLT: %d, %d, %d, %zu",
-            mesh_renderer_.n_points(),
-            mesh_renderer_.n_lines(),
-            mesh_renderer_.n_triangles(),
-            mesh_renderer_.n_cell_triangles()
+        ImGui::Text("P/L/T = %zu/%zu/%zu",
+            mesh_renderer_.n_vertex_points(),
+            mesh_renderer_.n_edge_lines() + mesh_renderer_.n_cell_lines(),
+            mesh_renderer_.n_face_triangles() + mesh_renderer_.n_cell_triangles()
         );
-        ImGui::Separator();
+
+        ImGui::SeparatorText("Visualization Options");
 
         if (ImGui::Button("Zoom to Object")) {
             this->visible() = true;
@@ -73,7 +75,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
 
         // Material
 
-        if (mesh_renderer_.n_points() > 0) {
+        if (mesh_renderer_.n_vertex_points() > 0) {
             if (ImGui::BeginMenu("Vertices")) {
                 ImGui::Checkbox("Show Vertices", &mesh_renderer_.render_vertices_);
                 ImGui::SliderFloat("Size", &mesh_renderer_.point_size_, 1.f, 32.0f);
@@ -81,7 +83,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             }
         }
 
-        if (mesh_renderer_.n_lines() > 0) {
+        if (mesh_renderer_.n_edge_lines() > 0) {
             if (ImGui::BeginMenu("Edges")) {
                 ImGui::Checkbox("Show Edges", &mesh_renderer_.render_edges_);
                 ImGui::SliderFloat("Width", &mesh_renderer_.line_width_, 1.f, 16.0f);
@@ -89,7 +91,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             }
         }
 
-        if (mesh_renderer_.n_triangles() > 0) {
+        if (mesh_renderer_.n_face_triangles() > 0) {
             if (ImGui::BeginMenu("Faces")) {
                 ImGui::Checkbox("Show Faces", &mesh_renderer_.render_faces_);
                 ImGui::Checkbox("Wireframe", &mesh_renderer_.faces_wireframe_);
@@ -102,6 +104,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
                 ImGui::Checkbox("Show Cells", &mesh_renderer_.render_cells_);
                 ImGui::SliderFloat("Cell Scale", &mesh_renderer_.cell_scale_, 0.0f, 1.0f);
                 ImGui::Checkbox("Wireframe", &mesh_renderer_.cells_wireframe_);
+                ImGui::ColorEdit4("Outline Color", &mesh_renderer_.cells_outline_color_[0]);
                 ImGui::EndMenu();
             }
         }
@@ -118,7 +121,7 @@ void GeometryNode::renderUIHeader(Scene *scene)
             ImGui::SliderFloat2("z", &mesh_renderer_.clip_box_z_[0], bbox_.first[2], bbox_.second[2]);
         }
 
-        ImGui::Separator();
+        ImGui::SeparatorText("Edit");
 
         // Delete
         if (ImGui::MenuItem("Delete")) {

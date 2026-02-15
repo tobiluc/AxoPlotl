@@ -3,7 +3,7 @@
 #include "AxoPlotl/properties/property_filters.hpp"
 #include "AxoPlotl/rendering/MeshRenderer.h"
 #include "AxoPlotl/utils/Utils.h"
-
+#include "AxoPlotl/typedefs/typedefs_ToLoG.hpp" // <- important for glm traits
 
 namespace AxoPlotl
 {
@@ -45,6 +45,7 @@ Vec4f vertex_buffer_property_data(const T& _val)
             std::cerr << "Vector Properties of Dimension > 4 are not supported" << std::endl;
         }
     }
+    throw std::runtime_error("UNKNOWN PROPERTY DATA TYPE");
     return Vec4f(0,0,0,0);
 }
 
@@ -77,14 +78,16 @@ void upload_vertex_property_data(
     indices.reserve(_mesh.n_vertices());
     for (auto vh : _mesh.vertices()) {
         Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
+        Vec4f a = vertex_buffer_property_data(_prop[vh]);
         p_attribs.push_back({
             .position = p,
-            .color = vertex_buffer_property_data(_prop[vh])
+            .color = a
         });
-        indices.push_back(vh.idx());
+        indices.push_back(vh.uidx());
     }
     _r.updateVertexPoints(p_attribs, indices);
     _r.vertex_prop_type_ = vertex_buffer_property_data_type<T>();
+    std::cout << "Uploaded Vertex Property Data " << (int)_r.vertex_prop_type_ << std::endl;
 };
 
 template<typename T>
@@ -165,10 +168,13 @@ void upload_cell_property_data(
     c_attribs.reserve(4*_mesh.n_cells());
     std::vector<GLuint> c_triangle_indices;
     c_triangle_indices.reserve(12*_mesh.n_cells());
-    int idx_offset(0);
+    std::vector<GLuint> c_line_indices;
+    c_line_indices.reserve(12*_mesh.n_cells());
+    unsigned int v_index(0);
 
     for (auto c_it = _mesh.c_iter(); c_it.is_valid(); ++c_it) {
 
+        // Compute Incenter
         uint32_t n_vhs(0);
         Vec3f incenter(0,0,0);
         for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
@@ -177,10 +183,12 @@ void upload_cell_property_data(
         }
         incenter /= n_vhs; // todo. compute actual incenter
 
-        std::vector<OpenVolumeMesh::VH> cell_vhs;
+        // Collect the cell vertices and create a mapping
+        // vh -> idx
+        ToLoG::HashMap<OVM::VH,int> vh_idx;
         for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
             OpenVolumeMesh::VH vh = *cv_it;
-            cell_vhs.push_back(vh);
+            vh_idx[vh] = v_index++;
 
             auto p = toVec3<Vec3f>(_mesh.vertex(vh));
             c_attribs.push_back(GL::MeshRenderer::VertexCellAttrib{
@@ -191,29 +199,26 @@ void upload_cell_property_data(
             });
         }
 
+        // Add the cell edges
+        for (auto ce_it = _mesh.ce_iter(*c_it); ce_it.is_valid(); ++ce_it) {
+            auto heh = ce_it->halfedge_handle(0);
+            c_line_indices.push_back(vh_idx[_mesh.from_vertex_handle(heh)]);
+            c_line_indices.push_back(vh_idx[_mesh.to_vertex_handle(heh)]);
+        }
+
+        // Triangulate the cell halffaces
         for (const auto& hfh : _mesh.cell(*c_it).halffaces()) {
             const auto& vhs = _mesh.get_halfface_vertices(hfh);
-            std::vector<int> vhs_inds;
-            for (const auto& vh : vhs) {
-                for (int vh_idx = 0; vh_idx < cell_vhs.size(); ++vh_idx) {
-                    if (cell_vhs[vh_idx] == vh) {
-                        vhs_inds.push_back(vh_idx);
-                        break;
-                    }
-                }
-            }
 
             for (uint j = 1; j < vhs.size()-1; ++j) {
-                c_triangle_indices.push_back(idx_offset + vhs_inds[0]);
-                c_triangle_indices.push_back(idx_offset + vhs_inds[j]);
-                c_triangle_indices.push_back(idx_offset + vhs_inds[j+1]);
+                c_triangle_indices.push_back(vh_idx[vhs[0]]);
+                c_triangle_indices.push_back(vh_idx[vhs[j]]);
+                c_triangle_indices.push_back(vh_idx[vhs[j+1]]);
             }
 
         }
-
-        idx_offset += cell_vhs.size();
     }
-    _r.updateCellTriangles(c_attribs, c_triangle_indices);
+    _r.updateCellTriangles(c_attribs, c_triangle_indices, c_line_indices);
     _r.cell_prop_type_ = vertex_buffer_property_data_type<T>();
 };
 
@@ -242,15 +247,31 @@ void upload_property_data(
     // Upload Properties
     if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {
         upload_vertex_property_data(_mesh, prop, _r);
+        _r.render_vertices_ = true;
+        _r.render_edges_ = false;
+        _r.render_faces_ = false;
+        _r.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {
         upload_edge_property_data(_mesh, prop, _r);
+        _r.render_vertices_ = false;
+        _r.render_edges_ = true;
+        _r.render_faces_ = false;
+        _r.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {
         upload_face_property_data(_mesh, prop, _r);
+        _r.render_vertices_ = false;
+        _r.render_edges_ = false;
+        _r.render_faces_ = true;
+        _r.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {
         upload_cell_property_data(_mesh, prop, _r);
+        _r.render_vertices_ = false;
+        _r.render_edges_ = false;
+        _r.render_faces_ = false;
+        _r.render_cells_ = true;
     }
 }
 

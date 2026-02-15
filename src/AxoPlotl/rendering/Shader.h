@@ -16,6 +16,7 @@ public:
     static Shader EDGES_SHADER;
     static Shader VERTICES_SHADER;
     static Shader PICKING_SHADER;
+    static Shader CELLS_OUTLINE_SHADER;
 
     // Call this one OpenGL is initialized
     static void loadGlobalShaders();

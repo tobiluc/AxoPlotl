@@ -58,6 +58,7 @@ public:
     float point_size_ = 5.0f;
     float line_width_ = 3.0f;
     float cell_scale_ = 0.9f;
+    Vec4f cells_outline_color_ = {0,0,0,1};
 
     PropDataType vertex_prop_type_ = PropDataType::COLOR;
     PropDataType edge_prop_type_ = PropDataType::COLOR;
@@ -110,13 +111,15 @@ public:
         std::vector<GLuint> lineIndices;
         std::vector<GLuint> face_triangle_indices_;
         std::vector<GLuint> cell_triangle_indices_;
+        std::vector<GLuint> cell_line_indices_; // outline
     } Data;
 
 private:
-    size_t n_points_;
-    size_t n_lines_;
-    size_t n_face_triangles_;
-    size_t n_cell_triangles_;
+    size_t n_points_ = 0;
+    size_t n_lines_ = 0;
+    size_t n_face_triangles_ = 0;
+    size_t n_cell_triangles_ = 0;
+    size_t n_cell_lines_ = 0;
 
     GLuint vbo_point_attrib_ = 0;
     GLuint vbo_line_attrib_ = 0;
@@ -127,10 +130,12 @@ private:
     GLuint vao_triangles_ = 0;
     GLuint vao_cells_ = 0;
     GLuint vao_triangles_picking_ = 0;
+    GLuint vao_cells_outline_ = 0;
     GLuint ibo_points_ = 0;
     GLuint ibo_lines_ = 0;
     GLuint ibo_triangles_ = 0;
     GLuint ibo_cells_ = 0;
+    GLuint ibo_cells_outline_ = 0;
 
     //Settings settings_;
 
@@ -140,19 +145,23 @@ private:
 
     void setupVertexAttributes();
 
-    inline void init() {
-        if (!vao_points_ || !vao_lines_ || !vao_triangles_ || !vao_triangles_picking_ || !vao_cells_) {
-            createBuffers();
-            setupVertexAttributes();
-        }
-        color_map_.create({1.0f, 0.0f, 0.0f, 1.0f});
-        color_map_.set_gradient(Vec3f(1,0,0), Vec3f(0,1,0), 256);
-    }
-
 public:
     MeshRenderer();
 
     ~MeshRenderer();
+
+    inline void init() {
+        if (!vao_points_ || !vao_lines_ || !vao_triangles_
+            || !vao_triangles_picking_ || !vao_cells_
+            || !vao_cells_outline_) {
+            createBuffers();
+            setupVertexAttributes();
+        }
+        if (!color_map_.texture_id_) {
+            color_map_.create();
+            color_map_.set_coolwarm(256);
+        }
+    }
 
     void updateVertexPoints(
         const std::vector<VertexPointAttrib>& _p_attribs,
@@ -168,7 +177,9 @@ public:
 
     void updateCellTriangles(
         const std::vector<VertexCellAttrib>& _c_attribs,
-        const std::vector<GLuint>& _c_triangle_indices);
+        const std::vector<GLuint>& _c_triangle_indices,
+        const std::vector<GLuint>& _c_line_indices
+        );
 
     void updateData(const Data& data);
 
@@ -178,13 +189,15 @@ public:
 
     //inline Settings& settings() {return settings_;}
 
-    inline uint n_points() const {return n_points_;}
+    inline size_t n_vertex_points() const {return n_points_;}
 
-    inline uint n_lines() const {return n_lines_;}
+    inline size_t n_edge_lines() const {return n_lines_;}
 
-    inline uint n_triangles() const {return n_face_triangles_;}
+    inline size_t n_face_triangles() const {return n_face_triangles_;}
 
     inline size_t n_cell_triangles() const {return n_cell_triangles_;}
+
+    inline size_t n_cell_lines() const {return n_cell_lines_;}
 };
 
 }

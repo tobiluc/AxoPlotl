@@ -5,171 +5,62 @@
 namespace AxoPlotl
 {
 
-static GL::MeshRenderer::Data create_render_data(VolumeMesh &mesh)
-{
-    GL::MeshRenderer::Data data;
-
-    data.pointAttribs.reserve(mesh.n_vertices());
-    data.pointIndices.reserve(mesh.n_vertices());
-    for (auto v_it = mesh.v_iter(); v_it.is_valid(); ++v_it) {
-
-        // Compute smooth normal
-        Vec3f n(0,0,0);
-        for (auto vf_it = mesh.vf_iter(*v_it); vf_it.is_valid(); ++vf_it) {
-            n += toVec3<Vec3f>(mesh.normal(vf_it->halfface_handle(0)));
-        }
-        n = glm::normalize(n);
-        auto p =toVec3<Vec3f>(mesh.vertex(*v_it));
-
-        data.pointAttribs.push_back(GL::MeshRenderer::VertexPointAttrib{
-            .position = p,
-            .color = color_on_sphere(p)
-        });
-        data.pointIndices.push_back(v_it->uidx());
-    }
-
-    data.lineAttribs.reserve(2*mesh.n_edges());
-    data.lineIndices.reserve(2*mesh.n_edges());
-    for (auto e_it = mesh.e_iter(); e_it.is_valid(); ++e_it) {
-        auto vh0 = mesh.from_vertex_handle(e_it->halfedge_handle(0));
-        auto vh1 = mesh.from_vertex_handle(e_it->halfedge_handle(1));
-
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(vh0)),
-            .color = Vec4f(0,0,0,1)
-        });
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
-            .position = toVec3<Vec3f>(mesh.vertex(vh1)),
-            .color = Vec4f(0,0,0,1)
-        });
-        data.lineIndices.push_back(data.lineAttribs.size()-2);
-        data.lineIndices.push_back(data.lineAttribs.size()-1);
-    }
-
-    if (mesh.n_cells() == 0)
-    {
-        data.triangleAttribs.reserve(3*mesh.n_faces());
-        data.face_triangle_indices_.reserve(3*mesh.n_faces());
-
-        int idx(0);
-        for (auto f_it = mesh.f_iter(); f_it.is_valid(); ++f_it) {
-            const auto& vhs = mesh.get_halfface_vertices(f_it->halfface_handle(0));
-            auto normal = toVec3<Vec3f>(mesh.normal(f_it->halfface_handle(0)));
-
-            for (OVM::VH vh : vhs) {
-                auto p = toVec3<Vec3f>(mesh.vertex(vh));
-                data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-                    .position = p,
-                    .color = color_on_sphere(p),
-                    .normal = normal,
-                    .face_index = 0.0f
-                });
-            }
-
-            for (uint j = 1; j < vhs.size()-1; ++j) {
-                data.face_triangle_indices_.push_back(idx);
-                data.face_triangle_indices_.push_back(idx+j);
-                data.face_triangle_indices_.push_back(idx+j+1);
-            }
-            idx += vhs.size();
-        }
-    }
-    else
-    {
-        data.cell_attribs_.reserve(4*mesh.n_cells());
-        data.cell_triangle_indices_.reserve(12*mesh.n_cells());
-
-        int idx_offset(0);
-        for (auto c_it = mesh.c_iter(); c_it.is_valid(); ++c_it) {
-
-            // Compute the Cell Incenter
-            uint32_t n_vhs(0);
-            Vec3f incenter(0,0,0);
-            for (auto cv_it = mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
-                incenter += toVec3<Vec3f>(mesh.vertex(*cv_it));
-                ++n_vhs;
-            }
-            incenter /= n_vhs; // todo. compute actual incenter
-
-            // Add the Vertex Attributes
-            std::vector<OpenVolumeMesh::VH> cell_vhs;
-            for (auto cv_it = mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
-                OpenVolumeMesh::VH vh = *cv_it;
-                cell_vhs.push_back(vh);
-
-                auto p = toVec3<Vec3f>(mesh.vertex(vh));
-                data.cell_attribs_.push_back(GL::MeshRenderer::VertexCellAttrib{
-                    .position = p,
-                    .data = color_on_sphere(p),
-                    .cell_incenter = incenter,
-                    .cell_index = static_cast<float>(c_it->idx())
-                });
-            }
-
-            // Add the Vertex Indices
-            for (const auto& hfh : mesh.cell(*c_it).halffaces()) {
-                const auto& vhs = mesh.get_halfface_vertices(hfh);
-                std::vector<int> vhs_inds;
-                for (const auto& vh : vhs) {
-                    for (int vh_idx = 0; vh_idx < cell_vhs.size(); ++vh_idx) {
-                        if (cell_vhs[vh_idx] == vh) {
-                            vhs_inds.push_back(vh_idx);
-                            break;
-                        }
-                    }
-                }
-
-                for (uint j = 1; j < vhs.size()-1; ++j) {
-                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[0]);
-                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[j]);
-                    data.cell_triangle_indices_.push_back(idx_offset + vhs_inds[j+1]);
-                }
-
-            }
-
-            idx_offset += cell_vhs.size();
-        }
-    }
-
-    return data;
-}
-
 void MeshNode::init(Scene* scene)
 {
-    //renderer_.addMesh(mesh_, renderLoc_);
-    GL::MeshRenderer::Data data = create_render_data(mesh_);
-    //GL::MeshRenderer::createData(mesh_, data);
-    mesh_renderer_.updateData(data);
+    // Initialize with empty Data (TODO: Not very elegant that we need this line)
+    mesh_renderer_.updateData(GL::MeshRenderer::Data());
+
+    // Upload the mesh data to the gpu by creating private color properties.
+
+    auto v_prop = mesh_.create_private_vertex_property<Vec4f>();
+    for (auto vh : mesh_.vertices()) {v_prop[vh] = color_on_sphere(toVec3<Vec3f>(mesh_.vertex(vh)));}
+    upload_vertex_property_data(mesh_, v_prop, mesh_renderer_);
+
+    auto e_prop = mesh_.create_private_edge_property<Vec4f>();
+    for (auto eh : mesh_.edges()) {e_prop[eh] = Vec4f(0,0,0,1);}
+    upload_edge_property_data(mesh_, e_prop, mesh_renderer_);
+
+    auto f_prop = mesh_.create_private_face_property<Vec4f>();
+    for (auto fh : mesh_.faces()) {
+        f_prop[fh] = color_on_sphere(toVec3<Vec3f>(
+            mesh_.vertex(mesh_.get_halfface_vertices(fh.halfface_handle(0)).at(0))));
+    }
+    upload_face_property_data(mesh_, f_prop, mesh_renderer_);
+
+    auto c_prop = mesh_.create_private_cell_property<Vec4f>();
+    for (auto ch : mesh_.cells()) {
+        c_prop[ch] = color_on_sphere(toVec3<Vec3f>(
+            mesh_.vertex(mesh_.get_halfface_vertices(mesh_.cell(ch).halffaces().at(0)).at(0))));
+    }
+    upload_cell_property_data(mesh_, c_prop, mesh_renderer_);
 
     // Compute Bounding Box
     bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
-    for (uint32_t i = 0; i < data.pointAttribs.size(); ++i) {
+    for (auto vh : mesh_.vertices()) {
+        const auto& p = mesh_.vertex(vh);
         for (int a = 0; a < 3; ++a) {
-            bbox_.first[a] = std::min(bbox_.first[a], data.pointAttribs[i].position[a]);
-            bbox_.second[a] = std::max(bbox_.second[a], data.pointAttribs[i].position[a]);
+            bbox_.first[a] = std::min(bbox_.first[a], p[a]);
+            bbox_.second[a] = std::max(bbox_.second[a], p[a]);
         }
     }
 }
 
 void MeshNode::renderUIBody(Scene* scene)
 {
-    // if (ImGui::Button("Unvisualize Properties")) {
-    //     initRenderer(scene);
-    // }
+    ImGui::SeparatorText("Properties");
 
-
-
-    if (ImGui::BeginMenu("Properties"))
-    {
-        if (ImGui::BeginMenu("Calculate")) {
-            if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Boundary Distance")) {
-                calc_cell_boundary_distance(mesh_);
-            }
-            if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Min Dihedral Angle")) {
-                calc_cell_min_dihedral_angle(mesh_);
-            }
-            ImGui::EndMenu();
+    if (ImGui::BeginMenu("Calculate")) {
+        if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Boundary Distance")) {
+            calc_cell_boundary_distance(mesh_);
         }
+        if (mesh_.n_cells()>0 && ImGui::MenuItem("Cell Min Dihedral Angle")) {
+            calc_cell_min_dihedral_angle(mesh_);
+        }
+        ImGui::EndMenu();
+    }
+
+    if (ImGui::BeginMenu("Select"))
+    {
         ImGui::Separator();
 
         if (mesh_.n_vertex_props()>0 && ImGui::BeginMenu("Vertices"))
@@ -303,12 +194,13 @@ void MeshNode::renderUIBody(Scene* scene)
 
     if (prop_)
     {
-
-        ImGui::Text("%s [%s]", (*prop_)->name().c_str(), (*prop_)->typeNameWrapper().c_str());
+        //(*prop_)->typeNameWrapper().c_str()
+        std::string prop_title = (*prop_)->name();
+        ImGui::SeparatorText(prop_title.c_str());
 
         if (!prop_filters_.empty()) {
 
-            if (ImGui::BeginMenu("Filter Options")) {
+            if (ImGui::BeginMenu("Change Filter")) {
 
                 for (int i = 0; i < prop_filters_.size(); ++i) {
                     if (ImGui::MenuItem(prop_filters_[i]->name().c_str())) {
@@ -321,7 +213,7 @@ void MeshNode::renderUIBody(Scene* scene)
             prop_filters_[active_prop_filter_]->renderUI(mesh_renderer_);
         }
 
-        if (ImGui::Button("Stop Property Visualization")) {
+        if (ImGui::Button("Unselect Property")) {
             prop_ = std::nullopt;
             mesh_renderer_.edge_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
             mesh_renderer_.vertex_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
@@ -330,7 +222,6 @@ void MeshNode::renderUIBody(Scene* scene)
             init(scene);
         }
     }
-
 
     //---------------------------
 
