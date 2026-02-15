@@ -15,8 +15,9 @@ public:
     static Shader TBO_EDGES_SHADER;
     static Shader TBO_FACES_SHADER;
     static Shader TBO_CELLS_SHADER;
-    static Shader TBO_PICK_FACES_SHADER;
+    static Shader TBO_FACES_PICKING_SHADER;
     static Shader TBO_CELLS_OUTLINE_SHADER;
+    static Shader TBO_CELLS_PICKING_SHADER;
 
     // Call this one OpenGL is initialized
     static void loadGlobalShaders();

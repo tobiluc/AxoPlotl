@@ -11,8 +11,9 @@ Shader Shader::TBO_VERTICES_SHADER;
 Shader Shader::TBO_EDGES_SHADER;
 Shader Shader::TBO_FACES_SHADER;
 Shader Shader::TBO_CELLS_SHADER;
-Shader Shader::TBO_PICK_FACES_SHADER;
+Shader Shader::TBO_FACES_PICKING_SHADER;
 Shader Shader::TBO_CELLS_OUTLINE_SHADER;
+Shader Shader::TBO_CELLS_PICKING_SHADER;
 
 void Shader::loadGlobalShaders()
 {
@@ -20,8 +21,9 @@ void Shader::loadGlobalShaders()
     shader_from_source(tbo_edges_shader_src, TBO_EDGES_SHADER);
     shader_from_source(tbo_faces_shader_src, TBO_FACES_SHADER);
     shader_from_source(tbo_cells_shader_src, TBO_CELLS_SHADER);
-    shader_from_source(tbo_faces_picking_shader_src, TBO_PICK_FACES_SHADER);
-    shader_from_source(tbo_ells_outline_shader_src, TBO_CELLS_OUTLINE_SHADER);
+    shader_from_source(tbo_faces_picking_shader_src, TBO_FACES_PICKING_SHADER);
+    shader_from_source(tbo_cells_outline_shader_src, TBO_CELLS_OUTLINE_SHADER);
+    shader_from_source(tbo_cells_picking_shader_src, TBO_CELLS_PICKING_SHADER);
 }
 
 void Shader::shader_from_file(const std::filesystem::path& _path, Shader& _shader)

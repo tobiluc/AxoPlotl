@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AxoPlotl/rendering/MeshRenderer.h"
+#include "AxoPlotl/rendering/PickingTexture.h"
 #include "AxoPlotl/rendering/VolumeMeshRenderer.hpp"
 #include <imgui.h>
 
@@ -74,6 +75,8 @@ public:
         //GL::MeshRenderer::Matrices m(transform_, view, projection);
         vol_rend_.render_picking(projection * view * transform_, id_);
     }
+
+    virtual void renderPickedUI(Scene *scene, const PickingTexture::Pixel& _picked);
 
     inline int id() const {return id_;}
 

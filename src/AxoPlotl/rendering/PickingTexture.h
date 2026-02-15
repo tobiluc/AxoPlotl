@@ -38,8 +38,8 @@ public:
     struct Pixel
     {
         unsigned int object_index = 0;
-        unsigned int buffer = 0;
-        unsigned int primitive_id = 0;
+        unsigned int primitive_index = 0;
+        unsigned int primitive_type = 0;
     };
 
     Pixel readPixel(unsigned int x, unsigned int y);

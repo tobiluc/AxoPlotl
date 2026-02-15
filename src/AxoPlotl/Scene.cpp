@@ -382,26 +382,14 @@ void Scene::renderUI(GLFWwindow *window)
     }
     if (ImGui::BeginPopup(("object_popup_" + std::to_string(picked_.object_index)).c_str()))
     {
-        ImGui::Text("%d/%d/%d", picked_.object_index, picked_.primitive_id, picked_.buffer);
-
         // Find Object
         int id = picked_.object_index;
         auto it = std::find_if(objects_.begin(), objects_.end(), [id](const auto& obj) {
             return obj->id() == id;
         });
-        if (it != objects_.end())
-        {
-            ImGui::Text("%s", it->get()->name());
-            ImGui::Checkbox("Visible", &it->get()->visible());
-            if (ImGui::Button("Zoom to Object")) {
-                auto bbox = it->get()->getBBox();
-                camera_set_.zoomToBox(bbox.first, bbox.second);
-            }
-            if (ImGui::Button("Delete")) {
-                it->get()->setDeleted();
-            }
+        if (it != objects_.end()) {
+            it->get()->renderPickedUI(this, picked_);
         }
-
         ImGui::EndPopup();
     }
 

@@ -415,20 +415,37 @@ void VolumeMeshRenderer::render(const glm::mat4x4 &_mvp)
 
 void VolumeMeshRenderer::render_picking(const glm::mat4x4 &_mvp, int _id)
 {
+    if (!render_anything_) {return;}
+
     if (render_faces_)
     {
         glBindVertexArray(faceVAO);
 
-        Shader::TBO_PICK_FACES_SHADER.use();
-        Shader::TBO_PICK_FACES_SHADER.setMat4x4f("model_view_projection_matrix", _mvp);
-        Shader::TBO_PICK_FACES_SHADER.setUInt("object_index", _id);
+        Shader::TBO_FACES_PICKING_SHADER.use();
+        Shader::TBO_FACES_PICKING_SHADER.setMat4x4f("model_view_projection_matrix", _mvp);
+        Shader::TBO_FACES_PICKING_SHADER.setUInt("object_index", _id);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_BUFFER, positionsTex);
-        Shader::TBO_PICK_FACES_SHADER.setInt("positions", 0);
+        Shader::TBO_FACES_PICKING_SHADER.setInt("positions", 0);
 
         glDrawArrays(GL_TRIANGLES, 0, idx_count_face_triangles_);
-        Shader::TBO_PICK_FACES_SHADER.detach();
+        Shader::TBO_FACES_PICKING_SHADER.detach();
+    }
+    if (render_cells_)
+    {
+        glBindVertexArray(cellTriangleVAO);
+
+        Shader::TBO_CELLS_PICKING_SHADER.use();
+        Shader::TBO_CELLS_PICKING_SHADER.setMat4x4f("model_view_projection_matrix", _mvp);
+        Shader::TBO_CELLS_PICKING_SHADER.setUInt("object_index", _id);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_BUFFER, positionsTex);
+        Shader::TBO_CELLS_PICKING_SHADER.setInt("positions", 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, idx_count_cell_triangles_);
+        Shader::TBO_CELLS_PICKING_SHADER.detach();
     }
 }
 

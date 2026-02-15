@@ -26,6 +26,8 @@ public:
 
     void renderUIBody(Scene* scene) override;
 
+    void renderPickedUI(Scene* scene, const PickingTexture::Pixel& _picked) override;
+
     inline const VolumeMesh& mesh() const {return mesh_;}
 };
 

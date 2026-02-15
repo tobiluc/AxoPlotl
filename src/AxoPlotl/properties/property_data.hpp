@@ -28,6 +28,21 @@ std::pair<T,T> get_scalar_property_range(
     }
 };
 
+template<typename T>
+static std::string value_to_string(const T& _val)
+{
+    if constexpr(std::is_same_v<T,bool>) {return _val? "True" : "False";}
+    if constexpr(std::is_scalar_v<T>) {return std::string(_val);}
+    if constexpr (ToLoG::vector_type<T>) {
+        std::string s = "[";
+        for (int i = 0; i < ToLoG::Traits<T>::dim-1; ++i) {
+            s += std::string(_val[i]) + ", ";
+        }
+        s += std::string(_val[ToLoG::Traits<T>::dim-1]) + "]";
+    }
+    return "UNKNOWN";
+}
+
 /// Converts a generic value to a Vec4f to store in the Vertex Buffer as v_data.
 template<typename T>
 Vec4f vertex_buffer_property_data(const T& _val)

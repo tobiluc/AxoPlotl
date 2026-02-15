@@ -303,4 +303,68 @@ void MeshNode::renderUIBody(Scene* scene)
 
 }
 
+void MeshNode::renderPickedUI(Scene* scene, const PickingTexture::Pixel& _picked)
+{
+    //ImGui::Text("Obj %d, Type %d, Index %d", _picked.object_index, _picked.primitive_type, _picked.primitive_index);
+    ImGui::SeparatorText(name_);
+
+    if (_picked.primitive_type == 4) {
+        // Cell
+        OVM::CH ch(_picked.primitive_index);
+        if (ch.is_valid() && ch.uidx() < mesh_.n_cells())
+        {
+            ImGui::Text("Selected Cell: %u", ch.uidx());
+            for (auto c_prop = mesh_.cell_props_begin(); c_prop != mesh_.cell_props_end(); ++c_prop) {
+                std::string prop_name = (*c_prop)->name();
+                std::string str_value;
+                if ((*c_prop)->typeNameWrapper()=="double") {
+                    str_value = std::to_string(mesh_.get_cell_property<double>(prop_name).value().at(ch));
+                } else if ((*c_prop)->typeNameWrapper()=="int") {
+                    str_value = std::to_string(mesh_.get_cell_property<int>(prop_name).value().at(ch));
+                } else if ((*c_prop)->typeNameWrapper()=="float") {
+                    str_value = std::to_string(mesh_.get_cell_property<float>(prop_name).value().at(ch));
+                } else if ((*c_prop)->typeNameWrapper()=="bool") {
+                    bool b = mesh_.get_cell_property<bool>(prop_name).value().at(ch);
+                    str_value = b? "True" : "False";
+                } else if ((*c_prop)->typeNameWrapper()=="vec3d") {
+                    const auto& v = mesh_.get_cell_property<OVM::Vec3d>(prop_name).value().at(ch);
+                    str_value = "["+std::to_string(v[0])+", "
+                        +std::to_string(v[1])+", "+std::to_string(v[2])+"]";
+                }
+                ImGui::Text("%s: %s", prop_name.c_str(),
+                    str_value.c_str());
+            }
+        }
+    }
+    else if (_picked.primitive_type == 3) {
+        // Face
+        OVM::FH fh(_picked.primitive_index);
+        if (fh.is_valid() && fh.uidx() < mesh_.n_faces())
+        {
+            ImGui::Text("Selected Face: %u", fh.uidx());
+            for (auto f_prop = mesh_.face_props_begin(); f_prop != mesh_.face_props_end(); ++f_prop) {
+                std::string prop_name = (*f_prop)->name();
+                std::string str_value;
+                if ((*f_prop)->typeNameWrapper()=="double") {
+                    str_value = std::to_string(mesh_.get_face_property<double>(prop_name).value().at(fh));
+                } else if ((*f_prop)->typeNameWrapper()=="int") {
+                    str_value = std::to_string(mesh_.get_face_property<int>(prop_name).value().at(fh));
+                } else if ((*f_prop)->typeNameWrapper()=="float") {
+                    str_value = std::to_string(mesh_.get_face_property<float>(prop_name).value().at(fh));
+                } else if ((*f_prop)->typeNameWrapper()=="bool") {
+                    bool b = mesh_.get_face_property<bool>(prop_name).value().at(fh);
+                    str_value = b? "True" : "False";
+                } else if ((*f_prop)->typeNameWrapper()=="vec3d") {
+                    const auto& v = mesh_.get_face_property<OVM::Vec3d>(prop_name).value().at(fh);
+                    str_value = "["+std::to_string(v[0])+", "
+                                +std::to_string(v[1])+", "+std::to_string(v[2])+"]";
+                }
+                ImGui::Text("%s: %s", prop_name.c_str(),
+                            str_value.c_str());
+            }
+        }
+    }
+
+}
+
 }

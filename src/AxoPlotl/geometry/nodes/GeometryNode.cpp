@@ -125,4 +125,18 @@ void GeometryNode::renderUIHeader(Scene *scene)
     }
 }
 
+void GeometryNode::renderPickedUI(Scene *scene, const PickingTexture::Pixel& _picked)
+{
+    ImGui::Text("Obj %d, Type %d, Index %d", _picked.object_index, _picked.primitive_type, _picked.primitive_index);
+    ImGui::Text("%s", name_);
+    ImGui::Checkbox("Visible", &visible());
+    if (ImGui::Button("Zoom to Object")) {
+        auto bbox = getBBox();
+        scene->cameraSet().zoomToBox(bbox.first, bbox.second);
+    }
+    if (ImGui::Button("Delete")) {
+        setDeleted();
+    }
+}
+
 }

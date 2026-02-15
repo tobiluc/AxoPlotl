@@ -416,11 +416,11 @@ uniform uint object_index;
 
 void main()
 {
-    f_color = uvec3(object_index, uint(v2f_face_index), gl_PrimitiveID);
+    f_color = uvec3(object_index, uint(v2f_face_index), 3);
 }
 )";
 
-const char* tbo_ells_outline_shader_src =
+const char* tbo_cells_outline_shader_src =
 R"(
 #shader vertex
 #version 410 core
@@ -484,5 +484,42 @@ in vec4 v2f_color;
 void main()
 {
     f_color = v2f_color;
+}
+)";
+
+const char* tbo_cells_picking_shader_src =
+R"(
+#shader vertex
+#version 410 core
+
+uniform samplerBuffer positions;
+
+uniform mat4 model_view_projection_matrix;
+
+layout (location = 0) in uint v_vertex_index;
+layout (location = 1) in uint v_cell_index;
+layout (location = 2) in vec3 v_cell_incenter;
+
+out float v2f_cell_index;
+
+void main()
+{
+    vec3 pos = texelFetch(positions, int(v_vertex_index)).xyz;
+    gl_Position = model_view_projection_matrix * vec4(pos, 1.0);
+    v2f_cell_index = v_cell_index;
+}
+
+#shader fragment
+#version 410 core
+
+in float v2f_cell_index;
+
+out uvec3 f_color;
+
+uniform uint object_index;
+
+void main()
+{
+    f_color = uvec3(object_index, uint(v2f_cell_index), 4);
 }
 )";
