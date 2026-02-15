@@ -45,34 +45,67 @@ void SphericalHarmonicNode::init(Scene* scene)
 {
     SurfaceMesh mesh;
     createQuads(f_, mesh, resolution_);
-    GL::MeshRenderer::Data data;
 
-    float min = std::numeric_limits<float>::infinity(), max = -std::numeric_limits<float>::infinity();
-    for (uint i = 0; i < mesh.n_vertices(); ++i) {
+    bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
+
+    VolumeMeshRenderer::StaticData data;
+    for (int i = 0; i < mesh.n_vertices(); ++i) {
+
+        // Push Vertex Position
         auto p = mesh.point(i);
-        float val = f_(p);
-        if (val < min) {min = val;}
-        if (val > max) {max = val;}
+        data.positions_.push_back(Vec4f(p[0],p[1],p[2],1));
 
-        float t = (val - min) / (max - min);
-        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-            .position = p,
-            .color = Vec4f(t,0,1-t,1),
-            .normal = Vec3f(1,0,0)});
-    }
-
-    for (const auto& f : mesh.faces()) {
-        std::vector<int> is;
-        for (const auto& v : f.vertices()) {is.push_back(v);}
-        for (uint j = 1; j < is.size()-1; ++j) {
-            data.face_triangle_indices_.push_back(is[0]);
-            data.face_triangle_indices_.push_back(is[j]);
-            data.face_triangle_indices_.push_back(is[j+1]);
+        // BBox
+        for (int a = 0; a < 3; ++a) {
+            bbox_.first[a] = std::min(bbox_.first[a], p[a]);
+            bbox_.second[a] = std::max(bbox_.second[a], p[a]);
         }
     }
-    mesh_renderer_.updateData(data);
 
-    this->bbox_ = {Vec3f(-1,-1,-1),Vec3f(1,1,1)};
+    // Lines
+    std::vector<VolumeMeshRenderer::EdgeData> e_data;
+    data.n_edges_ = mesh.n_edges();
+    int e_idx(0);
+    for (const auto& e : mesh.edges()) {
+        data.edge_draw_vertices_.push_back({
+        .vertex_index=static_cast<uint32_t>(e.vertex(0)),
+        .edge_index=static_cast<uint32_t>(e_idx)
+        });
+        data.edge_draw_vertices_.push_back({
+        .vertex_index=static_cast<uint32_t>(e.vertex(1)),
+        .edge_index=static_cast<uint32_t>(e_idx)
+        });
+
+        const auto& p = color_on_sphere(mesh.point(e.vertex(0)));
+        e_data.push_back({.property = p});
+        e_idx++;
+    }
+
+    // Faces
+    std::vector<VolumeMeshRenderer::FaceData> f_data;
+    vol_rend_.n_faces_ = mesh.n_faces();
+    int f_idx(0);
+    for (const auto& f : mesh.faces()) {
+        for (int i = 1; i < f.valence()-1; ++i) {
+            data.face_triangle_draw_vertices_.push_back({
+                                                         .vertex_index=static_cast<uint32_t>(f.vertices()[0]),
+                                                         .face_index=static_cast<uint32_t>(f_idx)});
+            data.face_triangle_draw_vertices_.push_back({
+                                                         .vertex_index=static_cast<uint32_t>(f.vertices()[i]),
+                                                         .face_index=static_cast<uint32_t>(f_idx)});
+            data.face_triangle_draw_vertices_.push_back({
+                                                         .vertex_index=static_cast<uint32_t>(f.vertices()[i+1]),
+                                                         .face_index=static_cast<uint32_t>(f_idx)});
+        }
+
+        const auto& p = color_on_sphere(mesh.point(f.vertices()[0]));
+        f_data.push_back({.property = p});
+        f_idx++;
+    }
+
+    vol_rend_.init(data);
+    vol_rend_.update_edge_data(e_data);
+    vol_rend_.update_face_data(f_data);
 }
 
 }

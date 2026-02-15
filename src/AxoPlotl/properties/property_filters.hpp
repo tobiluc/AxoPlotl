@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AxoPlotl/rendering/VolumeMeshRenderer.hpp"
 #include <AxoPlotl/rendering/MeshRenderer.h>
 #include <type_traits>
 #include <imgui.h>
@@ -9,17 +10,17 @@ namespace AxoPlotl
 
 struct PropertyFilterBase
 {
-    virtual void renderUI(GL::MeshRenderer& _r) = 0;
+    virtual void renderUI(VolumeMeshRenderer& _r) = 0;
     virtual std::string name() = 0;
 };
 
 template<typename Entity>
-static GL::MeshRenderer::ScalarRangeConfig& scalar_range(GL::MeshRenderer& _r)
+static VolumeMeshRenderer::Property& get_property(VolumeMeshRenderer& _r)
 {
-    if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {return _r.vertex_scalar_prop_range_;}
-    if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {return _r.edge_scalar_prop_range_;}
-    if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {return _r.face_scalar_prop_range_;}
-    if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {return _r.cell_scalar_prop_range_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {return _r.vertex_property_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {return _r.edge_property_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {return _r.face_property_;}
+    if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {return _r.cell_property_;}
 }
 
 template<typename ST, typename Entity>
@@ -30,35 +31,37 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
     ScalarPropertyRangeFilter(ST _min=0, ST _max=1)
         : min(_min), max(_max) {}
 
-    void renderUI(GL::MeshRenderer& _r) override
+    void renderUI(VolumeMeshRenderer& _r) override
     {
+        VolumeMeshRenderer::Property& rp = get_property<Entity>(_r);
+
         std::string colormap_menu_title = "Colormap ("
-            + _r.color_map_.name_ + ")";
+            + rp.color_map_.name_ + ")";
         if (ImGui::BeginMenu(colormap_menu_title.c_str())) {
             if (ImGui::MenuItem("Viridis")) {
-                _r.color_map_.set_viridis(256);
+                rp.color_map_.set_viridis(256);
             }
             if (ImGui::MenuItem("Magma")) {
-                _r.color_map_.set_magma(256);
+                rp.color_map_.set_magma(256);
             }
             if (ImGui::MenuItem("Inferno")) {
-                _r.color_map_.set_inferno(256);
+                rp.color_map_.set_inferno(256);
             }
             if (ImGui::MenuItem("Plasma")) {
-                _r.color_map_.set_plasma(256);
+                rp.color_map_.set_plasma(256);
             }
             if (ImGui::MenuItem("Diverging Red Blue")) {
-                _r.color_map_.set_rd_bu(256);
+                rp.color_map_.set_rd_bu(256);
             }
             if (ImGui::MenuItem("Coolwarm")) {
-                _r.color_map_.set_coolwarm(256);
+                rp.color_map_.set_coolwarm(256);
             }
             ImGui::EndMenu();
         }
 
         auto draw_colormap = [&]() {
             ImGui::Image(
-                (ImTextureID)(intptr_t)_r.color_map_.texture_id_,
+                (ImTextureID)(intptr_t)rp.color_map_.texture_id_,
                 ImVec2(ImGui::GetContentRegionAvail().x, 20),
                 ImVec2(0,0),
                 ImVec2(1,1)
@@ -68,26 +71,26 @@ struct ScalarPropertyRangeFilter : public PropertyFilterBase
         draw_colormap();
 
         // Slider
-        auto& r = scalar_range<Entity>(_r);
+        Vec2f& vis_range = rp.range_;
         if constexpr(std::is_same_v<ST,int>) {
-            Vec2i i = {r.min_value,r.max_value};
+            Vec2i i = {vis_range[0],vis_range[1]};
             ImGui::SliderInt2("Show Range", &i.x, min, max);
-            r.min_value = i.x;
-            r.max_value = i.y;
+            vis_range.x = i.x;
+            vis_range.y = i.y;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            Vec2f f = {r.min_value,r.max_value};
+            Vec2f f = {vis_range.x,vis_range.y};
             ImGui::SliderFloat2("Show Range", &f.x, min, max);
-            r.min_value = std::clamp<float>(f.x, min, r.max_value);
-            r.max_value = std::clamp<float>(f.y, r.min_value, max);
+            vis_range.x = std::clamp<float>(f.x, min, vis_range.y);
+            vis_range.y = std::clamp<float>(f.y, vis_range.x, max);
         } else if constexpr(std::is_same_v<ST,bool>) {
-            bool b_show_false = !r.min_value;
-            bool b_show_true = r.max_value;
+            bool b_show_false = !vis_range.x;
+            bool b_show_true = vis_range.y;
             ImGui::Checkbox("Show False", &b_show_false);
             ImGui::SameLine();
             ImGui::Checkbox("Show True", &b_show_true);
-            r.min_value = !b_show_false;
-            r.max_value = b_show_true;
+            vis_range.x = !b_show_false;
+            vis_range.y = b_show_true;
         }
     }
 
@@ -104,31 +107,30 @@ struct ScalarPropertyExactFilter : public PropertyFilterBase
 {
     using Scalar = ST;
 
-    void renderUI(GL::MeshRenderer& _r) override
+    void renderUI(VolumeMeshRenderer& _r) override
     {
-        auto& r = scalar_range<Entity>(_r);
+        VolumeMeshRenderer::Property& rp = get_property<Entity>(_r);
+        Vec2f& r = rp.range_;
+
         //_r.v_prop_range
         if constexpr(std::is_same_v<ST,int>) {
-            int i = r.min_value;
+            int i = r[0];
             ImGui::InputInt("Value", &i);
-            r.min_value = i;
-            r.max_value = i;
+            r[0] = r[1] = i;
         }
         else if constexpr(std::is_same_v<ST,float> || std::is_same_v<ST,double>) {
-            float f = r.min_value;
+            float f = r[0];
             ImGui::InputFloat("Value", &f);
-            r.min_value = f;
-            r.max_value = f;
+            r[0] = r[1] = f;
         }
         else if constexpr(std::is_same_v<ST,bool>) {
-            bool b = r.min_value;
+            bool b = r[0];
             ImGui::Checkbox("True", &b);
-            r.min_value = b;
-            r.max_value = b;
+            r[0] = r[1] = b;
         }
 
         if (ImGui::ColorEdit3("Color", &color[0])) {
-            _r.color_map_.update({color[0],color[1],color[2],1.0f});
+            rp.color_map_.update({color[0],color[1],color[2],1.0f});
         }
     }
 

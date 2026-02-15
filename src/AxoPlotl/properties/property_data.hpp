@@ -2,8 +2,10 @@
 
 #include "AxoPlotl/properties/property_filters.hpp"
 #include "AxoPlotl/rendering/MeshRenderer.h"
+#include "AxoPlotl/rendering/VolumeMeshRenderer.hpp"
 #include "AxoPlotl/utils/Utils.h"
 #include "AxoPlotl/typedefs/typedefs_ToLoG.hpp" // <- important for glm traits
+#include "ToLoG/utils/KeyValueVector.hpp"
 
 namespace AxoPlotl
 {
@@ -49,177 +51,229 @@ Vec4f vertex_buffer_property_data(const T& _val)
     return Vec4f(0,0,0,0);
 }
 
+// template<typename T>
+// constexpr GL::MeshRenderer::PropDataType vertex_buffer_property_data_type()
+// {
+//     if constexpr(std::is_same_v<T,bool>
+//                   || std::is_same_v<T,int>
+//                   || std::is_same_v<T,float>
+//                   || std::is_same_v<T,double>)
+//     {return GL::MeshRenderer::PropDataType::SCALAR;}
+//     if constexpr(ToLoG::vector_type<T>) {
+//         if constexpr(ToLoG::Traits<T>::dim == 3) {
+//             return GL::MeshRenderer::PropDataType::VEC3;
+//         }
+//     }
+//     return GL::MeshRenderer::PropDataType::COLOR;
+// }
+
 template<typename T>
-constexpr GL::MeshRenderer::PropDataType vertex_buffer_property_data_type()
+constexpr VolumeMeshRenderer::Property::Visualization vertex_buffer_property_data_visualization()
 {
     if constexpr(std::is_same_v<T,bool>
                   || std::is_same_v<T,int>
                   || std::is_same_v<T,float>
                   || std::is_same_v<T,double>)
-    {return GL::MeshRenderer::PropDataType::SCALAR;}
+    {return VolumeMeshRenderer::Property::Visualization::SCALAR;}
     if constexpr(ToLoG::vector_type<T>) {
         if constexpr(ToLoG::Traits<T>::dim == 3) {
-            return GL::MeshRenderer::PropDataType::VEC3;
+            return VolumeMeshRenderer::Property::Visualization::VEC3;
         }
     }
-    return GL::MeshRenderer::PropDataType::COLOR;
+    return VolumeMeshRenderer::Property::Visualization::COLOR;
 }
 
 template<typename T>
 void upload_vertex_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Vertex>& _prop,
-    GL::MeshRenderer& _r)
+    VolumeMeshRenderer& _vol_rend)
 {
     if (_mesh.n_vertices()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexPointAttrib> p_attribs;
-    p_attribs.reserve(_mesh.n_vertices());
-    std::vector<GLuint> indices;
-    indices.reserve(_mesh.n_vertices());
+    std::vector<VolumeMeshRenderer::VertexData> v_data;
     for (auto vh : _mesh.vertices()) {
-        Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
         Vec4f a = vertex_buffer_property_data(_prop[vh]);
-        p_attribs.push_back({
-            .position = p,
-            .color = a
-        });
-        indices.push_back(vh.uidx());
+        v_data.push_back({.property = a});
     }
-    _r.updateVertexPoints(p_attribs, indices);
-    _r.vertex_prop_type_ = vertex_buffer_property_data_type<T>();
-    std::cout << "Uploaded Vertex Property Data " << (int)_r.vertex_prop_type_ << std::endl;
+    _vol_rend.update_vertex_data(v_data);
+    _vol_rend.vertex_property_.vis_ = vertex_buffer_property_data_visualization<T>();
+
+    // std::vector<GL::MeshRenderer::VertexPointAttrib> p_attribs;
+    // p_attribs.reserve(_mesh.n_vertices());
+    // std::vector<GLuint> indices;
+    // indices.reserve(_mesh.n_vertices());
+    // for (auto vh : _mesh.vertices()) {
+    //     Vec3f p = toVec3<Vec3f>(_mesh.vertex(vh));
+    //     Vec4f a = vertex_buffer_property_data(_prop[vh]);
+    //     p_attribs.push_back({
+    //         .position = p,
+    //         .color = a
+    //     });
+    //     indices.push_back(vh.uidx());
+    // }
+    // _r.updateVertexPoints(p_attribs, indices);
+    // _r.vertex_prop_type_ = vertex_buffer_property_data_type<T>();
+    std::cout << "Uploaded Vertex Property Data " << (int)_vol_rend.edge_property_.vis_ << std::endl;
 };
 
 template<typename T>
 void upload_edge_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Edge>& _prop,
-    GL::MeshRenderer& _r)
+    VolumeMeshRenderer& _vol_rend)
 {
     if (_mesh.n_edges()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexLineAttrib> l_attribs;
-    l_attribs.reserve(2*_mesh.n_edges());
-    std::vector<GLuint> indices;
-    indices.reserve(2*_mesh.n_edges());
+    std::vector<VolumeMeshRenderer::EdgeData> e_data;
     for (auto eh : _mesh.edges()) {
-        auto heh = eh.halfedge_handle(0);
-        auto vh0 = _mesh.from_vertex_handle(heh);
-        auto vh1 = _mesh.to_vertex_handle(heh);
-        Vec3f p0 = toVec3<Vec3f>(_mesh.vertex(vh0));
-        Vec3f p1 = toVec3<Vec3f>(_mesh.vertex(vh1));
-        l_attribs.push_back({
-            .position = p0,
-            .color = vertex_buffer_property_data(_prop[eh])
-        });
-        l_attribs.push_back({
-            .position = p1,
-            .color = vertex_buffer_property_data(_prop[eh])
-        });
-        indices.push_back(l_attribs.size()-2);
-        indices.push_back(l_attribs.size()-1);
+        Vec4f a = vertex_buffer_property_data(_prop[eh]);
+        e_data.push_back({.property = a});
     }
-    _r.updateEdgeLines(l_attribs, indices);
-    _r.edge_prop_type_ = vertex_buffer_property_data_type<T>();
+    _vol_rend.update_edge_data(e_data);
+    _vol_rend.edge_property_.vis_ = vertex_buffer_property_data_visualization<T>();
+
+    // std::vector<GL::MeshRenderer::VertexLineAttrib> l_attribs;
+    // l_attribs.reserve(2*_mesh.n_edges());
+    // std::vector<GLuint> indices;
+    // indices.reserve(2*_mesh.n_edges());
+    // for (auto eh : _mesh.edges()) {
+    //     auto heh = eh.halfedge_handle(0);
+    //     auto vh0 = _mesh.from_vertex_handle(heh);
+    //     auto vh1 = _mesh.to_vertex_handle(heh);
+    //     Vec3f p0 = toVec3<Vec3f>(_mesh.vertex(vh0));
+    //     Vec3f p1 = toVec3<Vec3f>(_mesh.vertex(vh1));
+    //     l_attribs.push_back({
+    //         .position = p0,
+    //         .color = vertex_buffer_property_data(_prop[eh])
+    //     });
+    //     l_attribs.push_back({
+    //         .position = p1,
+    //         .color = vertex_buffer_property_data(_prop[eh])
+    //     });
+    //     indices.push_back(l_attribs.size()-2);
+    //     indices.push_back(l_attribs.size()-1);
+    // }
+    // _r.updateEdgeLines(l_attribs, indices);
+    // _r.edge_prop_type_ = vertex_buffer_property_data_type<T>();
+    std::cout << "Uploaded Edge Property Data " << (int)_vol_rend.edge_property_.vis_ << std::endl;
 };
 
 template<typename T>
 void upload_face_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Face>& _prop,
-    GL::MeshRenderer& _r)
+    VolumeMeshRenderer& _vol_rend)
 {
     if (_mesh.n_faces()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexTriangleAttrib> t_attribs;
-    t_attribs.reserve(3*_mesh.n_faces());
-    std::vector<GLuint> indices;
-    indices.reserve(3*_mesh.n_faces());
-    size_t idx_offset(0);
+    std::vector<VolumeMeshRenderer::FaceData> f_data;
     for (auto fh : _mesh.faces()) {
-        auto hfh = fh.halfface_handle(0);
-        auto normal = toVec3<Vec3f>(_mesh.normal(hfh));
-        const auto& vhs = _mesh.get_halfface_vertices(hfh);
-        for (OVM::VH vh : _mesh.get_halfface_vertices(hfh)) {
-            t_attribs.push_back({
-                .position = toVec3<Vec3f>(_mesh.vertex(vh)),
-                .color = vertex_buffer_property_data(_prop[fh]),
-                .normal = normal,
-                .face_index = static_cast<float>(fh.idx())
-            });
-        }
-        for (uint j = 1; j < vhs.size()-1; ++j) {
-            indices.push_back(idx_offset);
-            indices.push_back(idx_offset+j);
-            indices.push_back(idx_offset+j+1);
-        }
-        idx_offset += vhs.size();
+        Vec4f a = vertex_buffer_property_data(_prop[fh]);
+        f_data.push_back({.property = a});
     }
-    _r.updateFaceTriangles(t_attribs, indices);
-    _r.face_prop_type_ = vertex_buffer_property_data_type<T>();
+    _vol_rend.update_face_data(f_data);
+    _vol_rend.face_property_.vis_ = vertex_buffer_property_data_visualization<T>();
+
+    // std::vector<GL::MeshRenderer::VertexTriangleAttrib> t_attribs;
+    // t_attribs.reserve(3*_mesh.n_faces());
+    // std::vector<GLuint> indices;
+    // indices.reserve(3*_mesh.n_faces());
+    // size_t idx_offset(0);
+    // for (auto fh : _mesh.faces()) {
+    //     auto hfh = fh.halfface_handle(0);
+    //     const auto& vhs = _mesh.get_halfface_vertices(hfh);
+    //     for (OVM::VH vh : _mesh.get_halfface_vertices(hfh)) {
+    //         t_attribs.push_back({
+    //             .position = toVec3<Vec3f>(_mesh.vertex(vh)),
+    //             .color = vertex_buffer_property_data(_prop[fh]),
+    //             .face_index = static_cast<float>(fh.idx())
+    //         });
+    //     }
+    //     for (uint j = 1; j < vhs.size()-1; ++j) {
+    //         indices.push_back(idx_offset);
+    //         indices.push_back(idx_offset+j);
+    //         indices.push_back(idx_offset+j+1);
+    //     }
+    //     idx_offset += vhs.size();
+    // }
+    // _r.updateFaceTriangles(t_attribs, indices);
+    // _r.face_prop_type_ = vertex_buffer_property_data_type<T>();
+    std::cout << "Uploaded Face Property Data " << (int)_vol_rend.edge_property_.vis_ << std::endl;
 };
 
 template<typename T>
 void upload_cell_property_data(
     const VolumeMesh& _mesh,
     const OpenVolumeMesh::PropertyPtr<T,OpenVolumeMesh::Entity::Cell>& _prop,
-    GL::MeshRenderer& _r)
+    VolumeMeshRenderer& _vol_rend)
 {
     if (_mesh.n_cells()==0) {return;}
-    std::vector<GL::MeshRenderer::VertexCellAttrib> c_attribs;
-    c_attribs.reserve(4*_mesh.n_cells());
-    std::vector<GLuint> c_triangle_indices;
-    c_triangle_indices.reserve(12*_mesh.n_cells());
-    std::vector<GLuint> c_line_indices;
-    c_line_indices.reserve(12*_mesh.n_cells());
-    unsigned int v_index(0);
-
-    for (auto c_it = _mesh.c_iter(); c_it.is_valid(); ++c_it) {
-
-        // Compute Incenter
-        uint32_t n_vhs(0);
-        Vec3f incenter(0,0,0);
-        for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
-            incenter += toVec3<Vec3f>(_mesh.vertex(*cv_it));
-            ++n_vhs;
-        }
-        incenter /= n_vhs; // todo. compute actual incenter
-
-        // Collect the cell vertices and create a mapping
-        // vh -> idx
-        ToLoG::HashMap<OVM::VH,int> vh_idx;
-        for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
-            OpenVolumeMesh::VH vh = *cv_it;
-            vh_idx[vh] = v_index++;
-
-            auto p = toVec3<Vec3f>(_mesh.vertex(vh));
-            c_attribs.push_back(GL::MeshRenderer::VertexCellAttrib{
-                .position = p,
-                .data = vertex_buffer_property_data(_prop[*c_it]),
-                .cell_incenter = incenter,
-                .cell_index = static_cast<float>(c_it->idx())
-            });
-        }
-
-        // Add the cell edges
-        for (auto ce_it = _mesh.ce_iter(*c_it); ce_it.is_valid(); ++ce_it) {
-            auto heh = ce_it->halfedge_handle(0);
-            c_line_indices.push_back(vh_idx[_mesh.from_vertex_handle(heh)]);
-            c_line_indices.push_back(vh_idx[_mesh.to_vertex_handle(heh)]);
-        }
-
-        // Triangulate the cell halffaces
-        for (const auto& hfh : _mesh.cell(*c_it).halffaces()) {
-            const auto& vhs = _mesh.get_halfface_vertices(hfh);
-
-            for (uint j = 1; j < vhs.size()-1; ++j) {
-                c_triangle_indices.push_back(vh_idx[vhs[0]]);
-                c_triangle_indices.push_back(vh_idx[vhs[j]]);
-                c_triangle_indices.push_back(vh_idx[vhs[j+1]]);
-            }
-
-        }
+    std::vector<VolumeMeshRenderer::CellData> c_data;
+    for (auto ch : _mesh.cells()) {
+        Vec4f a = vertex_buffer_property_data(_prop[ch]);
+        c_data.push_back({.property = a});
     }
-    _r.updateCellTriangles(c_attribs, c_triangle_indices, c_line_indices);
-    _r.cell_prop_type_ = vertex_buffer_property_data_type<T>();
+    _vol_rend.update_cell_data(c_data);
+    _vol_rend.cell_property_.vis_ = vertex_buffer_property_data_visualization<T>();
+
+    // std::vector<GL::MeshRenderer::VertexCellAttrib> c_attribs;
+    // c_attribs.reserve(4*_mesh.n_cells());
+    // std::vector<GLuint> c_triangle_indices;
+    // c_triangle_indices.reserve(12*_mesh.n_cells());
+    // std::vector<GLuint> c_line_indices;
+    // c_line_indices.reserve(12*_mesh.n_cells());
+    // unsigned int v_index(0);
+
+    // ToLoG::KeyValueVector<OVM::VH,int> vh_idx;
+    // for (auto c_it = _mesh.c_iter(); c_it.is_valid(); ++c_it) {
+
+    //     // Compute Incenter
+    //     uint32_t n_vhs(0);
+    //     Vec3f incenter(0,0,0);
+    //     for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
+    //         incenter += toVec3<Vec3f>(_mesh.vertex(*cv_it));
+    //         ++n_vhs;
+    //     }
+    //     incenter /= n_vhs; // todo. compute actual incenter
+
+    //     // Collect the cell vertices and create a mapping
+    //     // vh -> idx
+
+    //     //ToLoG::HashMap<OVM::VH,int> ;
+    //     vh_idx.clear();
+    //     for (auto cv_it = _mesh.cv_iter(*c_it); cv_it.is_valid(); ++cv_it) {
+    //         OpenVolumeMesh::VH vh = *cv_it;
+    //         vh_idx[vh] = v_index++;
+
+    //         auto p = toVec3<Vec3f>(_mesh.vertex(vh));
+    //         c_attribs.push_back(GL::MeshRenderer::VertexCellAttrib{
+    //             .position = p,
+    //             .data = vertex_buffer_property_data(_prop[*c_it]),
+    //             .cell_incenter = incenter,
+    //             .cell_index = static_cast<float>(c_it->idx())
+    //         });
+    //     }
+
+    //     // Add the cell edges
+    //     for (auto ce_it = _mesh.ce_iter(*c_it); ce_it.is_valid(); ++ce_it) {
+    //         auto heh = ce_it->halfedge_handle(0);
+    //         c_line_indices.push_back(vh_idx[_mesh.from_vertex_handle(heh)]);
+    //         c_line_indices.push_back(vh_idx[_mesh.to_vertex_handle(heh)]);
+    //     }
+
+    //     // Triangulate the cell halffaces
+    //     for (const auto& hfh : _mesh.cell(*c_it).halffaces()) {
+    //         const auto& vhs = _mesh.get_halfface_vertices(hfh);
+
+    //         for (uint j = 1; j < vhs.size()-1; ++j) {
+    //             c_triangle_indices.push_back(vh_idx[vhs[0]]);
+    //             c_triangle_indices.push_back(vh_idx[vhs[j]]);
+    //             c_triangle_indices.push_back(vh_idx[vhs[j+1]]);
+    //         }
+
+    //     }
+    // }
+    // _r.updateCellTriangles(c_attribs, c_triangle_indices, c_line_indices);
+    // _r.cell_prop_type_ = vertex_buffer_property_data_type<T>();
+    std::cout << "Uploaded Cell Property Data " << (int)_vol_rend.edge_property_.vis_ << std::endl;
 };
 
 template<typename T, typename Entity>
@@ -227,7 +281,7 @@ void upload_property_data(
     const VolumeMesh& _mesh,
     OpenVolumeMesh::PropertyStorageBase* _prop,
     std::vector<std::shared_ptr<PropertyFilterBase>>& _prop_filters,
-    GL::MeshRenderer& _r
+    VolumeMeshRenderer& _vol_rend
     )
 {
     _prop_filters.clear();
@@ -246,32 +300,32 @@ void upload_property_data(
 
     // Upload Properties
     if constexpr(std::is_same_v<Entity,OVM::Entity::Vertex>) {
-        upload_vertex_property_data(_mesh, prop, _r);
-        _r.render_vertices_ = true;
-        _r.render_edges_ = false;
-        _r.render_faces_ = false;
-        _r.render_cells_ = false;
+        upload_vertex_property_data(_mesh, prop, _vol_rend);
+        _vol_rend.render_vertices_ = true;
+        _vol_rend.render_edges_ = false;
+        _vol_rend.render_faces_ = false;
+        _vol_rend.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Edge>) {
-        upload_edge_property_data(_mesh, prop, _r);
-        _r.render_vertices_ = false;
-        _r.render_edges_ = true;
-        _r.render_faces_ = false;
-        _r.render_cells_ = false;
+        upload_edge_property_data(_mesh, prop, _vol_rend);
+        _vol_rend.render_vertices_ = false;
+        _vol_rend.render_edges_ = true;
+        _vol_rend.render_faces_ = false;
+        _vol_rend.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Face>) {
-        upload_face_property_data(_mesh, prop, _r);
-        _r.render_vertices_ = false;
-        _r.render_edges_ = false;
-        _r.render_faces_ = true;
-        _r.render_cells_ = false;
+        upload_face_property_data(_mesh, prop, _vol_rend);
+        _vol_rend.render_vertices_ = false;
+        _vol_rend.render_edges_ = false;
+        _vol_rend.render_faces_ = true;
+        _vol_rend.render_cells_ = false;
     }
     if constexpr(std::is_same_v<Entity,OVM::Entity::Cell>) {
-        upload_cell_property_data(_mesh, prop, _r);
-        _r.render_vertices_ = false;
-        _r.render_edges_ = false;
-        _r.render_faces_ = false;
-        _r.render_cells_ = true;
+        upload_cell_property_data(_mesh, prop, _vol_rend);
+        _vol_rend.render_vertices_ = false;
+        _vol_rend.render_edges_ = false;
+        _vol_rend.render_faces_ = false;
+        _vol_rend.render_cells_ = true;
     }
 }
 

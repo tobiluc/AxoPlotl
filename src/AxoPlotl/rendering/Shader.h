@@ -11,12 +11,12 @@ namespace AxoPlotl
 
 class Shader {
 public:
-    static Shader CELLS_SHADER;
-    static Shader FACES_SHADER;
-    static Shader EDGES_SHADER;
-    static Shader VERTICES_SHADER;
-    static Shader PICKING_SHADER;
-    static Shader CELLS_OUTLINE_SHADER;
+    static Shader TBO_VERTICES_SHADER;
+    static Shader TBO_EDGES_SHADER;
+    static Shader TBO_FACES_SHADER;
+    static Shader TBO_CELLS_SHADER;
+    static Shader TBO_PICK_FACES_SHADER;
+    static Shader TBO_CELLS_OUTLINE_SHADER;
 
     // Call this one OpenGL is initialized
     static void loadGlobalShaders();
@@ -88,6 +88,11 @@ public:
 
     inline void setVec2f(const std::string& name, float x, float y) const {
         glUniform2f(glGetUniformLocation(ID, name.c_str()), x, y);
+    }
+
+    template <typename Vec2fT>
+    inline void setVec2f(const std::string& name, Vec2fT value) const {
+        glUniform2f(glGetUniformLocation(ID, name.c_str()), value[0], value[1]);
     }
 
     template <typename Vec3fT>

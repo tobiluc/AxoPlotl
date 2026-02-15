@@ -64,43 +64,61 @@ void ExplicitSurfaceNode::init(Scene* scene)
 
     bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
 
-    GL::MeshRenderer::Data data;
-
+    VolumeMeshRenderer::StaticData data;
     for (int i = 0; i < mesh.n_vertices(); ++i) {
-        auto p = mesh.point(i);
 
+        // Push Vertex Position
+        auto p = mesh.point(i);
+        data.positions_.push_back(Vec4f(p[0],p[1],p[2],1));
+
+        // BBox
         for (int a = 0; a < 3; ++a) {
             bbox_.first[a] = std::min(bbox_.first[a], p[a]);
             bbox_.second[a] = std::max(bbox_.second[a], p[a]);
         }
-
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
-            .position = p,
-            .color = Vec4f(0,0,0,1)
-        });
-
-        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{
-            .position = p,
-            .color = getColorOnSphere(p[0],p[1],p[2]),
-            .normal = Vec3f(1,0,0)});
-
-        for (auto vv_it = mesh.vv_iter(i); vv_it.is_valid(); ++vv_it) {
-            int j = *vv_it;
-            if (j > i) {
-                data.lineIndices.push_back(i);
-                data.lineIndices.push_back(j);
-            }
-        }
     }
+
+    // Lines
+    std::vector<VolumeMeshRenderer::EdgeData> e_data;
+    data.n_edges_ = mesh.n_edges();
+    int e_idx(0);
+    for (const auto& e : mesh.edges()) {
+        data.edge_draw_vertices_.push_back({
+            .vertex_index=static_cast<uint32_t>(e.vertex(0)),
+            .edge_index=static_cast<uint32_t>(e_idx)});
+        data.edge_draw_vertices_.push_back({
+            .vertex_index=static_cast<uint32_t>(e.vertex(1)),
+            .edge_index=static_cast<uint32_t>(e_idx)});
+
+        e_data.push_back({.property = Vec4f(0,0,0,1)});
+        e_idx++;
+    }
+
+    // Faces
+    std::vector<VolumeMeshRenderer::FaceData> f_data;
+    vol_rend_.n_faces_ = mesh.n_faces();
+    int f_idx(0);
     for (const auto& f : mesh.faces()) {
-        for (uint j = 1; j < f.valence()-1; ++j) {
-            data.face_triangle_indices_.push_back(f.vertices()[0]);
-            data.face_triangle_indices_.push_back(f.vertices()[j]);
-            data.face_triangle_indices_.push_back(f.vertices()[j+1]);
+        for (int i = 1; i < f.valence()-1; ++i) {
+            data.face_triangle_draw_vertices_.push_back({
+             .vertex_index=static_cast<uint32_t>(f.vertices()[0]),
+             .face_index=static_cast<uint32_t>(f_idx)});
+            data.face_triangle_draw_vertices_.push_back({
+             .vertex_index=static_cast<uint32_t>(f.vertices()[i]),
+             .face_index=static_cast<uint32_t>(f_idx)});
+            data.face_triangle_draw_vertices_.push_back({
+             .vertex_index=static_cast<uint32_t>(f.vertices()[i+1]),
+             .face_index=static_cast<uint32_t>(f_idx)});
         }
-    }
-    mesh_renderer_.updateData(data);
 
+        const auto& p = color_on_sphere(mesh.point(f.vertices()[0]));
+        f_data.push_back({.property = p});
+        f_idx++;
+    }
+
+    vol_rend_.init(data);
+    vol_rend_.update_edge_data(e_data);
+    vol_rend_.update_face_data(f_data);
 }
 
 }

@@ -92,6 +92,8 @@ add_executable(${PROJECT_NAME}
     src/AxoPlotl/properties/property_calculations.hpp
     src/AxoPlotl/properties/property_calculations.cpp
     src/AxoPlotl/rendering/shader_source.ipp
+    src/AxoPlotl/rendering/VolumeMeshRenderer.hpp
+    src/AxoPlotl/rendering/VolumeMeshRenderer.cpp
 
 
 
@@ -202,15 +204,17 @@ endif()
 #=========================
 # Glad
 #=========================
-if (NOT TARGET glad)
-    message(STATUS "Fetching glad")
-    FetchContent_Declare(glad
-        GIT_REPOSITORY https://github.com/Oceanic13/glad.git
-        GIT_TAG "main"
-        SOURCE_DIR "${EXTERNAL_DIR}/glad"
-    )
-    FetchContent_MakeAvailable(glad)
-endif()
+# if (NOT TARGET glad)
+#     message(STATUS "Fetching glad")
+#     FetchContent_Declare(glad
+#         GIT_REPOSITORY https://github.com/Oceanic13/glad.git
+#         GIT_TAG "main"
+#         SOURCE_DIR "${EXTERNAL_DIR}/glad"
+#     )
+#     FetchContent_MakeAvailable(glad)
+# endif()
+add_library(glad src/glad/include/glad/glad.h src/glad/src/glad.c)
+target_include_directories(glad PUBLIC src/glad/include/)
 
 #=========================
 # OpenGL

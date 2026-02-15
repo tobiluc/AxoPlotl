@@ -1,5 +1,6 @@
 #include "MeshNode.h"
 #include "AxoPlotl/properties/property_data.hpp"
+#include "AxoPlotl/rendering/VolumeMeshRenderer.hpp"
 #include "AxoPlotl/utils/string_format.hpp"
 
 namespace AxoPlotl
@@ -7,32 +8,111 @@ namespace AxoPlotl
 
 void MeshNode::init(Scene* scene)
 {
-    // Initialize with empty Data (TODO: Not very elegant that we need this line)
-    mesh_renderer_.updateData(GL::MeshRenderer::Data());
+    VolumeMeshRenderer::StaticData data;
+    data.n_vertices_ = mesh_.n_vertices();
+    for (auto vh : mesh_.vertices()) {
+        const auto& p = mesh_.vertex(vh);
+        data.positions_.push_back(Vec4f(p[0],p[1],p[2],1));
+        data.vertex_draw_vertices_.push_back(vh.uidx());
+    }
+    data.n_edges_ = mesh_.n_edges();
+    for (auto eh : mesh_.edges()) {
+        auto vh0 = mesh_.edge(eh).from_vertex();
+        auto vh1 = mesh_.edge(eh).to_vertex();
+        data.edge_draw_vertices_.push_back({.vertex_index = vh0.uidx(), .edge_index = eh.uidx()});
+        data.edge_draw_vertices_.push_back({.vertex_index = vh1.uidx(), .edge_index = eh.uidx()});
+    }
+    data.n_faces_ = mesh_.n_faces();
+    for (auto fh : mesh_.faces()) {
+        const auto& vhs = mesh_.get_halfface_vertices(fh.halfface_handle(0));
+        for (int i = 1; i < vhs.size()-1; ++i) {
+            data.face_triangle_draw_vertices_.push_back({
+                .vertex_index = vhs[0].uidx(),
+                .face_index = fh.uidx()
+            });
+            data.face_triangle_draw_vertices_.push_back({
+                .vertex_index = vhs[i].uidx(),
+                .face_index = fh.uidx()
+            });
+            data.face_triangle_draw_vertices_.push_back({
+                .vertex_index = vhs[i+1].uidx(),
+                .face_index = fh.uidx()
+            });
+        }
+    }
+    data.n_cells_ = mesh_.n_cells();
+    for (auto ch : mesh_.cells()) {
+        // Incenter
+        Vec4f incenter(0,0,0,0);
+        uint32_t n_vhs(0);
+        for (auto cv_it = mesh_.cv_iter(ch); cv_it.is_valid(); ++cv_it) {
+            const auto& p = mesh_.vertex(*cv_it);
+            incenter += Vec4f(p[0],p[1],p[2],0);
+            ++n_vhs;
+        }
+        incenter /= n_vhs;
+        incenter[3] = 1;
+        // triangulate each face
+        for (auto hfh : mesh_.cell(ch).halffaces()) {
+            const auto& vhs = mesh_.get_halfface_vertices(hfh);
+            for (int i = 1; i < vhs.size()-1; ++i) {
+                data.cell_triangle_draw_vertices_.push_back({
+                    .vertex_index = vhs[0].uidx(),
+                    .cell_index = ch.uidx(),
+                    .incenter = incenter
+                });
+                data.cell_triangle_draw_vertices_.push_back({
+                    .vertex_index = vhs[i].uidx(),
+                    .cell_index = ch.uidx(),
+                    .incenter = incenter
+                });
+                data.cell_triangle_draw_vertices_.push_back({
+                    .vertex_index = vhs[i+1].uidx(),
+                    .cell_index = ch.uidx(),
+                    .incenter = incenter
+                });
+            }
+        }
+        // outline
+        for (auto ce_it = mesh_.ce_iter(ch); ce_it.is_valid(); ++ce_it) {
+            auto vh0 = mesh_.edge(*ce_it).from_vertex();
+            auto vh1 = mesh_.edge(*ce_it).to_vertex();
+            data.cell_line_draw_vertices_.push_back({
+                .vertex_index = vh0.uidx(),
+                .cell_index = ch.uidx(),
+                .incenter = incenter
+            });
+            data.cell_line_draw_vertices_.push_back({
+                .vertex_index = vh1.uidx(),
+                .cell_index = ch.uidx(),
+                .incenter = incenter
+            });
+        }
+    }
+    vol_rend_.init(data);
 
-    // Upload the mesh data to the gpu by creating private color properties.
-
+    // Color the mesh for the gpu by creating private color properties.
     auto v_prop = mesh_.create_private_vertex_property<Vec4f>();
     for (auto vh : mesh_.vertices()) {v_prop[vh] = color_on_sphere(toVec3<Vec3f>(mesh_.vertex(vh)));}
-    upload_vertex_property_data(mesh_, v_prop, mesh_renderer_);
+    upload_vertex_property_data(mesh_, v_prop,  vol_rend_);
 
     auto e_prop = mesh_.create_private_edge_property<Vec4f>();
     for (auto eh : mesh_.edges()) {e_prop[eh] = Vec4f(0,0,0,1);}
-    upload_edge_property_data(mesh_, e_prop, mesh_renderer_);
+    upload_edge_property_data(mesh_, e_prop,  vol_rend_);
 
     auto f_prop = mesh_.create_private_face_property<Vec4f>();
     for (auto fh : mesh_.faces()) {
         f_prop[fh] = color_on_sphere(toVec3<Vec3f>(
             mesh_.vertex(mesh_.get_halfface_vertices(fh.halfface_handle(0)).at(0))));
     }
-    upload_face_property_data(mesh_, f_prop, mesh_renderer_);
+    upload_face_property_data(mesh_, f_prop,  vol_rend_);
 
     auto c_prop = mesh_.create_private_cell_property<Vec4f>();
     for (auto ch : mesh_.cells()) {
         c_prop[ch] = color_on_sphere(toVec3<Vec3f>(
             mesh_.vertex(mesh_.get_halfface_vertices(mesh_.cell(ch).halffaces().at(0)).at(0))));
     }
-    upload_cell_property_data(mesh_, c_prop, mesh_renderer_);
+    upload_cell_property_data(mesh_, c_prop, vol_rend_);
 
     // Compute Bounding Box
     bbox_ = {Vec3f(std::numeric_limits<float>::infinity()), Vec3f(-std::numeric_limits<float>::infinity())};
@@ -70,17 +150,16 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*v_prop)->name().c_str(), (*v_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *v_prop;
                     if ((*v_prop)->typeNameWrapper()=="double") {
-                        upload_property_data<double,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<double,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_,  vol_rend_);
                     } else if ((*v_prop)->typeNameWrapper()=="int") {
-                        upload_property_data<int,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<int,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_,  vol_rend_);
                     } else if ((*v_prop)->typeNameWrapper()=="float") {
-                        upload_property_data<float,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<float,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_,  vol_rend_);
                     } else if ((*v_prop)->typeNameWrapper()=="bool") {
-                        upload_property_data<bool,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<bool,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_,  vol_rend_);
                     } else if ((*v_prop)->typeNameWrapper()=="vec3d") {
-                        upload_property_data<OVM::Vec3d,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Vertex>(mesh_, *v_prop, prop_filters_,  vol_rend_);
                     }
-                    mesh_renderer_.render_vertices_ = true;
                 }
                 ImGui::PopID();
             }
@@ -95,17 +174,16 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*e_prop)->name().c_str(), (*e_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *e_prop;
                     if ((*e_prop)->typeNameWrapper()=="double") {
-                        upload_property_data<double,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<double,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_,  vol_rend_);
                     } else if ((*e_prop)->typeNameWrapper()=="int") {
-                        upload_property_data<int,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<int,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_,  vol_rend_);
                     } else if ((*e_prop)->typeNameWrapper()=="float") {
-                        upload_property_data<float,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<float,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_,  vol_rend_);
                     } else if ((*e_prop)->typeNameWrapper()=="bool") {
-                        upload_property_data<bool,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<bool,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_,  vol_rend_);
                     } else if ((*e_prop)->typeNameWrapper()=="vec3d") {
-                        upload_property_data<OVM::Vec3d,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Edge>(mesh_, *e_prop, prop_filters_,  vol_rend_);
                     }
-                    mesh_renderer_.render_edges_ = true;
                 }
                 ImGui::PopID();
             }
@@ -120,17 +198,16 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*f_prop)->name().c_str(), (*f_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *f_prop;
                     if ((*f_prop)->typeNameWrapper()=="double") {
-                        upload_property_data<double,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<double,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_,  vol_rend_);
                     } else if ((*f_prop)->typeNameWrapper()=="int") {
-                        upload_property_data<int,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<int,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_,  vol_rend_);
                     } else if ((*f_prop)->typeNameWrapper()=="float") {
-                        upload_property_data<float,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<float,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_,  vol_rend_);
                     } else if ((*f_prop)->typeNameWrapper()=="bool") {
-                        upload_property_data<bool,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<bool,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_,  vol_rend_);
                     } else if ((*f_prop)->typeNameWrapper()=="vec3d") {
-                        upload_property_data<OVM::Vec3d,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Face>(mesh_, *f_prop, prop_filters_,  vol_rend_);
                     }
-                    mesh_renderer_.render_faces_ = true;
                 }
                 ImGui::PopID();
             }
@@ -145,17 +222,16 @@ void MeshNode::renderUIBody(Scene* scene)
                 if (ImGui::MenuItem(string_format("%s [%s]", (*c_prop)->name().c_str(), (*c_prop)->typeNameWrapper().c_str()).c_str())) {
                     prop_ = *c_prop;
                     if ((*c_prop)->typeNameWrapper()=="double") {
-                        upload_property_data<double,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<double,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_,  vol_rend_);
                     } else if ((*c_prop)->typeNameWrapper()=="int") {
-                        upload_property_data<int,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<int,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_,  vol_rend_);
                     } else if ((*c_prop)->typeNameWrapper()=="float") {
-                        upload_property_data<float,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<float,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_,  vol_rend_);
                     } else if ((*c_prop)->typeNameWrapper()=="bool") {
-                        upload_property_data<bool,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<bool,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_,  vol_rend_);
                     } else if ((*c_prop)->typeNameWrapper()=="vec3d") {
-                        upload_property_data<OVM::Vec3d,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_, mesh_renderer_);
+                        upload_property_data<OVM::Vec3d,OVM::Entity::Cell>(mesh_, *c_prop, prop_filters_,  vol_rend_);
                     }
-                    mesh_renderer_.render_cells_ = true;
                 }
                 ImGui::PopID();
             }
@@ -210,15 +286,15 @@ void MeshNode::renderUIBody(Scene* scene)
                 ImGui::EndMenu();
             }
 
-            prop_filters_[active_prop_filter_]->renderUI(mesh_renderer_);
+            prop_filters_[active_prop_filter_]->renderUI(vol_rend_);
         }
 
         if (ImGui::Button("Unselect Property")) {
             prop_ = std::nullopt;
-            mesh_renderer_.edge_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
-            mesh_renderer_.vertex_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
-            mesh_renderer_.face_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
-            mesh_renderer_.cell_prop_type_ = GL::MeshRenderer::PropDataType::COLOR;
+            vol_rend_.edge_property_.vis_ = VolumeMeshRenderer::Property::Visualization::COLOR;
+            vol_rend_.vertex_property_.vis_ = VolumeMeshRenderer::Property::Visualization::COLOR;
+            vol_rend_.face_property_.vis_ = VolumeMeshRenderer::Property::Visualization::COLOR;
+            vol_rend_.cell_property_.vis_ = VolumeMeshRenderer::Property::Visualization::COLOR;
             init(scene);
         }
     }

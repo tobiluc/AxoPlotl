@@ -52,11 +52,6 @@ void GeometryNode::renderUIHeader(Scene *scene)
         ImGui::Text("id=%d", id_);
         ImGui::SameLine();
         ImGui::InputText("Name", name_, sizeof(name_));
-        ImGui::Text("P/L/T = %zu/%zu/%zu",
-            mesh_renderer_.n_vertex_points(),
-            mesh_renderer_.n_edge_lines() + mesh_renderer_.n_cell_lines(),
-            mesh_renderer_.n_face_triangles() + mesh_renderer_.n_cell_triangles()
-        );
 
         ImGui::SeparatorText("Visualization Options");
 
@@ -75,50 +70,48 @@ void GeometryNode::renderUIHeader(Scene *scene)
 
         // Material
 
-        if (mesh_renderer_.n_vertex_points() > 0) {
+        if (vol_rend_.n_vertices_ > 0) {
             if (ImGui::BeginMenu("Vertices")) {
-                ImGui::Checkbox("Show Vertices", &mesh_renderer_.render_vertices_);
-                ImGui::SliderFloat("Size", &mesh_renderer_.point_size_, 1.f, 32.0f);
+                ImGui::Checkbox("Show Vertices", &vol_rend_.render_vertices_);
+                ImGui::SliderFloat("Size", &vol_rend_.point_size_, 1.f, 64.0f);
                 ImGui::EndMenu();
             }
         }
 
-        if (mesh_renderer_.n_edge_lines() > 0) {
+        if (vol_rend_.n_edges_ > 0) {
             if (ImGui::BeginMenu("Edges")) {
-                ImGui::Checkbox("Show Edges", &mesh_renderer_.render_edges_);
-                ImGui::SliderFloat("Width", &mesh_renderer_.line_width_, 1.f, 16.0f);
+                ImGui::Checkbox("Show Edges", &vol_rend_.render_edges_);
+                ImGui::SliderFloat("Width", &vol_rend_.line_width_, 1.f, 64.0f);
                 ImGui::EndMenu();
             }
         }
 
-        if (mesh_renderer_.n_face_triangles() > 0) {
+        if (vol_rend_.n_faces_ > 0) {
             if (ImGui::BeginMenu("Faces")) {
-                ImGui::Checkbox("Show Faces", &mesh_renderer_.render_faces_);
-                ImGui::Checkbox("Wireframe", &mesh_renderer_.faces_wireframe_);
+                ImGui::Checkbox("Show Faces", &vol_rend_.render_faces_);
                 ImGui::EndMenu();
             }
         }
 
-        if (mesh_renderer_.n_cell_triangles() > 0) {
+        if (vol_rend_.n_cells_ > 0) {
             if (ImGui::BeginMenu("Cells")) {
-                ImGui::Checkbox("Show Cells", &mesh_renderer_.render_cells_);
-                ImGui::SliderFloat("Cell Scale", &mesh_renderer_.cell_scale_, 0.0f, 1.0f);
-                ImGui::Checkbox("Wireframe", &mesh_renderer_.cells_wireframe_);
-                ImGui::ColorEdit4("Outline Color", &mesh_renderer_.cells_outline_color_[0]);
+                ImGui::Checkbox("Show Cells", &vol_rend_.render_cells_);
+                ImGui::SliderFloat("Cell Scale", &vol_rend_.cell_scale_, 0.0f, 1.0f);
+                ImGui::ColorEdit4("Outline Color", &vol_rend_.cell_outline_color_[0]);
                 ImGui::EndMenu();
             }
         }
 
-        if (ImGui::Checkbox("Enable Clip Box", &mesh_renderer_.clip_box_enabled_)) {
+        if (ImGui::Checkbox("Enable Clip Box", &vol_rend_.clip_box_.enabled_)) {
             // Initially, we set the clip box to the entire bounding box, so everthing is visible
-            mesh_renderer_.clip_box_x_ = {bbox_.first[0], bbox_.second[0]};
-            mesh_renderer_.clip_box_y_ = {bbox_.first[1], bbox_.second[1]};
-            mesh_renderer_.clip_box_z_ = {bbox_.first[2], bbox_.second[2]};
+            vol_rend_.clip_box_.x_ = {bbox_.first[0], bbox_.second[0]};
+            vol_rend_.clip_box_.y_ = {bbox_.first[1], bbox_.second[1]};
+            vol_rend_.clip_box_.z_ = {bbox_.first[2], bbox_.second[2]};
         }
-        if (mesh_renderer_.clip_box_enabled_) {
-            ImGui::SliderFloat2("x", &mesh_renderer_.clip_box_x_[0], bbox_.first[0], bbox_.second[0]);
-            ImGui::SliderFloat2("y", &mesh_renderer_.clip_box_y_[0], bbox_.first[1], bbox_.second[1]);
-            ImGui::SliderFloat2("z", &mesh_renderer_.clip_box_z_[0], bbox_.first[2], bbox_.second[2]);
+        if (vol_rend_.clip_box_.enabled_) {
+            ImGui::SliderFloat2("x", &vol_rend_.clip_box_.x_[0], bbox_.first[0], bbox_.second[0]);
+            ImGui::SliderFloat2("y", &vol_rend_.clip_box_.y_[0], bbox_.first[1], bbox_.second[1]);
+            ImGui::SliderFloat2("z", &vol_rend_.clip_box_.z_[0], bbox_.first[2], bbox_.second[2]);
         }
 
         ImGui::SeparatorText("Edit");

@@ -23,7 +23,8 @@ private:
 protected:
     std::vector<std::unique_ptr<GeometryNode>> objects_;
 
-    GL::MeshRenderer gizmoRenderer_;
+    //GL::MeshRenderer gizmoRenderer_;
+    VolumeMeshRenderer gizmo_renderer_;
     CameraSet camera_set_;
     Vec3f clear_color_ = Vec3f(1,1,1);
 

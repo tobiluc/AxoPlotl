@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AxoPlotl/rendering/MeshRenderer.h"
+#include "AxoPlotl/rendering/VolumeMeshRenderer.hpp"
 #include <imgui.h>
 
 namespace AxoPlotl
@@ -19,7 +20,7 @@ protected:
     bool deleted_ = false;
     bool show_ui_body_ = false;
     //GL::Renderer renderer_;
-    GL::MeshRenderer mesh_renderer_;
+    VolumeMeshRenderer vol_rend_;
     //Rendering::Renderer::BatchIndices renderLoc_;
     glm::mat4 transform_; // model matrix
     std::pair<Vec3f,Vec3f> bbox_;
@@ -65,13 +66,13 @@ public:
     }
 
     inline void render(const glm::mat4& view, const glm::mat4& projection) {
-        GL::MeshRenderer::Matrices m(transform_, view, projection);
-        mesh_renderer_.render(m);
+        //GL::MeshRenderer::Matrices m(transform_, view, projection);
+        vol_rend_.render(projection * view * transform_);
     }
 
     inline void renderPicking(const glm::mat4& view, const glm::mat4& projection) {
-        GL::MeshRenderer::Matrices m(transform_, view, projection);
-        mesh_renderer_.renderPicking(m, id_);
+        //GL::MeshRenderer::Matrices m(transform_, view, projection);
+        vol_rend_.render_picking(projection * view * transform_, id_);
     }
 
     inline int id() const {return id_;}
@@ -82,7 +83,7 @@ public:
 
     inline void setDeleted() {deleted_ = true;}
 
-    inline bool& visible() {return mesh_renderer_.visible;}
+    inline bool& visible() {return vol_rend_.render_anything_;}
 };
 
 }

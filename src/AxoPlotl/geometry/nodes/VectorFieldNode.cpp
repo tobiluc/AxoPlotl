@@ -6,31 +6,32 @@ namespace AxoPlotl
 
 void VectorFieldNode::init(Scene* scene)
 {
+    vol_rend_.init(VolumeMeshRenderer::StaticData()); // TODO
     //bbox_.compute(mesh_.vertices());
 
-    GL::MeshRenderer::Data data;
+    // GL::MeshRenderer::Data data;
 
-    for (int ix = 0; ix <= resolution_; ++ix) {
-        for (int iy = 0; iy <= resolution_; ++iy) {
-            for (int iz = 0; iz <= resolution_; ++iz) {
-                Vec3f p(
-                    field_.xMin + ix/(float)resolution_*(field_.xMax-field_.xMin),
-                    field_.yMin + iy/(float)resolution_*(field_.yMax-field_.zMin),
-                    field_.zMin + iz/(float)resolution_*(field_.zMax-field_.zMin)
-                );
+    // for (int ix = 0; ix <= resolution_; ++ix) {
+    //     for (int iy = 0; iy <= resolution_; ++iy) {
+    //         for (int iz = 0; iz <= resolution_; ++iz) {
+    //             Vec3f p(
+    //                 field_.xMin + ix/(float)resolution_*(field_.xMax-field_.xMin),
+    //                 field_.yMin + iy/(float)resolution_*(field_.yMax-field_.zMin),
+    //                 field_.zMin + iz/(float)resolution_*(field_.zMax-field_.zMin)
+    //             );
 
-                Vec3f d = glm::normalize(field_(p));
-                auto color = getColorOnSphere(d.x, d.y, d.z);
-                int v = data.lineAttribs.size();
-                data.lineAttribs.push_back({.position = p-0.5f*scale_factor_*d, .color = color});
-                data.lineAttribs.push_back({.position = p+0.5f*scale_factor_*d, .color = color});
-                data.lineIndices.push_back(v+0);
-                data.lineIndices.push_back(v+1);
-            }
-        }
-    }
+    //             Vec3f d = glm::normalize(field_(p));
+    //             auto color = getColorOnSphere(d.x, d.y, d.z);
+    //             int v = data.lineAttribs.size();
+    //             data.lineAttribs.push_back({.position = p-0.5f*scale_factor_*d, .color = color});
+    //             data.lineAttribs.push_back({.position = p+0.5f*scale_factor_*d, .color = color});
+    //             data.lineIndices.push_back(v+0);
+    //             data.lineIndices.push_back(v+1);
+    //         }
+    //     }
+    // }
 
-    mesh_renderer_.updateData(data);
+    // mesh_renderer_.updateData(data);
 
     this->bbox_ = {Vec3f(field_.xMin,field_.yMin,field_.zMin),Vec3f(field_.xMax,field_.yMax,field_.zMax)};;
 }

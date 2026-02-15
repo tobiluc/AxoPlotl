@@ -7,21 +7,21 @@
 
 namespace AxoPlotl
 {
-Shader Shader::CELLS_SHADER;
-Shader Shader::FACES_SHADER;
-Shader Shader::EDGES_SHADER;
-Shader Shader::VERTICES_SHADER;
-Shader Shader::PICKING_SHADER;
-Shader Shader::CELLS_OUTLINE_SHADER;
+Shader Shader::TBO_VERTICES_SHADER;
+Shader Shader::TBO_EDGES_SHADER;
+Shader Shader::TBO_FACES_SHADER;
+Shader Shader::TBO_CELLS_SHADER;
+Shader Shader::TBO_PICK_FACES_SHADER;
+Shader Shader::TBO_CELLS_OUTLINE_SHADER;
 
 void Shader::loadGlobalShaders()
 {
-    shader_from_source(vertices_shader_src, VERTICES_SHADER);
-    shader_from_source(edges_shader_src, EDGES_SHADER);
-    shader_from_source(faces_shader_src, FACES_SHADER);
-    shader_from_source(faces_picking_shader_src, PICKING_SHADER);
-    shader_from_source(cells_shader_src, CELLS_SHADER);
-    shader_from_source(cells_outline_shader_src, CELLS_OUTLINE_SHADER);
+    shader_from_source(tbo_vertices_shader_src, TBO_VERTICES_SHADER);
+    shader_from_source(tbo_edges_shader_src, TBO_EDGES_SHADER);
+    shader_from_source(tbo_faces_shader_src, TBO_FACES_SHADER);
+    shader_from_source(tbo_cells_shader_src, TBO_CELLS_SHADER);
+    shader_from_source(tbo_faces_picking_shader_src, TBO_PICK_FACES_SHADER);
+    shader_from_source(tbo_ells_outline_shader_src, TBO_CELLS_OUTLINE_SHADER);
 }
 
 void Shader::shader_from_file(const std::filesystem::path& _path, Shader& _shader)

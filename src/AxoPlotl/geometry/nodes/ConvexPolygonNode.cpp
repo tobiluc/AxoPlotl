@@ -5,27 +5,24 @@ namespace AxoPlotl
 
 void ConvexPolygonNode::init(Scene* scene)
 {
-    //bbox_.compute({vertices_[0],vertices_[1],vertices_[2]});
-
-
-    Vec3f normal = glm::normalize( glm::cross(vertices_[2]-vertices_[0], vertices_[1]-vertices_[0]));
-
-    GL::MeshRenderer::Data data;
+    VolumeMeshRenderer::StaticData data;
+    data.n_faces_ = 1;
     for (uint i = 0; i < vertices_.size(); ++i) {
-        data.pointAttribs.push_back(GL::MeshRenderer::VertexPointAttrib{.position = vertices_[i], .color = Vec4f(0.4,0.4,0.4,1)});
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position = vertices_[i], .color = Vec4f(1,1,1,1)});
-        data.triangleAttribs.push_back(GL::MeshRenderer::VertexTriangleAttrib{.position = vertices_[i], .color = Vec4f(1,1,1,1), .normal = normal});
-
-        data.pointIndices.push_back(i);
-        data.lineIndices.push_back(i);
-        data.lineIndices.push_back((i+1)%vertices_.size());
+        const auto& p = vertices_[i];
+        data.positions_.push_back(Vec4f(p[0],p[1],p[2],1));
     }
     for (uint i = 1; i < vertices_.size()-1; ++i) {
-        data.face_triangle_indices_.push_back(0);
-        data.face_triangle_indices_.push_back(i);
-        data.face_triangle_indices_.push_back(i+1);
+        data.face_triangle_draw_vertices_.push_back({
+            .vertex_index=0, .face_index = 0
+        });
+        data.face_triangle_draw_vertices_.push_back({
+            .vertex_index=i, .face_index = 0
+        });
+        data.face_triangle_draw_vertices_.push_back({
+            .vertex_index=i+1, .face_index = 0
+        });
     }
-    mesh_renderer_.updateData(data);
+    vol_rend_.init(data);
 
     // Compute Bounding Box
     bbox_.first = Vec3f(std::numeric_limits<float>::infinity());

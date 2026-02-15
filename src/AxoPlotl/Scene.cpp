@@ -118,7 +118,8 @@ void Scene::render(GLFWwindow *window)
     for (uint i = 0; i < objects_.size(); ++i) {
         objects_[i]->render(view_matrix, projection_matrix);
     }
-    gizmoRenderer_.render(GL::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
+    gizmo_renderer_.render(projection_matrix * view_matrix * glm::mat4(1.0));
+    //gizmoRenderer_.render(GL::MeshRenderer::Matrices(glm::mat4(1.0), view_matrix, projection_matrix));
 
     // Render interface
     GL::ImGuiNewFrame();
@@ -302,7 +303,7 @@ void Scene::renderUI(GLFWwindow *window)
 
             ImGui::ColorEdit3("Background Color", &clear_color_[0]);
 
-            ImGui::Checkbox("Show Gizmos", &gizmoRenderer_.visible);
+            ImGui::Checkbox("Show Gizmos", &gizmo_renderer_.render_anything_);
 
             ImGui::EndMenu(); // !View
         }
@@ -443,19 +444,37 @@ void TestScene::init()
     //------------------------------------
     // Add some shapes for testing
     //------------------------------------
+    VolumeMeshRenderer::StaticData gizmo_data;
+    gizmo_data.n_edges_ = 3;
+    gizmo_data.positions_.push_back(Vec4f(0,0,0,1));
+    gizmo_data.positions_.push_back(Vec4f(1,0,0,1));
+    gizmo_data.positions_.push_back(Vec4f(0,1,0,1));
+    gizmo_data.positions_.push_back(Vec4f(0,0,1,1));
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=0,.edge_index=0});
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=1,.edge_index=0});
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=0,.edge_index=1});
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=2,.edge_index=1});
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=0,.edge_index=2});
+    gizmo_data.edge_draw_vertices_.push_back({.vertex_index=3,.edge_index=2});
+    gizmo_renderer_.init(gizmo_data);
+    std::vector<VolumeMeshRenderer::EdgeData> gizmo_e_data;
+    gizmo_e_data.push_back({.property = Vec4f(1,0,0,1)});
+    gizmo_e_data.push_back({.property = Vec4f(0,1,0,1)});
+    gizmo_e_data.push_back({.property = Vec4f(0,0,1,1)});
+    gizmo_renderer_.update_edge_data(gizmo_e_data);
 
     // Coordinate Frame
-    GL::MeshRenderer::Data data;
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(1,0,0,1)});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Vec4f(1,0,0,1)});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,1,0,1)});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Vec4f(0,1,0,1)});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,0,1,1)});
-    data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Vec4f(0,0,1,1)});
-    for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
-    gizmoRenderer_.updateData(data);
-    gizmoRenderer_.line_width_ = 8.0f;
-    gizmoRenderer_.point_size_ = 12.0f;
+    // GL::MeshRenderer::Data data;
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(1,0,0,1)});
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(5,0,0),.color=Vec4f(1,0,0,1)});
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,1,0,1)});
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,5,0),.color=Vec4f(0,1,0,1)});
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,0),.color=Vec4f(0,0,1,1)});
+    // data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{.position=Vec3f(0,0,5),.color=Vec4f(0,0,1,1)});
+    // for (uint i = 0; i < data.lineAttribs.size(); ++i) {data.lineIndices.push_back(i);}
+    // gizmoRenderer_.updateData(data);
+    // gizmoRenderer_.line_width_ = 8.0f;
+    // gizmoRenderer_.point_size_ = 12.0f;
 
     // PolyhedralMesh mesh;
     // IO::loadMesh("/Users/tobiaskohler/OF/OpenFlipper-Free/libs/libIGRec/res/output/IGREC_tet.ovmb", mesh);

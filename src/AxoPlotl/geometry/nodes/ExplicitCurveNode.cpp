@@ -54,21 +54,41 @@ void ExplicitCurveNode::renderUIBody(Scene* scene)
 
 void ExplicitCurveNode::init(Scene* scene)
 {
-    GL::MeshRenderer::Data data;
+    //GL::MeshRenderer::Data data;
 
     std::vector<std::pair<float,Vec3f>> pts;
     samplePoints(f_, pts, resolution_);
 
+    VolumeMeshRenderer::StaticData data;
+    data.n_edges_ = pts.size()-1;
     for (uint i = 0; i < pts.size(); ++i) {
-        data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
-            .position = pts[i].second,
-            .color = Vec4f(1,1,1,1)});
+        const auto& p = pts[i].second;
+        data.positions_.push_back(Vec4f(p[0],p[1],p[2],1));
     }
     for (uint i = 0; i < pts.size()-1; ++i) {
-        data.lineIndices.push_back(i);
-        data.lineIndices.push_back(i+1);
+        data.edge_draw_vertices_.push_back({.vertex_index=i, .edge_index=i});
+        data.edge_draw_vertices_.push_back({.vertex_index=i+1, .edge_index=i});
     }
-    mesh_renderer_.updateData(data);
+    vol_rend_.init(data);
+
+    std::vector<VolumeMeshRenderer::EdgeData> e_data;
+    for (uint i = 0; i < pts.size()-1; ++i) {
+        float t = pts[i].first;
+        e_data.push_back({.property=Vec4f(t,t,t,1)});
+    }
+    vol_rend_.update_edge_data(e_data);
+
+
+    // for (uint i = 0; i < pts.size(); ++i) {
+    //     data.lineAttribs.push_back(GL::MeshRenderer::VertexLineAttrib{
+    //         .position = pts[i].second,
+    //         .color = Vec4f(1,1,1,1)});
+    // }
+    // for (uint i = 0; i < pts.size()-1; ++i) {
+    //     data.lineIndices.push_back(i);
+    //     data.lineIndices.push_back(i+1);
+    // }
+    // mesh_renderer_.updateData(data);
 
     // Compute BBox
     bbox_.first = Vec3f(std::numeric_limits<float>::infinity());
