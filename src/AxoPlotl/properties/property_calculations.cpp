@@ -1,6 +1,7 @@
 #include "property_calculations.hpp"
 #include "imgui.h"
 #include <queue>
+#include <ToLoG/Core.hpp>
 
 namespace AxoPlotl
 {
