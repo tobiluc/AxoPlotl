@@ -1,15 +1,9 @@
 # AxoPlotl
 
-There are two main versions
-- AxoPlotl OpenGL (main): How it all started.
-- AxoPlotl WebGPU (webgpu): Currently developed. Currently lacks the picking feature of the OpenGL, but has the most sophisticated property visualization.
+## AxoPlotl OpenGL
+How it all started.
+[AxoPlotl OpenGL](https://github.com/tobiluc/AxoPlotl-OpenGL)
 
-Additionally, there is the polyscope branch where some code was added to Polyscope to visualize OpenVolume Meshes and some of their properties.
-
-## Windows (not tested in a while)
-```
-cmake -G "MinGW Makefiles" -S . -B build
-cmake --build build
-cd build
-start AxoPlorlApp.exe
-```
+## AxoPlotl WebGPU
+Currently developed. Still lacks the picking feature of the OpenGL, but has the more sophisticated property visualization.
+[AxoPlotl WebGPU](https://github.com/tobiluc/AxoPlotl-WebGPU)
